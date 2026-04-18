@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domu.Api", "src\Domu.Api\Domu.Api.csproj", "{82162FBF-47FF-4855-ADBF-8837A96F0406}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domu.Tests", "tests\Domu.Tests\Domu.Tests.csproj", "{1FEA871F-0E95-42F7-997E-9DDED88E680F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{82162FBF-47FF-4855-ADBF-8837A96F0406}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82162FBF-47FF-4855-ADBF-8837A96F0406}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82162FBF-47FF-4855-ADBF-8837A96F0406}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82162FBF-47FF-4855-ADBF-8837A96F0406}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1FEA871F-0E95-42F7-997E-9DDED88E680F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1FEA871F-0E95-42F7-997E-9DDED88E680F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1FEA871F-0E95-42F7-997E-9DDED88E680F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1FEA871F-0E95-42F7-997E-9DDED88E680F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
