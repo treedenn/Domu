@@ -20,20 +20,20 @@
 
     <ItemGroup>
       <Folder Include="Application\" />
-      <Folder Include="Features\Locations\Application\Invitations\DTOs\" />
+      <Folder Include="Features\Locations\Application\Invitations\Contracts\" />
       <Folder Include="Features\Locations\Application\Invitations\Ports\" />
-      <Folder Include="Features\Locations\Application\Items\DTOs\" />
+      <Folder Include="Features\Locations\Application\Items\Contracts\" />
       <Folder Include="Features\Locations\Application\Items\Ports\" />
-      <Folder Include="Features\Locations\Application\Locations\DTOs\" />
+      <Folder Include="Features\Locations\Application\Locations\Contracts\" />
       <Folder Include="Features\Locations\Application\Locations\Ports\" />
-      <Folder Include="Features\Locations\Application\Membership\DTOs\" />
+      <Folder Include="Features\Locations\Application\Membership\Contracts\" />
       <Folder Include="Features\Locations\Application\Membership\Ports\" />
       <Folder Include="Features\Locations\Infrastructure\Invitations\" />
       <Folder Include="Features\Locations\Infrastructure\Items\" />
       <Folder Include="Features\Locations\Infrastructure\Locations\" />
       <Folder Include="Features\Locations\Infrastructure\Membership\" />
       <Folder Include="Features\Locations\Interface\" />
-      <Folder Include="Features\Users\Application\DTOs\" />
+      <Folder Include="Features\Users\Application\Contracts\" />
       <Folder Include="Features\Users\Application\Ports\" />
       <Folder Include="Features\Users\Infrastructure\" />
       <Folder Include="Infrastructure\Database\Migrations\" />

@@ -35,7 +35,7 @@ Meaning:
 
 - `Features/<FeatureName>/` owns a business capability.
 - `Features/<FeatureName>/Domain/` contains domain models, value objects, enums, policies, and domain rules.
-- `Features/<FeatureName>/Application/` contains use cases, commands, queries, DTOs, orchestration, and ports owned by that feature.
+- `Features/<FeatureName>/Application/` contains use cases, commands, queries, contracts, orchestration, and ports owned by that feature.
 - `Features/<FeatureName>/Infrastructure/` contains implementations used only by that feature.
 - `Features/<FeatureName>/Interface/` contains controllers, request/response contracts, and feature-specific transport concerns.
 - Outer `Application/`, `Infrastructure/`, and `Interface/` are reserved for truly shared or composition-level concerns.
@@ -146,3 +146,30 @@ The future `README.md` should stay short and answer:
 - What belongs in outer shared layers.
 - How to add a new feature.
 - How to run the API locally.
+
+## Build And Test Commands
+
+Use paths relative to the `domu` project root:
+
+- Solution: `backend/dotnet/Domu.sln`
+- API project: `backend/dotnet/src/Domu.Api/Domu.Api.csproj`
+- Test project: `backend/dotnet/tests/Domu.Tests/Domu.Tests.csproj`
+
+Before running `dotnet build` or `dotnet test`, set these environment variables in the same PowerShell command:
+
+```powershell
+$env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE='1'
+$env:DOTNET_CLI_TELEMETRY_OPTOUT='1'
+$env:DOTNET_NOLOGO='1'
+$env:DOTNET_CLI_HOME='backend/dotnet/src/Domu.Api/.dotnet'
+```
+
+Preferred commands:
+
+```powershell
+$env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE='1'; $env:DOTNET_CLI_TELEMETRY_OPTOUT='1'; $env:DOTNET_NOLOGO='1'; $env:DOTNET_CLI_HOME='backend/dotnet/src/Domu.Api/.dotnet'; dotnet build 'backend/dotnet/Domu.sln' -v minimal
+```
+
+```powershell
+$env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE='1'; $env:DOTNET_CLI_TELEMETRY_OPTOUT='1'; $env:DOTNET_NOLOGO='1'; $env:DOTNET_CLI_HOME='backend/dotnet/src/Domu.Api/.dotnet'; dotnet test 'backend/dotnet/tests/Domu.Tests/Domu.Tests.csproj' --no-restore -v minimal
+```

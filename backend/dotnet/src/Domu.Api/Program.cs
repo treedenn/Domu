@@ -1,3 +1,9 @@
+using Domu.Api.Features.Locations.Application.Items;
+using Domu.Api.Features.Locations.Application.Items.Ports;
+using Domu.Api.Features.Locations.Application.Locations;
+using Domu.Api.Features.Locations.Application.Locations.Ports;
+using Domu.Api.Features.Locations.Infrastructure.Items;
+using Domu.Api.Features.Locations.Infrastructure.Locations;
 using Domu.Api.Features.Users.Application;
 using Domu.Api.Features.Users.Application.Ports;
 using Domu.Api.Features.Users.Infrastructure;
@@ -19,6 +25,17 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention());
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IItemRepository, ItemRepository>();
+builder.Services.AddScoped<ILocationRepository, LocationRepository>();
+builder.Services.AddScoped<ILocationQueryService, LocationQueryService>();
+builder.Services.AddScoped<ICreateItemUseCase, CreateItemUseCase>();
+builder.Services.AddScoped<IDeleteItemUseCase, DeleteItemUseCase>();
+builder.Services.AddScoped<IUpdateItemUseCase, UpdateItemUseCase>();
+builder.Services.AddScoped<IGetLocationItemsUseCase, GetLocationItemsUseCase>();
+builder.Services.AddScoped<ICreateLocationUseCase, CreateLocationUseCase>();
+builder.Services.AddScoped<IUpdateLocationUseCase, UpdateLocationUseCase>();
+builder.Services.AddScoped<IDeleteLocationUseCase, DeleteLocationUseCase>();
+builder.Services.AddScoped<IGetLocationsPageUseCase, GetLocationsPageUseCase>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IEnsureUserUseCase, EnsureUserUseCase>();
 builder.Services.AddScoped<IUserAccessor, UserAccessor>();
