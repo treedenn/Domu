@@ -19,9 +19,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention());
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<IActorRepository, ActorRepository>();
-builder.Services.AddScoped<IEnsureActorUseCase, EnsureActorUseCase>();
-builder.Services.AddScoped<IActorAccessor, ActorAccessor>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IEnsureUserUseCase, EnsureUserUseCase>();
+builder.Services.AddScoped<IUserAccessor, UserAccessor>();
 builder.Services.AddControllers();
 builder.Services.AddAuthorization();
 builder.Services
@@ -53,7 +53,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
-app.UseMiddleware<AuthenticatedActorMiddleware>();
+app.UseMiddleware<AuthenticatedUserMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();
