@@ -27,8 +27,9 @@ Domu.Api/
       Domain/
       Infrastructure/
       Interface/
+    Households/
     Users/
-    Locations/
+    Spaces/
 ```
 
 Meaning:
@@ -48,16 +49,12 @@ Example:
 
 ```text
 Features/
-  Locations/
+  Spaces/
     Domain/
-      Locations/
-      Membership/
-      Invitations/
+      Spaces/
       Items/
     Application/
-      Locations/
-      Membership/
-      Invitations/
+      Spaces/
       Items/
 ```
 
@@ -79,7 +76,7 @@ Move a group/category out of an existing feature and make it a top-level feature
 
 Example:
 
-- `Locations/Items` can stay inside `Locations` while items are conceptually part of the location capability.
+- `Spaces/Items` can stay inside `Spaces` while items are conceptually part of the Space capability.
 - If item behavior, workflows, APIs, persistence, and domain language grow enough, `Items` can become `Features/Items/`.
 
 ## Dependency Rules
@@ -133,8 +130,9 @@ When in doubt:
 Based on the current codebase:
 
 - `Users` is a feature.
-- `Locations` is a feature.
-- `Locations` currently contains grouped domain areas such as `Items`, `Membership`, `Invitations`, and `Locations`.
+- `Households` is a feature.
+- `Spaces` is a feature.
+- `Spaces` currently contains grouped domain areas such as `Items` and `Spaces`.
 - That grouping is valid and should remain until one of those areas becomes clearly independent enough to extract.
 
 ## README Direction
