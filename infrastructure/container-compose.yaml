@@ -1,0 +1,58 @@
+name: domu
+
+include:
+  - container-compose.zitadel.yaml
+
+services:
+  pgdb:
+    image: ${POSTGRES_IMAGE}
+    restart: always
+    shm_size: 128mb
+    ports:
+      - 5432:5432
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_ADMIN_USER}
+      interval: 10s
+      timeout: 30s
+      retries: 10
+      start_period: 20s
+    environment:
+      POSTGRES_USER: ${POSTGRES_ADMIN_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/18/docker:rw
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+    networks:
+      - domu-net
+  
+  mailpit:
+    image: axllent/mailpit
+    restart: unless-stopped
+    volumes:
+      - mailpit_data:/data
+    ports:
+      - 8025:8025
+      - 1025:1025
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+      
+  swaggerui:
+    image: docker.swagger.io/swaggerapi/swagger-ui
+    restart: unless-stopped
+    ports:
+      - 5001:8080
+    environment:
+      URL: "http://localhost:5000/openapi/v1.json"
+
+networks:
+  domu-net:
+    name: domu-net
+    
+volumes:
+  pgdata:
+  mailpit_data:
