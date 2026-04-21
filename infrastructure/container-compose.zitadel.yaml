@@ -1,3 +1,5 @@
+# https://zitadel.com/docs/self-hosting/deploy/compose
+# Almost identical except using existing postgres container.
 name: zitadel
 
 services:
