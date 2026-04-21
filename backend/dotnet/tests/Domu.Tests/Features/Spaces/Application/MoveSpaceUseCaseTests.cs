@@ -4,38 +4,20 @@ using Domu.Api.Features.Spaces.Domain.Spaces;
 
 namespace Domu.Tests.Features.Spaces.Application;
 
-public sealed class UpdateSpaceUseCaseTests
+public sealed class MoveSpaceUseCaseTests
 {
     [Fact]
-    public async Task ExecuteAsync_UpdatesExistingSpace()
+    public async Task ExecuteAsync_UpdatesParentId()
     {
         var space = new Space(Guid.NewGuid(), "Pantry", Guid.NewGuid());
-        space.MoveTo(Guid.NewGuid());
         var repository = new FakeSpaceRepository(space);
-        var useCase = new UpdateSpaceUseCase(repository);
-        var originalParentId = space.ParentId;
+        var useCase = new MoveSpaceUseCase(repository);
+        var parentId = Guid.NewGuid();
 
-        var result = await useCase.ExecuteAsync(
-            new UpdateSpaceCommand(space.Id, "Kitchen Pantry", "Updated description"),
-            CancellationToken.None);
+        var result = await useCase.ExecuteAsync(new MoveSpaceCommand(space.Id, parentId), CancellationToken.None);
 
-        Assert.Equal("Kitchen Pantry", result.Name);
-        Assert.Equal("Updated description", result.Description);
-        Assert.Equal(originalParentId, result.ParentId);
+        Assert.Equal(parentId, result.ParentId);
         Assert.Equal(1, repository.SaveChangesCalls);
-    }
-
-    [Fact]
-    public async Task ExecuteAsync_WhenSpaceDoesNotExist_Throws()
-    {
-        var repository = new FakeSpaceRepository();
-        var useCase = new UpdateSpaceUseCase(repository);
-
-        var action = () => useCase.ExecuteAsync(
-            new UpdateSpaceCommand(Guid.NewGuid(), "Pantry", null),
-            CancellationToken.None);
-
-        await Assert.ThrowsAsync<KeyNotFoundException>(action);
     }
 
     private sealed class FakeSpaceRepository(params Space[] seededSpaces) : ISpaceRepository

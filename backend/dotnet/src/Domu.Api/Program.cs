@@ -40,9 +40,11 @@ builder.Services.AddScoped<ISpaceQueryService, SpaceQueryService>();
 builder.Services.AddScoped<ICreateItemUseCase, CreateItemUseCase>();
 builder.Services.AddScoped<IDeleteItemUseCase, DeleteItemUseCase>();
 builder.Services.AddScoped<IUpdateItemUseCase, UpdateItemUseCase>();
+builder.Services.AddScoped<IReplaceItemEntriesUseCase, ReplaceItemEntriesUseCase>();
 builder.Services.AddScoped<IGetSpaceItemsUseCase, GetSpaceItemsUseCase>();
 builder.Services.AddScoped<ICreateSpaceUseCase, CreateSpaceUseCase>();
 builder.Services.AddScoped<IUpdateSpaceUseCase, UpdateSpaceUseCase>();
+builder.Services.AddScoped<IMoveSpaceUseCase, MoveSpaceUseCase>();
 builder.Services.AddScoped<IDeleteSpaceUseCase, DeleteSpaceUseCase>();
 builder.Services.AddScoped<IGetSpacesPageUseCase, GetSpacesPageUseCase>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -82,6 +84,6 @@ app.UseAuthentication();
 app.UseMiddleware<AuthenticatedUserMiddleware>();
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapGroup("/api/v1").MapControllers();
 
 app.Run();

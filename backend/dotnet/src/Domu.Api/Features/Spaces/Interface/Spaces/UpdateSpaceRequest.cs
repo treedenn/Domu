@@ -8,5 +8,4 @@ public sealed record UpdateSpaceRequest(
     [property: MaxLength(Space.NameMaxLength)]
     string Name,
     [property: MaxLength(Space.DescriptionMaxLength)]
-    string? Description,
-    Guid? ParentId);
+    string? Description);

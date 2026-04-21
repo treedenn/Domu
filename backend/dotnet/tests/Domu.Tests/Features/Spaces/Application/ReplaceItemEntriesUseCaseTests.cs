@@ -5,27 +5,25 @@ using Domu.Api.Features.Spaces.Domain.Items;
 
 namespace Domu.Tests.Features.Spaces.Application;
 
-public sealed class UpdateItemUseCaseTests
+public sealed class ReplaceItemEntriesUseCaseTests
 {
     [Fact]
-    public async Task ExecuteAsync_UpdatesExistingItem()
+    public async Task ExecuteAsync_ReplacesItemEntries()
     {
         var item = new Item(Guid.NewGuid(), "Milk", Guid.NewGuid());
-        var originalSpaceId = item.SpaceId;
+        item.AddEntry(new ItemEntry(Guid.NewGuid(), item.Id));
         var repository = new FakeItemRepository(item);
-        var useCase = new UpdateItemUseCase(repository);
+        var useCase = new ReplaceItemEntriesUseCase(repository);
 
         var result = await useCase.ExecuteAsync(
-            new UpdateItemCommand(
+            new ReplaceItemEntriesCommand(
                 item.Id,
-                "Skim Milk",
-                "Dairy",
-                "123"),
+                [new ItemEntryDraft(null, 3, ConsumableState.Unopened, null, null)]),
             CancellationToken.None);
 
-        Assert.Equal("Skim Milk", result.Name);
-        Assert.Equal(originalSpaceId, result.SpaceId);
-        Assert.Empty(result.Entries);
+        var entry = Assert.Single(result.Entries);
+        Assert.Equal(3, entry.Quantity);
+        Assert.Equal(ConsumableState.Unopened, entry.State);
         Assert.Equal(1, repository.SaveChangesCalls);
     }
 

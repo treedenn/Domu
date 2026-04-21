@@ -10,5 +10,4 @@ public sealed record UpdateItemRequest(
     [property: MaxLength(Item.CategoryMaxLength)]
     string? Category,
     [property: MaxLength(Item.BarcodeMaxLength)]
-    string? Barcode,
-    IReadOnlyCollection<ItemEntryRequest>? Entries);
+    string? Barcode);

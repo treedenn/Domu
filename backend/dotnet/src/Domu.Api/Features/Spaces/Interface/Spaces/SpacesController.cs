@@ -19,6 +19,7 @@ public sealed class SpacesController(
     ICreateSpaceUseCase createSpaceUseCase,
     IGetSpacesPageUseCase getSpacesPageUseCase,
     IUpdateSpaceUseCase updateSpaceUseCase,
+    IMoveSpaceUseCase moveSpaceUseCase,
     IDeleteSpaceUseCase deleteSpaceUseCase)
     : ControllerBase
 {
@@ -108,14 +109,10 @@ public sealed class SpacesController(
         if (!await CanAccessHouseholdAsync(householdId, cancellationToken))
             return NotFound();
 
-        if (request.ParentId is not null &&
-            !await SpaceBelongsToHouseholdAsync(request.ParentId.Value, householdId, cancellationToken))
-            return NotFound();
-
         try
         {
             var space = await updateSpaceUseCase.ExecuteAsync(
-                new UpdateSpaceCommand(spaceId, request.Name, request.Description, request.ParentId),
+                new UpdateSpaceCommand(spaceId, request.Name, request.Description),
                 cancellationToken);
 
             return Ok(space);
@@ -127,6 +124,44 @@ public sealed class SpacesController(
         catch (ArgumentException exception)
         {
             return BadRequest(new ProblemDetails { Title = "Invalid space.", Detail = exception.Message });
+        }
+    }
+
+    [HttpPut("{spaceId:guid}/parent")]
+    [ProducesResponseType(typeof(SpaceView), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<SpaceView>> MoveSpace(
+        Guid householdId,
+        Guid spaceId,
+        MoveSpaceRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!await SpaceBelongsToHouseholdAsync(spaceId, householdId, cancellationToken))
+            return NotFound();
+
+        if (!await CanAccessHouseholdAsync(householdId, cancellationToken))
+            return NotFound();
+
+        if (request.ParentId is not null &&
+            !await SpaceBelongsToHouseholdAsync(request.ParentId.Value, householdId, cancellationToken))
+            return NotFound();
+
+        try
+        {
+            var space = await moveSpaceUseCase.ExecuteAsync(
+                new MoveSpaceCommand(spaceId, request.ParentId),
+                cancellationToken);
+
+            return Ok(space);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(new ProblemDetails { Title = "Invalid space move.", Detail = exception.Message });
         }
     }
 

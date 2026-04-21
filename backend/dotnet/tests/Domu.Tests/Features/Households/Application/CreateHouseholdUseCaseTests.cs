@@ -19,6 +19,8 @@ public sealed class CreateHouseholdUseCaseTests
 
         Assert.Equal(ownerId, result.OwnerId);
         Assert.Equal("Home", result.Name);
+        Assert.Equal(HouseholdSubscriptionPlan.Free, result.SubscriptionPlan);
+        Assert.Equal(HouseholdSubscriptionStatus.Active, result.SubscriptionStatus);
         Assert.Equal(result.Id, repository.StoredHouseholds.Single().Id);
         Assert.Equal(1, repository.AddCalls);
         Assert.Equal(1, repository.SaveChangesCalls);

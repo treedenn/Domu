@@ -21,6 +21,16 @@ public sealed class HouseholdConfiguration : IEntityTypeConfiguration<HouseholdE
             .HasMaxLength(Domain.Households.Household.NameMaxLength)
             .IsRequired();
 
+        builder.Property(household => household.SubscriptionPlan)
+            .HasConversion<string>()
+            .HasMaxLength(32)
+            .IsRequired();
+
+        builder.Property(household => household.SubscriptionStatus)
+            .HasConversion<string>()
+            .HasMaxLength(32)
+            .IsRequired();
+
         builder.HasIndex(household => new { household.OwnerId, household.Name });
     }
 }

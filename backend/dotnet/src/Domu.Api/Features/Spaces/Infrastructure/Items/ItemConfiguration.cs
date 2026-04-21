@@ -27,12 +27,12 @@ public sealed class ItemConfiguration : IEntityTypeConfiguration<ItemEntity>
         builder.Property(item => item.Barcode)
             .HasMaxLength(Domain.Items.Item.BarcodeMaxLength);
 
-        builder.HasMany<ItemEntryEntity>("_entries")
+        builder.HasMany(item => item.Entries)
             .WithOne()
             .HasForeignKey(entry => entry.ItemId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.Navigation("_entries")
+        builder.Navigation(item => item.Entries)
             .UsePropertyAccessMode(PropertyAccessMode.Field);
 
         builder.HasIndex(item => new { item.SpaceId, item.Name });

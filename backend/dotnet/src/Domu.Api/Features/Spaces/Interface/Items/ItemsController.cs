@@ -21,6 +21,7 @@ public sealed class ItemsController(
     ICreateItemUseCase createItemUseCase,
     IGetSpaceItemsUseCase getSpaceItemsUseCase,
     IUpdateItemUseCase updateItemUseCase,
+    IReplaceItemEntriesUseCase replaceItemEntriesUseCase,
     IDeleteItemUseCase deleteItemUseCase)
     : ControllerBase
 {
@@ -90,11 +91,9 @@ public sealed class ItemsController(
             var item = await updateItemUseCase.ExecuteAsync(
                 new UpdateItemCommand(
                     itemId,
-                    spaceId,
                     request.Name,
                     request.Category,
-                    request.Barcode,
-                    request.Entries?.Select(entry => entry.ToDraft()).ToArray()),
+                    request.Barcode),
                 cancellationToken);
 
             return Ok(item);
@@ -106,6 +105,40 @@ public sealed class ItemsController(
         catch (ArgumentException exception)
         {
             return BadRequest(new ProblemDetails { Title = "Invalid item.", Detail = exception.Message });
+        }
+    }
+
+    [HttpPut("{itemId:guid}/entries")]
+    [ProducesResponseType(typeof(ItemView), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ItemView>> ReplaceItemEntries(
+        Guid householdId,
+        Guid spaceId,
+        Guid itemId,
+        ReplaceItemEntriesRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!await CanAccessItemAsync(householdId, spaceId, itemId, cancellationToken))
+            return NotFound();
+
+        try
+        {
+            var item = await replaceItemEntriesUseCase.ExecuteAsync(
+                new ReplaceItemEntriesCommand(
+                    itemId,
+                    request.Entries.Select(entry => entry.ToDraft()).ToArray()),
+                cancellationToken);
+
+            return Ok(item);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(new ProblemDetails { Title = "Invalid item entries.", Detail = exception.Message });
         }
     }
 

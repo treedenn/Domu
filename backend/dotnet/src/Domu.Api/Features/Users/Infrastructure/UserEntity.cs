@@ -8,7 +8,7 @@ public sealed class UserEntity
     {
     }
 
-    public UserEntity(Guid id, string externalIdentifier, SubscriptionTier subscriptionTier)
+    public UserEntity(Guid id, string externalIdentifier)
     {
         Id = id == Guid.Empty
             ? throw new ArgumentException("User id cannot be empty.", nameof(id))
@@ -16,22 +16,20 @@ public sealed class UserEntity
         ExternalIdentifier = string.IsNullOrWhiteSpace(externalIdentifier)
             ? throw new ArgumentException("External identifier cannot be empty.", nameof(externalIdentifier))
             : externalIdentifier;
-        SubscriptionTier = subscriptionTier;
     }
 
     public Guid Id { get; private set; }
     public string ExternalIdentifier { get; private set; } = null!;
-    public SubscriptionTier SubscriptionTier { get; private set; }
 
     public User ToDomain()
     {
-        return new User(Id, SubscriptionTier);
+        return new User(Id);
     }
 
     public static UserEntity FromDomain(User user, string externalIdentifier)
     {
         ArgumentNullException.ThrowIfNull(user);
 
-        return new UserEntity(user.Id, externalIdentifier, user.SubscriptionTier);
+        return new UserEntity(user.Id, externalIdentifier);
     }
 }

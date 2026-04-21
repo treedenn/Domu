@@ -32,7 +32,6 @@ public sealed class EnsureUserUseCaseTests
             new UserAuthIdentity("auth0|new-user"),
             CancellationToken.None);
 
-        Assert.Equal(SubscriptionTier.Default, result.SubscriptionTier);
         Assert.Equal(1, repository.AddCalls);
         Assert.Equal(1, repository.SaveChangesCalls);
         Assert.Contains(repository.StoredUsers, entry => entry.User == result && entry.ExternalIdentifier == "auth0|new-user");

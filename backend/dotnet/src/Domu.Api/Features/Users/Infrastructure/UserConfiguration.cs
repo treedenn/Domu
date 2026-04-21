@@ -21,7 +21,5 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<UserEntity>
         builder.HasIndex(user => user.ExternalIdentifier)
             .IsUnique();
 
-        builder.Property(user => user.SubscriptionTier)
-            .IsRequired();
     }
 }
