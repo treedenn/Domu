@@ -10,9 +10,22 @@ public sealed class HouseholdRepository(AppDbContext dbContext) : IHouseholdRepo
     public async Task<Household?> GetByIdAsync(Guid householdId, CancellationToken cancellationToken)
     {
         var entity = await dbContext.Households
+            .AsNoTracking()
             .SingleOrDefaultAsync(household => household.Id == householdId, cancellationToken);
 
         return entity?.ToDomain();
+    }
+
+    public async Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken)
+    {
+        var entities = await dbContext.Households
+            .AsNoTracking()
+            .Where(household => household.OwnerId == ownerId)
+            .OrderBy(household => household.Name)
+            .ThenBy(household => household.Id)
+            .ToArrayAsync(cancellationToken);
+
+        return entities.Select(household => household.ToDomain()).ToArray();
     }
 
     public async Task AddAsync(Household household, CancellationToken cancellationToken)

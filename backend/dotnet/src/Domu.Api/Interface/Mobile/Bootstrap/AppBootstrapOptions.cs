@@ -1,4 +1,4 @@
-namespace Domu.Api.Interface.Mobile.Server;
+namespace Domu.Api.Interface.Mobile.Bootstrap;
 
 public sealed class AppBootstrapOptions
 {

@@ -1,7 +1,7 @@
-using Domu.Api.Interface.Mobile.Client;
+using Domu.Api.Interface.RequestContext;
 using Microsoft.Extensions.Options;
 
-namespace Domu.Api.Interface.Mobile.Server;
+namespace Domu.Api.Interface.Mobile.Bootstrap;
 
 public sealed class AppBootstrapService(
     IClientRequestContextAccessor clientRequestContextAccessor,

@@ -34,18 +34,23 @@ public sealed class SpaceQueryService(AppDbContext dbContext) : ISpaceQueryServi
             .ToArrayAsync(cancellationToken);
 
         var spaceIds = pageSpaces.Select(space => space.Id).ToArray();
-        var itemCounts = query.Items.HasFlag(SpaceItemsProjection.Count)
-            ? await GetItemCountsAsync(spaceIds, cancellationToken)
-            : new Dictionary<Guid, int>();
-        var items = query.Items.HasFlag(SpaceItemsProjection.Data)
+        var includeItemData = query.Items.HasFlag(SpaceItemsProjection.Data);
+        var includeItemCount = query.Items.HasFlag(SpaceItemsProjection.Count) || includeItemData;
+        var includeChildSpaceData = query.Children.HasFlag(SpaceChildrenProjection.Data);
+        var includeChildSpaceCount = query.Children.HasFlag(SpaceChildrenProjection.Count) || includeChildSpaceData;
+
+        var items = includeItemData
             ? await GetItemsAsync(spaceIds, cancellationToken)
             : new Dictionary<Guid, IReadOnlyList<SpaceItemView>>();
-        var childSpaceCounts = query.Children.HasFlag(SpaceChildrenProjection.Count)
-            ? await GetChildSpaceCountsAsync(spaceIds, cancellationToken)
+        var itemCounts = includeItemCount && !includeItemData
+            ? await GetItemCountsAsync(spaceIds, cancellationToken)
             : new Dictionary<Guid, int>();
-        var childSpaces = query.Children.HasFlag(SpaceChildrenProjection.Data)
+        var childSpaces = includeChildSpaceData
             ? await GetChildSpacesAsync(spaceIds, cancellationToken)
             : new Dictionary<Guid, IReadOnlyList<SpaceChildView>>();
+        var childSpaceCounts = includeChildSpaceCount && !includeChildSpaceData
+            ? await GetChildSpaceCountsAsync(spaceIds, cancellationToken)
+            : new Dictionary<Guid, int>();
 
         return new SpacePage(
             pageSpaces.Select(space => new SpaceView(
@@ -54,18 +59,35 @@ public sealed class SpaceQueryService(AppDbContext dbContext) : ISpaceQueryServi
                     space.ParentId,
                     space.Name,
                     space.Description,
-                    query.Items.HasFlag(SpaceItemsProjection.Count) ? itemCounts.GetValueOrDefault(space.Id) : null,
-                    query.Items.HasFlag(SpaceItemsProjection.Data) ? items.GetValueOrDefault(space.Id, []) : null,
-                    query.Children.HasFlag(SpaceChildrenProjection.Count)
-                        ? childSpaceCounts.GetValueOrDefault(space.Id)
-                        : null,
-                    query.Children.HasFlag(SpaceChildrenProjection.Data)
-                        ? childSpaces.GetValueOrDefault(space.Id, [])
-                        : null))
+                    BuildCollectionView(includeItemCount, includeItemData, itemCounts, items, space.Id),
+                    BuildCollectionView(
+                        includeChildSpaceCount,
+                        includeChildSpaceData,
+                        childSpaceCounts,
+                        childSpaces,
+                        space.Id)))
                 .ToArray(),
             query.PageNumber,
             query.PageSize,
             totalCount);
+    }
+
+    private static CollectionView<T>? BuildCollectionView<T>(
+        bool includeCount,
+        bool includeData,
+        IReadOnlyDictionary<Guid, int> counts,
+        IReadOnlyDictionary<Guid, IReadOnlyList<T>> data,
+        Guid ownerId)
+    {
+        if (!includeCount && !includeData)
+            return null;
+
+        var collectionData = includeData ? data.GetValueOrDefault(ownerId, []) : null;
+        var count = includeData
+            ? collectionData!.Count
+            : counts.GetValueOrDefault(ownerId);
+
+        return new CollectionView<T>(count, collectionData);
     }
 
     private async Task<Dictionary<Guid, int>> GetItemCountsAsync(

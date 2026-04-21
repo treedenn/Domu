@@ -1,4 +1,4 @@
-namespace Domu.Api.Interface.Mobile.Client;
+namespace Domu.Api.Interface.RequestContext;
 
 public sealed class ClientRequestContextAccessor : IClientRequestContextAccessor
 {

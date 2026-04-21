@@ -1,3 +1,4 @@
+using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.Households.Application.Households.Ports;
 using Domu.Api.Features.Households.Infrastructure.Households;
 using Domu.Api.Features.Spaces.Application.Items;
@@ -28,6 +29,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IHouseholdRepository, HouseholdRepository>();
+builder.Services.AddScoped<ICreateHouseholdUseCase, CreateHouseholdUseCase>();
+builder.Services.AddScoped<IGetHouseholdUseCase, GetHouseholdUseCase>();
+builder.Services.AddScoped<IGetHouseholdsUseCase, GetHouseholdsUseCase>();
+builder.Services.AddScoped<IUpdateHouseholdUseCase, UpdateHouseholdUseCase>();
+builder.Services.AddScoped<IDeleteHouseholdUseCase, DeleteHouseholdUseCase>();
 builder.Services.AddScoped<IItemRepository, ItemRepository>();
 builder.Services.AddScoped<ISpaceRepository, SpaceRepository>();
 builder.Services.AddScoped<ISpaceQueryService, SpaceQueryService>();

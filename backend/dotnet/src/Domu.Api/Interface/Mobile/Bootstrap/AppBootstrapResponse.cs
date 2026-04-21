@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Domu.Api.Interface.Mobile.Server;
+namespace Domu.Api.Interface.Mobile.Bootstrap;
 
 public sealed record AppBootstrapResponse(
     string? ClientVersion,

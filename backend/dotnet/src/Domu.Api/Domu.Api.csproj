@@ -9,7 +9,7 @@
     <ItemGroup>
         <PackageReference Include="EFCore.NamingConventions" Version="10.0.1" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.6" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.4" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.6" />
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.6" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.6">
             <PrivateAssets>all</PrivateAssets>
@@ -20,8 +20,6 @@
 
     <ItemGroup>
         <Folder Include="Application\" />
-        <Folder Include="Features\Households\Application\Contracts\" />
-        <Folder Include="Features\Households\Application\Ports\" />
         <Folder Include="Features\Households\Infrastructure\" />
         <Folder Include="Features\Spaces\Application\Items\Contracts\" />
         <Folder Include="Features\Spaces\Application\Items\Ports\" />
@@ -34,7 +32,6 @@
         <Folder Include="Features\Users\Application\Ports\" />
         <Folder Include="Features\Users\Infrastructure\" />
         <Folder Include="Infrastructure\Database\Migrations\" />
-        <Folder Include="Interface\Shared\" />
     </ItemGroup>
 
 </Project>

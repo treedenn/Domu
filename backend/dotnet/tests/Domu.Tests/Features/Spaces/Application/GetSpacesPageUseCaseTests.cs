@@ -17,10 +17,12 @@ public sealed class GetSpacesPageUseCaseTests
                     null,
                     "Pantry",
                     "Food storage",
-                    2,
-                    [new SpaceItemView(Guid.NewGuid(), Guid.NewGuid(), "Pasta", "Food", "123", 4)],
-                    1,
-                    [new SpaceChildView(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Shelf", null)])
+                    new CollectionView<SpaceItemView>(
+                        1,
+                        [new SpaceItemView(Guid.NewGuid(), Guid.NewGuid(), "Pasta", "Food", "123", 4)]),
+                    new CollectionView<SpaceChildView>(
+                        1,
+                        [new SpaceChildView(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Shelf", null)]))
             ],
             2,
             10,

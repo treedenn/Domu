@@ -11,14 +11,12 @@ public sealed class Household
         Id = id == Guid.Empty
             ? throw new ArgumentException("Household id cannot be empty.", nameof(id))
             : id;
-        OwnerId = ownerId == Guid.Empty
-            ? throw new ArgumentException("Owner id cannot be empty.", nameof(ownerId))
-            : ownerId;
+        ChangeOwnership(ownerId);
         Rename(name);
     }
 
     public Guid Id { get; }
-    public Guid OwnerId { get; }
+    public Guid OwnerId { get; private set; }
 
     public string Name
     {
@@ -34,5 +32,12 @@ public sealed class Household
             throw new ArgumentException($"Household name cannot be longer than {NameMaxLength} characters.", nameof(name));
 
         Name = name;
+    }
+    
+    public void ChangeOwnership(Guid ownerId)
+    {
+        if (ownerId == Guid.Empty)
+            throw new ArgumentException("Owner id cannot be empty.", nameof(ownerId));
+        OwnerId = ownerId;
     }
 }

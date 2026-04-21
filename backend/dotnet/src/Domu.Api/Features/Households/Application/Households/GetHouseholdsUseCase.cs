@@ -1,0 +1,18 @@
+using Domu.Api.Features.Households.Application.Households.Contracts;
+using Domu.Api.Features.Households.Application.Households.Ports;
+
+namespace Domu.Api.Features.Households.Application.Households;
+
+public sealed class GetHouseholdsUseCase(IHouseholdRepository householdRepository) : IGetHouseholdsUseCase
+{
+    public async Task<IReadOnlyList<HouseholdView>> ExecuteAsync(
+        GetHouseholdsQuery query,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(query);
+
+        var households = await householdRepository.GetByOwnerIdAsync(query.OwnerId, cancellationToken);
+
+        return households.Select(HouseholdView.FromDomain).ToArray();
+    }
+}

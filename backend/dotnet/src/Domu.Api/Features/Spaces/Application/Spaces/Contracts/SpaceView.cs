@@ -8,10 +8,8 @@ public sealed record SpaceView(
     Guid? ParentId,
     string Name,
     string? Description,
-    int? ItemCount,
-    IReadOnlyList<SpaceItemView>? Items,
-    int? ChildSpaceCount,
-    IReadOnlyList<SpaceChildView>? ChildSpaces)
+    CollectionView<SpaceItemView>? Items,
+    CollectionView<SpaceChildView>? ChildSpaces)
 {
     public static SpaceView FromDomain(Space space)
     {
@@ -23,8 +21,6 @@ public sealed record SpaceView(
             space.ParentId,
             space.Name,
             space.Description,
-            null,
-            null,
             null,
             null);
     }
