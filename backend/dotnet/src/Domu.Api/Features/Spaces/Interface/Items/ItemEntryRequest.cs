@@ -6,7 +6,7 @@ namespace Domu.Api.Features.Spaces.Interface.Items;
 
 public sealed record ItemEntryRequest(
     Guid? Id,
-    [property: Range(0, int.MaxValue)]
+    [Range(0, int.MaxValue)]
     int Quantity,
     ConsumableState State,
     DateTimeOffset? AcquisitionDate,

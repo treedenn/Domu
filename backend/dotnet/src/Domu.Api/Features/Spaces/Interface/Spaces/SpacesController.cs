@@ -17,6 +17,7 @@ public sealed class SpacesController(
     IHouseholdRepository householdRepository,
     ISpaceRepository spaceRepository,
     ICreateSpaceUseCase createSpaceUseCase,
+    IGetSpaceUseCase getSpaceUseCase,
     IGetSpacesPageUseCase getSpacesPageUseCase,
     IUpdateSpaceUseCase updateSpaceUseCase,
     IMoveSpaceUseCase moveSpaceUseCase,
@@ -63,6 +64,31 @@ public sealed class SpacesController(
         }
     }
 
+    [HttpGet("{spaceId:guid}")]
+    [ProducesResponseType(typeof(SpaceView), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<SpaceView>> GetSpace(
+        Guid householdId,
+        Guid spaceId,
+        CancellationToken cancellationToken)
+    {
+        if (!await CanAccessHouseholdAsync(householdId, cancellationToken))
+            return NotFound();
+
+        try
+        {
+            var space = await getSpaceUseCase.ExecuteAsync(
+                new GetSpaceQuery(spaceId, householdId),
+                cancellationToken);
+
+            return Ok(space);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
+
     [HttpPost]
     [ProducesResponseType(typeof(SpaceView), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -85,7 +111,7 @@ public sealed class SpacesController(
                 new CreateSpaceCommand(householdId, request.Name, request.Description, request.ParentId),
                 cancellationToken);
 
-            return CreatedAtAction(nameof(GetSpaces), new { householdId, parentId = space.ParentId }, space);
+            return CreatedAtAction(nameof(GetSpace), new { householdId, spaceId = space.Id }, space);
         }
         catch (ArgumentException exception)
         {

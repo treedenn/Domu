@@ -43,6 +43,7 @@ builder.Services.AddScoped<IUpdateItemUseCase, UpdateItemUseCase>();
 builder.Services.AddScoped<IReplaceItemEntriesUseCase, ReplaceItemEntriesUseCase>();
 builder.Services.AddScoped<IGetSpaceItemsUseCase, GetSpaceItemsUseCase>();
 builder.Services.AddScoped<ICreateSpaceUseCase, CreateSpaceUseCase>();
+builder.Services.AddScoped<IGetSpaceUseCase, GetSpaceUseCase>();
 builder.Services.AddScoped<IUpdateSpaceUseCase, UpdateSpaceUseCase>();
 builder.Services.AddScoped<IMoveSpaceUseCase, MoveSpaceUseCase>();
 builder.Services.AddScoped<IDeleteSpaceUseCase, DeleteSpaceUseCase>();

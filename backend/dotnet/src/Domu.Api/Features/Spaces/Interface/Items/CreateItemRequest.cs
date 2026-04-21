@@ -4,11 +4,11 @@ using Domu.Api.Features.Spaces.Domain.Items;
 namespace Domu.Api.Features.Spaces.Interface.Items;
 
 public sealed record CreateItemRequest(
-    [property: Required]
-    [property: MaxLength(Item.NameMaxLength)]
+    [Required]
+    [MaxLength(Item.NameMaxLength)]
     string Name,
-    [property: MaxLength(Item.CategoryMaxLength)]
+    [MaxLength(Item.CategoryMaxLength)]
     string? Category,
-    [property: MaxLength(Item.BarcodeMaxLength)]
+    [MaxLength(Item.BarcodeMaxLength)]
     string? Barcode,
     IReadOnlyCollection<ItemEntryRequest>? Entries);

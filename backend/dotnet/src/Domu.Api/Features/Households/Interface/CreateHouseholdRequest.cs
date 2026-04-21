@@ -4,6 +4,6 @@ using Domu.Api.Features.Households.Domain.Households;
 namespace Domu.Api.Features.Households.Interface;
 
 public sealed record CreateHouseholdRequest(
-    [property: Required]
-    [property: MaxLength(Household.NameMaxLength)]
+    [Required]
+    [MaxLength(Household.NameMaxLength)]
     string Name);
