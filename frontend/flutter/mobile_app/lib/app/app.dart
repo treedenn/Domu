@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'bootstrap/app_bootstrap.dart';
-import 'routing/app_router.dart';
+import 'bootstrap/app_config.dart';
+import 'routing/router.dart';
 import 'theme/app_theme.dart';
-import '../core/ui/loading_view.dart';
-import '../features/auth/presentation/screens/login_screen.dart';
-import '../features/households/presentation/screens/household_list_screen.dart';
+import '../features/auth/presentation/controllers/auth_controller.dart';
+import '../features/households/data/households_repository.dart';
+import '../features/households/data/members_repository.dart';
+import '../features/items/data/items_repository.dart';
+import '../features/search/data/search_repository.dart';
+import '../features/spaces/data/spaces_repository.dart';
 
 class DomuApp extends StatelessWidget {
   const DomuApp({required this.bootstrap, super.key});
@@ -14,35 +19,34 @@ class DomuApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: bootstrap.authController,
-      builder: (BuildContext context, Widget? child) {
-        final authState = bootstrap.authController.state;
+    return MultiProvider(
+      providers: [
+        Provider<AppConfig>.value(value: bootstrap.config),
+        ChangeNotifierProvider<AuthController>.value(
+          value: bootstrap.authController,
+        ),
+        Provider<HouseholdsRepository>.value(
+          value: bootstrap.householdsRepository,
+        ),
+        Provider<MembersRepository>.value(value: bootstrap.membersRepository),
+        Provider<SpacesRepository>.value(value: bootstrap.spacesRepository),
+        Provider<ItemsRepository>.value(value: bootstrap.itemsRepository),
+        Provider<SearchRepository>.value(value: bootstrap.searchRepository),
+      ],
+      child: Builder(
+        builder: (BuildContext context) {
+          final AppConfig config = context.read<AppConfig>();
+          final AuthController authController = context.read<AuthController>();
 
-        return MaterialApp(
-          title: bootstrap.config.appName,
-          theme: AppTheme.light(),
-          onGenerateRoute: AppRouter.onGenerateRoute,
-          home: switch ((authState.isInitializing, authState.isAuthenticated)) {
-            (true, _) => const Scaffold(
-                body: LoadingView(label: 'Restoring session...'),
-              ),
-            (_, true) => HouseholdListScreen(
-                onOpenSpaces: (BuildContext context) {
-                  Navigator.of(context).pushNamed(AppRouter.spacesRoute);
-                },
-                onOpenUsers: (BuildContext context) {
-                  Navigator.of(context).pushNamed(AppRouter.usersRoute);
-                },
-                onSignOut: bootstrap.authController.signOut,
-              ),
-            _ => LoginScreen(
-                controller: bootstrap.authController,
-                config: bootstrap.config,
-              ),
-          },
-        );
-      },
+          return MaterialApp.router(
+            title: config.appName,
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
+            themeMode: ThemeMode.system,
+            routerConfig: buildRouter(authController),
+          );
+        },
+      ),
     );
   }
 }

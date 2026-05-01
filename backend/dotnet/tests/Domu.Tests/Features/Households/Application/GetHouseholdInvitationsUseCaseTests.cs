@@ -1,0 +1,97 @@
+using Domu.Api.Features.Households.Application.Households.Ports;
+using Domu.Api.Features.Households.Application.Members;
+using Domu.Api.Features.Households.Domain.Households;
+using Domu.Api.Features.Households.Domain.Members;
+
+namespace Domu.Tests.Features.Households.Application;
+
+public sealed class GetHouseholdInvitationsUseCaseTests
+{
+    [Fact]
+    public async Task ExecuteAsync_ReturnsPendingInvitationsForAccessibleHousehold()
+    {
+        var ownerId = Guid.NewGuid();
+        var household = new Household(Guid.NewGuid(), ownerId, "Home");
+        var householdRepository = new FakeHouseholdRepository(household);
+        var membershipRepository = new FakeHouseholdMembershipRepository();
+        var now = DateTimeOffset.UtcNow;
+        await membershipRepository.AddInvitationAsync(
+            new HouseholdInvitation(
+                Guid.NewGuid(),
+                household.Id,
+                "person@example.com",
+                ownerId,
+                HouseholdMemberRole.Member,
+                "token",
+                now,
+                now.AddDays(1)),
+            CancellationToken.None);
+        var useCase = new GetHouseholdInvitationsUseCase(householdRepository, membershipRepository);
+
+        var result = await useCase.ExecuteAsync(
+            new GetHouseholdInvitationsQuery(household.Id, ownerId),
+            CancellationToken.None);
+
+        var invitation = Assert.Single(result);
+        Assert.Equal("person@example.com", invitation.Email);
+        Assert.Equal(HouseholdInvitationStatus.Pending, invitation.Status);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenUserCannotAccessHousehold_Throws()
+    {
+        var household = new Household(Guid.NewGuid(), Guid.NewGuid(), "Home");
+        var useCase = new GetHouseholdInvitationsUseCase(
+            new FakeHouseholdRepository(household),
+            new FakeHouseholdMembershipRepository());
+
+        var action = () => useCase.ExecuteAsync(
+            new GetHouseholdInvitationsQuery(household.Id, Guid.NewGuid()),
+            CancellationToken.None);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(action);
+    }
+
+    private sealed class FakeHouseholdRepository(params Household[] seededHouseholds) : IHouseholdRepository
+    {
+        private readonly List<Household> _households = seededHouseholds.ToList();
+
+        public Task<Household?> GetByIdAsync(Guid householdId, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(_households.SingleOrDefault(household => household.Id == householdId));
+        }
+
+        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<IReadOnlyList<Household>>(
+                _households.Where(household => household.OwnerId == ownerId).ToArray());
+        }
+
+        public Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+        {
+            return GetByOwnerIdAsync(userId, cancellationToken);
+        }
+
+        public Task AddAsync(Household household, CancellationToken cancellationToken)
+        {
+            _households.Add(household);
+            return Task.CompletedTask;
+        }
+
+        public Task UpdateAsync(Household household, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteAsync(Guid householdId, CancellationToken cancellationToken)
+        {
+            _households.RemoveAll(household => household.Id == householdId);
+            return Task.CompletedTask;
+        }
+
+        public Task SaveChangesAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+    }
+}

@@ -144,6 +144,9 @@ local.properties
 # Coverage
 coverage/
 
+# Local app configuration
+config/*.local.json
+
 # Symbols
 app.*.symbols
 

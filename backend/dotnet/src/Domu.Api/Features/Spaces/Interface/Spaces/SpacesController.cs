@@ -1,4 +1,5 @@
 using Domu.Api.Features.Households.Application.Households.Ports;
+using Domu.Api.Features.Households.Application.Members.Ports;
 using Domu.Api.Features.Spaces.Application.Spaces;
 using Domu.Api.Features.Spaces.Application.Spaces.Contracts;
 using Domu.Api.Features.Spaces.Application.Spaces.Ports;
@@ -15,6 +16,7 @@ namespace Domu.Api.Features.Spaces.Interface.Spaces;
 public sealed class SpacesController(
     IUserAccessor userAccessor,
     IHouseholdRepository householdRepository,
+    IHouseholdMembershipRepository membershipRepository,
     ISpaceRepository spaceRepository,
     ICreateSpaceUseCase createSpaceUseCase,
     IGetSpaceUseCase getSpaceUseCase,
@@ -216,7 +218,8 @@ public sealed class SpacesController(
     private async Task<bool> CanAccessHouseholdAsync(Guid householdId, CancellationToken cancellationToken)
     {
         var household = await householdRepository.GetByIdAsync(householdId, cancellationToken);
-        return household?.OwnerId == userAccessor.User.Id;
+        return household?.OwnerId == userAccessor.User.Id
+               || await membershipRepository.IsMemberAsync(householdId, userAccessor.User.Id, cancellationToken);
     }
 
     private async Task<bool> SpaceBelongsToHouseholdAsync(

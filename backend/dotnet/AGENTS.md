@@ -164,6 +164,11 @@ When adding production behavior:
 4. If the sub-group starts acting like an independent module, extract it into its
    own feature.
 
+Do not create, remove, or regenerate Entity Framework migrations. Agents may
+update EF models and configurations, but migration files must be created by the
+project owner unless the user explicitly instructs otherwise in the current
+turn.
+
 When in doubt:
 
 - Prefer keeping code inside an existing feature.
@@ -267,6 +272,10 @@ Use paths relative to the `domu` project root:
 - Solution: `backend/dotnet/Domu.sln`
 - API project: `backend/dotnet/src/Domu.Api/Domu.Api.csproj`
 - Test project: `backend/dotnet/tests/Domu.Tests/Domu.Tests.csproj`
+
+Do not run `dotnet ef migrations add`, `dotnet ef migrations remove`, or other
+commands that create, remove, or regenerate migration files unless the user
+explicitly asks for that action in the current turn.
 
 Before running `dotnet build` or `dotnet test`, set these environment variables
 in the same PowerShell command:

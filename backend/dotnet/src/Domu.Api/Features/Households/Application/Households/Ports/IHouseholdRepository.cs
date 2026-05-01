@@ -6,6 +6,7 @@ public interface IHouseholdRepository
 {
     Task<Household?> GetByIdAsync(Guid householdId, CancellationToken cancellationToken);
     Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId, CancellationToken cancellationToken);
     Task AddAsync(Household household, CancellationToken cancellationToken);
     Task UpdateAsync(Household household, CancellationToken cancellationToken);
     Task DeleteAsync(Guid householdId, CancellationToken cancellationToken);

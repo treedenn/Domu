@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../app/theme/tokens.dart';
+
 class LoadingView extends StatelessWidget {
   const LoadingView({this.label, super.key});
 
@@ -13,7 +15,7 @@ class LoadingView extends StatelessWidget {
         children: <Widget>[
           const CircularProgressIndicator(),
           if (label != null) ...<Widget>[
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             Text(label!),
           ],
         ],

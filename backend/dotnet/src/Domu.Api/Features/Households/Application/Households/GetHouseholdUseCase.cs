@@ -1,9 +1,13 @@
 using Domu.Api.Features.Households.Application.Households.Contracts;
 using Domu.Api.Features.Households.Application.Households.Ports;
+using Domu.Api.Features.Households.Application.Members.Ports;
 
 namespace Domu.Api.Features.Households.Application.Households;
 
-public sealed class GetHouseholdUseCase(IHouseholdRepository householdRepository) : IGetHouseholdUseCase
+public sealed class GetHouseholdUseCase(
+    IHouseholdRepository householdRepository,
+    IHouseholdMembershipRepository membershipRepository)
+    : IGetHouseholdUseCase
 {
     public async Task<HouseholdView> ExecuteAsync(GetHouseholdQuery query, CancellationToken cancellationToken)
     {
@@ -12,7 +16,8 @@ public sealed class GetHouseholdUseCase(IHouseholdRepository householdRepository
         var household = await householdRepository.GetByIdAsync(query.HouseholdId, cancellationToken)
                         ?? throw new KeyNotFoundException($"Household '{query.HouseholdId}' was not found.");
 
-        if (household.OwnerId != query.OwnerId)
+        if (household.OwnerId != query.OwnerId
+            && !await membershipRepository.IsMemberAsync(query.HouseholdId, query.OwnerId, cancellationToken))
             throw new KeyNotFoundException($"Household '{query.HouseholdId}' was not found.");
 
         return HouseholdView.FromDomain(household);

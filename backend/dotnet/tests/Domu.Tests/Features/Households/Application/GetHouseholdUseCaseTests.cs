@@ -12,7 +12,7 @@ public sealed class GetHouseholdUseCaseTests
         var ownerId = Guid.NewGuid();
         var household = new Household(Guid.NewGuid(), ownerId, "Home");
         var repository = new FakeHouseholdRepository(household);
-        var useCase = new GetHouseholdUseCase(repository);
+        var useCase = new GetHouseholdUseCase(repository, new FakeHouseholdMembershipRepository());
 
         var result = await useCase.ExecuteAsync(
             new GetHouseholdQuery(household.Id, ownerId),
@@ -28,7 +28,7 @@ public sealed class GetHouseholdUseCaseTests
     {
         var household = new Household(Guid.NewGuid(), Guid.NewGuid(), "Home");
         var repository = new FakeHouseholdRepository(household);
-        var useCase = new GetHouseholdUseCase(repository);
+        var useCase = new GetHouseholdUseCase(repository, new FakeHouseholdMembershipRepository());
 
         var action = () => useCase.ExecuteAsync(
             new GetHouseholdQuery(household.Id, Guid.NewGuid()),
@@ -50,6 +50,11 @@ public sealed class GetHouseholdUseCaseTests
         {
             return Task.FromResult<IReadOnlyList<Household>>(
                 _storedHouseholds.Where(household => household.OwnerId == ownerId).ToArray());
+        }
+
+        public Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+        {
+            return GetByOwnerIdAsync(userId, cancellationToken);
         }
 
         public Task AddAsync(Household household, CancellationToken cancellationToken)

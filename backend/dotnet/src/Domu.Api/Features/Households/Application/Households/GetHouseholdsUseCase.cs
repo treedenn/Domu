@@ -11,7 +11,7 @@ public sealed class GetHouseholdsUseCase(IHouseholdRepository householdRepositor
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        var households = await householdRepository.GetByOwnerIdAsync(query.OwnerId, cancellationToken);
+        var households = await householdRepository.GetAccessibleByUserIdAsync(query.OwnerId, cancellationToken);
 
         return households.Select(HouseholdView.FromDomain).ToArray();
     }

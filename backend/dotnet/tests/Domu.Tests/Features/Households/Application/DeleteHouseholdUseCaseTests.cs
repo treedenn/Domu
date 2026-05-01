@@ -54,6 +54,11 @@ public sealed class DeleteHouseholdUseCaseTests
                 StoredHouseholds.Where(household => household.OwnerId == ownerId).ToArray());
         }
 
+        public Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+        {
+            return GetByOwnerIdAsync(userId, cancellationToken);
+        }
+
         public Task AddAsync(Household household, CancellationToken cancellationToken)
         {
             StoredHouseholds.Add(household);

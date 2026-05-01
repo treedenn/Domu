@@ -10,7 +10,8 @@ public sealed class CreateHouseholdUseCaseTests
     public async Task ExecuteAsync_CreatesHouseholdAndPersistsIt()
     {
         var repository = new FakeHouseholdRepository();
-        var useCase = new CreateHouseholdUseCase(repository);
+        var membershipRepository = new FakeHouseholdMembershipRepository();
+        var useCase = new CreateHouseholdUseCase(repository, membershipRepository);
         var ownerId = Guid.NewGuid();
 
         var result = await useCase.ExecuteAsync(
@@ -22,6 +23,7 @@ public sealed class CreateHouseholdUseCaseTests
         Assert.Equal(HouseholdSubscriptionPlan.Free, result.SubscriptionPlan);
         Assert.Equal(HouseholdSubscriptionStatus.Active, result.SubscriptionStatus);
         Assert.Equal(result.Id, repository.StoredHouseholds.Single().Id);
+        Assert.Equal(result.Id, membershipRepository.Members.Single().HouseholdId);
         Assert.Equal(1, repository.AddCalls);
         Assert.Equal(1, repository.SaveChangesCalls);
     }
@@ -41,6 +43,11 @@ public sealed class CreateHouseholdUseCaseTests
         {
             return Task.FromResult<IReadOnlyList<Household>>(
                 StoredHouseholds.Where(household => household.OwnerId == ownerId).ToArray());
+        }
+
+        public Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+        {
+            return GetByOwnerIdAsync(userId, cancellationToken);
         }
 
         public Task AddAsync(Household household, CancellationToken cancellationToken)

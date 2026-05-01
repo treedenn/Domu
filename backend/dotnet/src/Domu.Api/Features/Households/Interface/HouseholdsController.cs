@@ -1,5 +1,7 @@
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.Households.Application.Households.Contracts;
+using Domu.Api.Features.Households.Application.Members;
+using Domu.Api.Features.Households.Application.Members.Contracts;
 using Domu.Api.Features.Users.Interface.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +18,11 @@ public sealed class HouseholdsController(
     IGetHouseholdUseCase getHouseholdUseCase,
     IGetHouseholdsUseCase getHouseholdsUseCase,
     IUpdateHouseholdUseCase updateHouseholdUseCase,
-    IDeleteHouseholdUseCase deleteHouseholdUseCase)
+    IDeleteHouseholdUseCase deleteHouseholdUseCase,
+    IGetHouseholdMembersUseCase getHouseholdMembersUseCase,
+    IGetHouseholdInvitationsUseCase getHouseholdInvitationsUseCase,
+    IInviteHouseholdMemberUseCase inviteHouseholdMemberUseCase,
+    IAcceptHouseholdInvitationUseCase acceptHouseholdInvitationUseCase)
     : ControllerBase
 {
     [HttpGet]
@@ -28,6 +34,105 @@ public sealed class HouseholdsController(
             cancellationToken);
 
         return Ok(households);
+    }
+
+    [HttpGet("{householdId:guid}/members")]
+    [ProducesResponseType(typeof(IReadOnlyList<HouseholdMemberView>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IReadOnlyList<HouseholdMemberView>>> GetMembers(
+        Guid householdId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var members = await getHouseholdMembersUseCase.ExecuteAsync(
+                new GetHouseholdMembersQuery(householdId, userAccessor.User.Id),
+                cancellationToken);
+
+            return Ok(members);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
+
+    [HttpGet("{householdId:guid}/invitations")]
+    [ProducesResponseType(typeof(IReadOnlyList<HouseholdInvitationView>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IReadOnlyList<HouseholdInvitationView>>> GetInvitations(
+        Guid householdId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var invitations = await getHouseholdInvitationsUseCase.ExecuteAsync(
+                new GetHouseholdInvitationsQuery(householdId, userAccessor.User.Id),
+                cancellationToken);
+
+            return Ok(invitations);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
+
+    [HttpPost("{householdId:guid}/invitations")]
+    [ProducesResponseType(typeof(HouseholdInvitationView), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<HouseholdInvitationView>> InviteMember(
+        Guid householdId,
+        InviteHouseholdMemberRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var invitation = await inviteHouseholdMemberUseCase.ExecuteAsync(
+                new InviteHouseholdMemberCommand(householdId, userAccessor.User.Id, request.Email, request.Role),
+                cancellationToken);
+
+            return Created($"/api/v1/household-invitations/{invitation.Id}", invitation);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(new ProblemDetails { Title = "Invalid invitation.", Detail = exception.Message });
+        }
+    }
+
+    [HttpPost("invitations/{token}/accept")]
+    [ProducesResponseType(typeof(HouseholdMemberView), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<HouseholdMemberView>> AcceptInvitation(
+        string token,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var member = await acceptHouseholdInvitationUseCase.ExecuteAsync(
+                new AcceptHouseholdInvitationCommand(token, userAccessor.User.Id),
+                cancellationToken);
+
+            return Ok(member);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (InvalidOperationException exception)
+        {
+            return BadRequest(new ProblemDetails { Title = "Invalid invitation.", Detail = exception.Message });
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(new ProblemDetails { Title = "Invalid invitation.", Detail = exception.Message });
+        }
     }
 
     [HttpGet("{householdId:guid}")]

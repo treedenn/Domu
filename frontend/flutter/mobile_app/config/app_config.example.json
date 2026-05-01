@@ -1,0 +1,9 @@
+{
+  "APP_NAME": "Domu",
+  "API_BASE_URL": "http://localhost:8080",
+  "OIDC_ISSUER": "http://localhost:8081",
+  "OIDC_CLIENT_ID": "domu-mobile",
+  "OIDC_REDIRECT_URI": "domu://auth/callback",
+  "OIDC_GOOGLE_IDP_ID": "",
+  "OIDC_FACEBOOK_IDP_ID": ""
+}

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../../app/routing/app_router.dart';
+import '../../../../app/theme/tokens.dart';
 
 class BootstrapScreen extends StatelessWidget {
   const BootstrapScreen({super.key});
@@ -10,7 +11,7 @@ class BootstrapScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Domu')),
       body: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -30,25 +31,25 @@ class BootstrapScreen extends StatelessWidget {
               children: <Widget>[
                 FilledButton(
                   onPressed: () {
-                    Navigator.of(context).pushNamed(AppRouter.householdsRoute);
+                    context.go('/households');
                   },
                   child: const Text('Households'),
                 ),
                 FilledButton.tonal(
                   onPressed: () {
-                    Navigator.of(context).pushNamed(AppRouter.householdsRoute);
+                    context.go('/households');
                   },
                   child: const Text('Households'),
                 ),
                 FilledButton.tonal(
                   onPressed: () {
-                    Navigator.of(context).pushNamed(AppRouter.spacesRoute);
+                    context.go('/households/demo/spaces');
                   },
                   child: const Text('Spaces'),
                 ),
                 FilledButton.tonal(
                   onPressed: () {
-                    Navigator.of(context).pushNamed(AppRouter.usersRoute);
+                    context.go('/households/demo/members');
                   },
                   child: const Text('Users'),
                 ),

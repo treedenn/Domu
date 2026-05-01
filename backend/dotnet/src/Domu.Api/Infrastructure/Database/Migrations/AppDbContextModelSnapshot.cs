@@ -67,6 +67,109 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                     b.ToTable("households", (string)null);
                 });
 
+            modelBuilder.Entity("Domu.Api.Features.Households.Infrastructure.Members.HouseholdInvitationEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("AcceptedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("accepted_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("email");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid>("HouseholdId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("household_id");
+
+                    b.Property<Guid>("InvitedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("invited_by_user_id");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("role");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("token");
+
+                    b.HasKey("Id")
+                        .HasName("pk_household_invitations");
+
+                    b.HasIndex("InvitedByUserId")
+                        .HasDatabaseName("ix_household_invitations_invited_by_user_id");
+
+                    b.HasIndex("Token")
+                        .IsUnique()
+                        .HasDatabaseName("ix_household_invitations_token");
+
+                    b.HasIndex("HouseholdId", "Email", "Status")
+                        .HasDatabaseName("ix_household_invitations_household_id_email_status");
+
+                    b.ToTable("household_invitations", (string)null);
+                });
+
+            modelBuilder.Entity("Domu.Api.Features.Households.Infrastructure.Members.HouseholdMemberEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("HouseholdId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("household_id");
+
+                    b.Property<DateTimeOffset>("JoinedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("joined_at");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("role");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_household_members");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_household_members_user_id");
+
+                    b.HasIndex("HouseholdId", "UserId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_household_members_household_id_user_id");
+
+                    b.ToTable("household_members", (string)null);
+                });
+
             modelBuilder.Entity("Domu.Api.Features.Spaces.Infrastructure.Items.ItemEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -196,6 +299,40 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         .HasDatabaseName("ix_users_external_identifier");
 
                     b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("Domu.Api.Features.Households.Infrastructure.Members.HouseholdInvitationEntity", b =>
+                {
+                    b.HasOne("Domu.Api.Features.Households.Infrastructure.Households.HouseholdEntity", null)
+                        .WithMany()
+                        .HasForeignKey("HouseholdId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_household_invitations_households_household_id");
+
+                    b.HasOne("Domu.Api.Features.Users.Infrastructure.UserEntity", null)
+                        .WithMany()
+                        .HasForeignKey("InvitedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_household_invitations_users_invited_by_user_id");
+                });
+
+            modelBuilder.Entity("Domu.Api.Features.Households.Infrastructure.Members.HouseholdMemberEntity", b =>
+                {
+                    b.HasOne("Domu.Api.Features.Households.Infrastructure.Households.HouseholdEntity", null)
+                        .WithMany()
+                        .HasForeignKey("HouseholdId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_household_members_households_household_id");
+
+                    b.HasOne("Domu.Api.Features.Users.Infrastructure.UserEntity", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_household_members_users_user_id");
                 });
 
             modelBuilder.Entity("Domu.Api.Features.Spaces.Infrastructure.Items.ItemEntryEntity", b =>

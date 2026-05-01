@@ -28,6 +28,23 @@ public sealed class HouseholdRepository(AppDbContext dbContext) : IHouseholdRepo
         return entities.Select(household => household.ToDomain()).ToArray();
     }
 
+    public async Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var memberHouseholdIds = dbContext.HouseholdMembers
+            .AsNoTracking()
+            .Where(member => member.UserId == userId)
+            .Select(member => member.HouseholdId);
+
+        var entities = await dbContext.Households
+            .AsNoTracking()
+            .Where(household => household.OwnerId == userId || memberHouseholdIds.Contains(household.Id))
+            .OrderBy(household => household.Name)
+            .ThenBy(household => household.Id)
+            .ToArrayAsync(cancellationToken);
+
+        return entities.Select(household => household.ToDomain()).ToArray();
+    }
+
     public async Task AddAsync(Household household, CancellationToken cancellationToken)
     {
         await dbContext.Households.AddAsync(HouseholdEntity.FromDomain(household), cancellationToken);
