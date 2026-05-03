@@ -4,5 +4,5 @@ namespace Domu.Api.Features.Users.Application;
 
 public interface IEnsureUserUseCase
 {
-    Task<User> ExecuteAsync(UserAuthIdentity authIdentity, CancellationToken cancellationToken);
+    Task<AuthenticatedUser> ExecuteAsync(UserAuthIdentity authIdentity, CancellationToken cancellationToken);
 }

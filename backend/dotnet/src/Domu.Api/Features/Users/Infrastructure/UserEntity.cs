@@ -21,15 +21,15 @@ public sealed class UserEntity
     public Guid Id { get; private set; }
     public string ExternalIdentifier { get; private set; } = null!;
 
-    public User ToDomain()
+    public AuthenticatedUser ToDomain()
     {
-        return new User(Id);
+        return new AuthenticatedUser(Id);
     }
 
-    public static UserEntity FromDomain(User user, string externalIdentifier)
+    public static UserEntity FromDomain(AuthenticatedUser authenticatedUser, string externalIdentifier)
     {
-        ArgumentNullException.ThrowIfNull(user);
+        ArgumentNullException.ThrowIfNull(authenticatedUser);
 
-        return new UserEntity(user.Id, externalIdentifier);
+        return new UserEntity(authenticatedUser.Id, externalIdentifier);
     }
 }

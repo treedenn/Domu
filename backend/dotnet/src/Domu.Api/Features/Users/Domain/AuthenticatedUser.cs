@@ -1,8 +1,8 @@
 namespace Domu.Api.Features.Users.Domain;
 
-public sealed class User
+public sealed class AuthenticatedUser
 {
-    public User(Guid id)
+    public AuthenticatedUser(Guid id)
     {
         Id = id == Guid.Empty
             ? throw new ArgumentException("User id cannot be empty.", nameof(id))
