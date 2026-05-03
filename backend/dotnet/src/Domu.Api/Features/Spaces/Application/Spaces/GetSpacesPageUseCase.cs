@@ -3,9 +3,12 @@ using Domu.Api.Features.Spaces.Application.Spaces.Ports;
 
 namespace Domu.Api.Features.Spaces.Application.Spaces;
 
-public sealed class GetSpacesPageUseCase(ISpaceQueryService spaceQueryService) : IGetSpacesPageUseCase
+public sealed class GetSpacesPageUseCase(
+    ISpaceQueryService spaceQueryService,
+    ISpaceAccessService spaceAccessService)
+    : IGetSpacesPageUseCase
 {
-    public Task<SpacePage> ExecuteAsync(GetSpacesPageQuery query, CancellationToken cancellationToken)
+    public async Task<SpacePage> ExecuteAsync(GetSpacesPageQuery query, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(query);
         if (query.PageNumber <= 0)
@@ -13,6 +16,12 @@ public sealed class GetSpacesPageUseCase(ISpaceQueryService spaceQueryService) :
         if (query.PageSize <= 0)
             throw new ArgumentOutOfRangeException(nameof(query.PageSize), "Page size must be greater than zero.");
 
-        return spaceQueryService.GetPageAsync(query, cancellationToken);
+        await spaceAccessService.EnsureCanAccessSpaceTargetAsync(
+            query.HouseholdId,
+            query.ParentId,
+            query.UserId,
+            cancellationToken);
+
+        return await spaceQueryService.GetPageAsync(query, cancellationToken);
     }
 }

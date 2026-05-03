@@ -13,10 +13,13 @@ public sealed class ReplaceItemEntriesUseCaseTests
         var item = new Item(Guid.NewGuid(), "Milk", Guid.NewGuid());
         item.AddEntry(new ItemEntry(Guid.NewGuid(), item.Id));
         var repository = new FakeItemRepository(item);
-        var useCase = new ReplaceItemEntriesUseCase(repository);
+        var useCase = new ReplaceItemEntriesUseCase(repository, new FakeSpaceAccessService());
 
         var result = await useCase.ExecuteAsync(
             new ReplaceItemEntriesCommand(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                item.SpaceId,
                 item.Id,
                 [new ItemEntryDraft(null, 3, ConsumableState.Unopened, null, null)]),
             CancellationToken.None);

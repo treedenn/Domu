@@ -13,9 +13,11 @@ public sealed class GetSpaceItemsUseCaseTests
         var matchingItem = new Item(Guid.NewGuid(), "Coffee", spaceId);
         var repository = new FakeItemRepository(matchingItem, new Item(Guid.NewGuid(), "Tea", Guid.NewGuid()));
 
-        var useCase = new GetSpaceItemsUseCase(repository);
+        var useCase = new GetSpaceItemsUseCase(repository, new FakeSpaceAccessService());
 
-        var result = await useCase.ExecuteAsync(spaceId, CancellationToken.None);
+        var result = await useCase.ExecuteAsync(
+            new GetSpaceItemsQuery(Guid.NewGuid(), Guid.NewGuid(), spaceId),
+            CancellationToken.None);
 
         var item = Assert.Single(result);
         Assert.Equal(matchingItem.Id, item.Id);

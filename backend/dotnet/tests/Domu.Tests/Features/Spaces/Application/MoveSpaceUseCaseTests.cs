@@ -11,10 +11,12 @@ public sealed class MoveSpaceUseCaseTests
     {
         var space = new Space(Guid.NewGuid(), "Pantry", Guid.NewGuid());
         var repository = new FakeSpaceRepository(space);
-        var useCase = new MoveSpaceUseCase(repository);
+        var useCase = new MoveSpaceUseCase(repository, new FakeSpaceAccessService());
         var parentId = Guid.NewGuid();
 
-        var result = await useCase.ExecuteAsync(new MoveSpaceCommand(space.Id, parentId), CancellationToken.None);
+        var result = await useCase.ExecuteAsync(
+            new MoveSpaceCommand(Guid.NewGuid(), space.HouseholdId, space.Id, parentId),
+            CancellationToken.None);
 
         Assert.Equal(parentId, result.ParentId);
         Assert.Equal(1, repository.SaveChangesCalls);

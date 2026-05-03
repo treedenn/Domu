@@ -4,5 +4,5 @@ namespace Domu.Api.Features.Spaces.Application.Items;
 
 public interface IGetSpaceItemsUseCase
 {
-    Task<IReadOnlyList<ItemView>> ExecuteAsync(Guid spaceId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<ItemView>> ExecuteAsync(GetSpaceItemsQuery query, CancellationToken cancellationToken);
 }

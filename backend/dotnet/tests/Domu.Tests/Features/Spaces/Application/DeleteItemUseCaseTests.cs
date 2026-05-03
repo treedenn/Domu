@@ -11,9 +11,11 @@ public sealed class DeleteItemUseCaseTests
     {
         var item = new Item(Guid.NewGuid(), "Milk", Guid.NewGuid());
         var repository = new FakeItemRepository(item);
-        var useCase = new DeleteItemUseCase(repository);
+        var useCase = new DeleteItemUseCase(repository, new FakeSpaceAccessService());
 
-        await useCase.ExecuteAsync(new DeleteItemCommand(item.Id), CancellationToken.None);
+        await useCase.ExecuteAsync(
+            new DeleteItemCommand(Guid.NewGuid(), Guid.NewGuid(), item.SpaceId, item.Id),
+            CancellationToken.None);
 
         Assert.Empty(repository.StoredItems);
         Assert.Equal(1, repository.SaveChangesCalls);
@@ -23,9 +25,11 @@ public sealed class DeleteItemUseCaseTests
     public async Task ExecuteAsync_WhenItemDoesNotExist_Throws()
     {
         var repository = new FakeItemRepository();
-        var useCase = new DeleteItemUseCase(repository);
+        var useCase = new DeleteItemUseCase(repository, new FakeSpaceAccessService());
 
-        var action = () => useCase.ExecuteAsync(new DeleteItemCommand(Guid.NewGuid()), CancellationToken.None);
+        var action = () => useCase.ExecuteAsync(
+            new DeleteItemCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()),
+            CancellationToken.None);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(action);
     }

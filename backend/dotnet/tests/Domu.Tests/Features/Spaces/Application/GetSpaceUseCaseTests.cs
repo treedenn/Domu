@@ -14,10 +14,10 @@ public sealed class GetSpaceUseCaseTests
         space.Describe("Dry goods");
         space.MoveTo(Guid.NewGuid());
         var repository = new FakeSpaceRepository(space);
-        var useCase = new GetSpaceUseCase(repository);
+        var useCase = new GetSpaceUseCase(repository, new FakeSpaceAccessService());
 
         var result = await useCase.ExecuteAsync(
-            new GetSpaceQuery(space.Id, householdId),
+            new GetSpaceQuery(Guid.NewGuid(), householdId, space.Id),
             CancellationToken.None);
 
         Assert.Equal(space.Id, result.Id);
@@ -31,10 +31,10 @@ public sealed class GetSpaceUseCaseTests
     public async Task ExecuteAsync_WhenSpaceDoesNotExist_Throws()
     {
         var repository = new FakeSpaceRepository();
-        var useCase = new GetSpaceUseCase(repository);
+        var useCase = new GetSpaceUseCase(repository, new FakeSpaceAccessService());
 
         var action = () => useCase.ExecuteAsync(
-            new GetSpaceQuery(Guid.NewGuid(), Guid.NewGuid()),
+            new GetSpaceQuery(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()),
             CancellationToken.None);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(action);
@@ -45,10 +45,10 @@ public sealed class GetSpaceUseCaseTests
     {
         var space = new Space(Guid.NewGuid(), "Pantry", Guid.NewGuid());
         var repository = new FakeSpaceRepository(space);
-        var useCase = new GetSpaceUseCase(repository);
+        var useCase = new GetSpaceUseCase(repository, new FakeSpaceAccessService { DenyAccess = true });
 
         var action = () => useCase.ExecuteAsync(
-            new GetSpaceQuery(space.Id, Guid.NewGuid()),
+            new GetSpaceQuery(Guid.NewGuid(), Guid.NewGuid(), space.Id),
             CancellationToken.None);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(action);

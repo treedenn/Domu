@@ -1,13 +1,24 @@
 using Domu.Api.Features.Spaces.Application.Items.Contracts;
 using Domu.Api.Features.Spaces.Application.Items.Ports;
+using Domu.Api.Features.Spaces.Application.Spaces;
 
 namespace Domu.Api.Features.Spaces.Application.Items;
 
-public sealed class GetSpaceItemsUseCase(IItemRepository itemRepository) : IGetSpaceItemsUseCase
+public sealed class GetSpaceItemsUseCase(
+    IItemRepository itemRepository,
+    ISpaceAccessService spaceAccessService)
+    : IGetSpaceItemsUseCase
 {
-    public async Task<IReadOnlyList<ItemView>> ExecuteAsync(Guid spaceId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<ItemView>> ExecuteAsync(GetSpaceItemsQuery query, CancellationToken cancellationToken)
     {
-        var items = await itemRepository.GetBySpaceAsync(spaceId, cancellationToken);
+        ArgumentNullException.ThrowIfNull(query);
+        await spaceAccessService.EnsureCanAccessSpaceAsync(
+            query.HouseholdId,
+            query.SpaceId,
+            query.UserId,
+            cancellationToken);
+
+        var items = await itemRepository.GetBySpaceAsync(query.SpaceId, cancellationToken);
         return items
             .Select(ItemView.FromDomain)
             .ToArray();

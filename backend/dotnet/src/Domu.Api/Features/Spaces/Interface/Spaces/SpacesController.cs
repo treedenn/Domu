@@ -1,8 +1,5 @@
-using Domu.Api.Features.Households.Application.Households.Ports;
-using Domu.Api.Features.Households.Application.Members.Ports;
 using Domu.Api.Features.Spaces.Application.Spaces;
 using Domu.Api.Features.Spaces.Application.Spaces.Contracts;
-using Domu.Api.Features.Spaces.Application.Spaces.Ports;
 using Domu.Api.Features.Users.Interface.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,9 +12,6 @@ namespace Domu.Api.Features.Spaces.Interface.Spaces;
 [Tags("Spaces")]
 public sealed class SpacesController(
     IUserAccessor userAccessor,
-    IHouseholdRepository householdRepository,
-    IHouseholdMembershipRepository membershipRepository,
-    ISpaceRepository spaceRepository,
     ICreateSpaceUseCase createSpaceUseCase,
     IGetSpaceUseCase getSpaceUseCase,
     IGetSpacesPageUseCase getSpacesPageUseCase,
@@ -40,16 +34,11 @@ public sealed class SpacesController(
         [FromQuery] bool includeChildSpaceCount = false,
         CancellationToken cancellationToken = default)
     {
-        if (!await CanAccessHouseholdAsync(householdId, cancellationToken))
-            return NotFound();
-
-        if (parentId is not null && !await SpaceBelongsToHouseholdAsync(parentId.Value, householdId, cancellationToken))
-            return NotFound();
-
         try
         {
             var page = await getSpacesPageUseCase.ExecuteAsync(
                 new GetSpacesPageQuery(
+                    userAccessor.User.Id,
                     householdId,
                     parentId,
                     pageNumber,
@@ -59,6 +48,10 @@ public sealed class SpacesController(
                 cancellationToken);
 
             return Ok(page);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
         }
         catch (ArgumentOutOfRangeException exception)
         {
@@ -74,13 +67,10 @@ public sealed class SpacesController(
         Guid spaceId,
         CancellationToken cancellationToken)
     {
-        if (!await CanAccessHouseholdAsync(householdId, cancellationToken))
-            return NotFound();
-
         try
         {
             var space = await getSpaceUseCase.ExecuteAsync(
-                new GetSpaceQuery(spaceId, householdId),
+                new GetSpaceQuery(userAccessor.User.Id, householdId, spaceId),
                 cancellationToken);
 
             return Ok(space);
@@ -100,20 +90,17 @@ public sealed class SpacesController(
         CreateSpaceRequest request,
         CancellationToken cancellationToken)
     {
-        if (!await CanAccessHouseholdAsync(householdId, cancellationToken))
-            return NotFound();
-
-        if (request.ParentId is not null &&
-            !await SpaceBelongsToHouseholdAsync(request.ParentId.Value, householdId, cancellationToken))
-            return NotFound();
-
         try
         {
             var space = await createSpaceUseCase.ExecuteAsync(
-                new CreateSpaceCommand(householdId, request.Name, request.Description, request.ParentId),
+                new CreateSpaceCommand(userAccessor.User.Id, householdId, request.Name, request.Description, request.ParentId),
                 cancellationToken);
 
             return CreatedAtAction(nameof(GetSpace), new { householdId, spaceId = space.Id }, space);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
         }
         catch (ArgumentException exception)
         {
@@ -131,16 +118,10 @@ public sealed class SpacesController(
         UpdateSpaceRequest request,
         CancellationToken cancellationToken)
     {
-        if (!await SpaceBelongsToHouseholdAsync(spaceId, householdId, cancellationToken))
-            return NotFound();
-
-        if (!await CanAccessHouseholdAsync(householdId, cancellationToken))
-            return NotFound();
-
         try
         {
             var space = await updateSpaceUseCase.ExecuteAsync(
-                new UpdateSpaceCommand(spaceId, request.Name, request.Description),
+                new UpdateSpaceCommand(userAccessor.User.Id, householdId, spaceId, request.Name, request.Description),
                 cancellationToken);
 
             return Ok(space);
@@ -165,20 +146,10 @@ public sealed class SpacesController(
         MoveSpaceRequest request,
         CancellationToken cancellationToken)
     {
-        if (!await SpaceBelongsToHouseholdAsync(spaceId, householdId, cancellationToken))
-            return NotFound();
-
-        if (!await CanAccessHouseholdAsync(householdId, cancellationToken))
-            return NotFound();
-
-        if (request.ParentId is not null &&
-            !await SpaceBelongsToHouseholdAsync(request.ParentId.Value, householdId, cancellationToken))
-            return NotFound();
-
         try
         {
             var space = await moveSpaceUseCase.ExecuteAsync(
-                new MoveSpaceCommand(spaceId, request.ParentId),
+                new MoveSpaceCommand(userAccessor.User.Id, householdId, spaceId, request.ParentId),
                 cancellationToken);
 
             return Ok(space);
@@ -198,37 +169,17 @@ public sealed class SpacesController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteSpace(Guid householdId, Guid spaceId, CancellationToken cancellationToken)
     {
-        if (!await SpaceBelongsToHouseholdAsync(spaceId, householdId, cancellationToken))
-            return NotFound();
-
-        if (!await CanAccessHouseholdAsync(householdId, cancellationToken))
-            return NotFound();
-
         try
         {
-            await deleteSpaceUseCase.ExecuteAsync(new DeleteSpaceCommand(spaceId), cancellationToken);
+            await deleteSpaceUseCase.ExecuteAsync(
+                new DeleteSpaceCommand(userAccessor.User.Id, householdId, spaceId),
+                cancellationToken);
             return NoContent();
         }
         catch (KeyNotFoundException)
         {
             return NotFound();
         }
-    }
-
-    private async Task<bool> CanAccessHouseholdAsync(Guid householdId, CancellationToken cancellationToken)
-    {
-        var household = await householdRepository.GetByIdAsync(householdId, cancellationToken);
-        return household?.OwnerId == userAccessor.User.Id
-               || await membershipRepository.IsMemberAsync(householdId, userAccessor.User.Id, cancellationToken);
-    }
-
-    private async Task<bool> SpaceBelongsToHouseholdAsync(
-        Guid spaceId,
-        Guid householdId,
-        CancellationToken cancellationToken)
-    {
-        var space = await spaceRepository.GetByIdAsync(spaceId, cancellationToken);
-        return space?.HouseholdId == householdId;
     }
 
     private static SpaceItemsProjection ResolveItemsProjection(bool includeItems, bool includeItemCount)

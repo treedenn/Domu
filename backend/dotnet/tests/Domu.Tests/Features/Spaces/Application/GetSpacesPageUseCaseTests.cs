@@ -28,8 +28,9 @@ public sealed class GetSpacesPageUseCaseTests
             10,
             17);
         var queryService = new FakeSpaceQueryService(expectedPage);
-        var useCase = new GetSpacesPageUseCase(queryService);
+        var useCase = new GetSpacesPageUseCase(queryService, new FakeSpaceAccessService());
         var query = new GetSpacesPageQuery(
+            Guid.NewGuid(),
             Guid.NewGuid(),
             null,
             2,
@@ -46,10 +47,10 @@ public sealed class GetSpacesPageUseCaseTests
     public async Task ExecuteAsync_WithInvalidPageSize_Throws()
     {
         var queryService = new FakeSpaceQueryService(new SpacePage([], 1, 1, 0));
-        var useCase = new GetSpacesPageUseCase(queryService);
+        var useCase = new GetSpacesPageUseCase(queryService, new FakeSpaceAccessService());
 
         var action = () => useCase.ExecuteAsync(
-            new GetSpacesPageQuery(Guid.NewGuid(), null, PageNumber: 1, PageSize: 0),
+            new GetSpacesPageQuery(Guid.NewGuid(), Guid.NewGuid(), null, PageNumber: 1, PageSize: 0),
             CancellationToken.None);
 
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(action);

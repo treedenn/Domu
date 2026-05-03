@@ -12,11 +12,11 @@ public sealed class UpdateSpaceUseCaseTests
         var space = new Space(Guid.NewGuid(), "Pantry", Guid.NewGuid());
         space.MoveTo(Guid.NewGuid());
         var repository = new FakeSpaceRepository(space);
-        var useCase = new UpdateSpaceUseCase(repository);
+        var useCase = new UpdateSpaceUseCase(repository, new FakeSpaceAccessService());
         var originalParentId = space.ParentId;
 
         var result = await useCase.ExecuteAsync(
-            new UpdateSpaceCommand(space.Id, "Kitchen Pantry", "Updated description"),
+            new UpdateSpaceCommand(Guid.NewGuid(), space.HouseholdId, space.Id, "Kitchen Pantry", "Updated description"),
             CancellationToken.None);
 
         Assert.Equal("Kitchen Pantry", result.Name);
@@ -29,10 +29,10 @@ public sealed class UpdateSpaceUseCaseTests
     public async Task ExecuteAsync_WhenSpaceDoesNotExist_Throws()
     {
         var repository = new FakeSpaceRepository();
-        var useCase = new UpdateSpaceUseCase(repository);
+        var useCase = new UpdateSpaceUseCase(repository, new FakeSpaceAccessService());
 
         var action = () => useCase.ExecuteAsync(
-            new UpdateSpaceCommand(Guid.NewGuid(), "Pantry", null),
+            new UpdateSpaceCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Pantry", null),
             CancellationToken.None);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(action);

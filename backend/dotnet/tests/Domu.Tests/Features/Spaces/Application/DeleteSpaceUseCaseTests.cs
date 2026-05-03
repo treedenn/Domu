@@ -11,9 +11,11 @@ public sealed class DeleteSpaceUseCaseTests
     {
         var space = new Space(Guid.NewGuid(), "Pantry", Guid.NewGuid());
         var repository = new FakeSpaceRepository(space);
-        var useCase = new DeleteSpaceUseCase(repository);
+        var useCase = new DeleteSpaceUseCase(repository, new FakeSpaceAccessService());
 
-        await useCase.ExecuteAsync(new DeleteSpaceCommand(space.Id), CancellationToken.None);
+        await useCase.ExecuteAsync(
+            new DeleteSpaceCommand(Guid.NewGuid(), space.HouseholdId, space.Id),
+            CancellationToken.None);
 
         Assert.Empty(repository.StoredSpaces);
         Assert.Equal(1, repository.SaveChangesCalls);
@@ -23,9 +25,11 @@ public sealed class DeleteSpaceUseCaseTests
     public async Task ExecuteAsync_WhenSpaceDoesNotExist_Throws()
     {
         var repository = new FakeSpaceRepository();
-        var useCase = new DeleteSpaceUseCase(repository);
+        var useCase = new DeleteSpaceUseCase(repository, new FakeSpaceAccessService());
 
-        var action = () => useCase.ExecuteAsync(new DeleteSpaceCommand(Guid.NewGuid()), CancellationToken.None);
+        var action = () => useCase.ExecuteAsync(
+            new DeleteSpaceCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()),
+            CancellationToken.None);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(action);
     }

@@ -1,12 +1,15 @@
+using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.Spaces.Application.Search.Contracts;
 using Domu.Api.Features.Spaces.Application.Search.Ports;
 
 namespace Domu.Api.Features.Spaces.Application.Search;
 
-public sealed class SearchSpacesAndItemsUseCase(ISpacesAndItemsSearchService searchService)
+public sealed class SearchSpacesAndItemsUseCase(
+    ISpacesAndItemsSearchService searchService,
+    IHouseholdAccessService householdAccessService)
     : ISearchSpacesAndItemsUseCase
 {
-    public Task<SearchResultsView> ExecuteAsync(SearchSpacesAndItemsQuery query, CancellationToken cancellationToken)
+    public async Task<SearchResultsView> ExecuteAsync(SearchSpacesAndItemsQuery query, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(query);
         if (query.ExpiringWithinDays is < 0)
@@ -18,6 +21,11 @@ public sealed class SearchSpacesAndItemsUseCase(ISpacesAndItemsSearchService sea
         if (query.Limit > 100)
             throw new ArgumentOutOfRangeException(nameof(query.Limit), "Limit cannot be greater than 100.");
 
-        return searchService.SearchAsync(query, cancellationToken);
+        await householdAccessService.EnsureCanAccessHouseholdAsync(
+            query.HouseholdId,
+            query.UserId,
+            cancellationToken);
+
+        return await searchService.SearchAsync(query, cancellationToken);
     }
 }

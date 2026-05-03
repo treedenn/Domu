@@ -13,10 +13,13 @@ public sealed class UpdateItemUseCaseTests
         var item = new Item(Guid.NewGuid(), "Milk", Guid.NewGuid());
         var originalSpaceId = item.SpaceId;
         var repository = new FakeItemRepository(item);
-        var useCase = new UpdateItemUseCase(repository);
+        var useCase = new UpdateItemUseCase(repository, new FakeSpaceAccessService());
 
         var result = await useCase.ExecuteAsync(
             new UpdateItemCommand(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                item.SpaceId,
                 item.Id,
                 "Skim Milk",
                 "Dairy",

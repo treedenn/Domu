@@ -1,9 +1,5 @@
-using Domu.Api.Features.Households.Application.Households.Ports;
-using Domu.Api.Features.Households.Application.Members.Ports;
 using Domu.Api.Features.Spaces.Application.Items;
 using Domu.Api.Features.Spaces.Application.Items.Contracts;
-using Domu.Api.Features.Spaces.Application.Items.Ports;
-using Domu.Api.Features.Spaces.Application.Spaces.Ports;
 using Domu.Api.Features.Users.Interface.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,10 +12,6 @@ namespace Domu.Api.Features.Spaces.Interface.Items;
 [Tags("Items")]
 public sealed class ItemsController(
     IUserAccessor userAccessor,
-    IHouseholdRepository householdRepository,
-    IHouseholdMembershipRepository membershipRepository,
-    ISpaceRepository spaceRepository,
-    IItemRepository itemRepository,
     ICreateItemUseCase createItemUseCase,
     IGetSpaceItemsUseCase getSpaceItemsUseCase,
     IUpdateItemUseCase updateItemUseCase,
@@ -35,11 +27,17 @@ public sealed class ItemsController(
         Guid spaceId,
         CancellationToken cancellationToken)
     {
-        if (!await CanAccessSpaceAsync(householdId, spaceId, cancellationToken))
+        try
+        {
+            var items = await getSpaceItemsUseCase.ExecuteAsync(
+                new GetSpaceItemsQuery(userAccessor.User.Id, householdId, spaceId),
+                cancellationToken);
+            return Ok(items);
+        }
+        catch (KeyNotFoundException)
+        {
             return NotFound();
-
-        var items = await getSpaceItemsUseCase.ExecuteAsync(spaceId, cancellationToken);
-        return Ok(items);
+        }
     }
 
     [HttpPost]
@@ -52,13 +50,12 @@ public sealed class ItemsController(
         CreateItemRequest request,
         CancellationToken cancellationToken)
     {
-        if (!await CanAccessSpaceAsync(householdId, spaceId, cancellationToken))
-            return NotFound();
-
         try
         {
             var item = await createItemUseCase.ExecuteAsync(
                 new CreateItemCommand(
+                    userAccessor.User.Id,
+                    householdId,
                     spaceId,
                     request.Name,
                     request.Category,
@@ -67,6 +64,10 @@ public sealed class ItemsController(
                 cancellationToken);
 
             return CreatedAtAction(nameof(GetItems), new { householdId, spaceId }, item);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
         }
         catch (ArgumentException exception)
         {
@@ -85,13 +86,13 @@ public sealed class ItemsController(
         UpdateItemRequest request,
         CancellationToken cancellationToken)
     {
-        if (!await CanAccessItemAsync(householdId, spaceId, itemId, cancellationToken))
-            return NotFound();
-
         try
         {
             var item = await updateItemUseCase.ExecuteAsync(
                 new UpdateItemCommand(
+                    userAccessor.User.Id,
+                    householdId,
+                    spaceId,
                     itemId,
                     request.Name,
                     request.Category,
@@ -121,13 +122,13 @@ public sealed class ItemsController(
         ReplaceItemEntriesRequest request,
         CancellationToken cancellationToken)
     {
-        if (!await CanAccessItemAsync(householdId, spaceId, itemId, cancellationToken))
-            return NotFound();
-
         try
         {
             var item = await replaceItemEntriesUseCase.ExecuteAsync(
                 new ReplaceItemEntriesCommand(
+                    userAccessor.User.Id,
+                    householdId,
+                    spaceId,
                     itemId,
                     request.Entries.Select(entry => entry.ToDraft()).ToArray()),
                 cancellationToken);
@@ -153,12 +154,11 @@ public sealed class ItemsController(
         Guid itemId,
         CancellationToken cancellationToken)
     {
-        if (!await CanAccessItemAsync(householdId, spaceId, itemId, cancellationToken))
-            return NotFound();
-
         try
         {
-            await deleteItemUseCase.ExecuteAsync(new DeleteItemCommand(itemId), cancellationToken);
+            await deleteItemUseCase.ExecuteAsync(
+                new DeleteItemCommand(userAccessor.User.Id, householdId, spaceId, itemId),
+                cancellationToken);
             return NoContent();
         }
         catch (KeyNotFoundException)
@@ -167,30 +167,4 @@ public sealed class ItemsController(
         }
     }
 
-    private async Task<bool> CanAccessItemAsync(
-        Guid householdId,
-        Guid spaceId,
-        Guid itemId,
-        CancellationToken cancellationToken)
-    {
-        if (!await CanAccessSpaceAsync(householdId, spaceId, cancellationToken))
-            return false;
-
-        var item = await itemRepository.GetByIdAsync(itemId, cancellationToken);
-        return item?.SpaceId == spaceId;
-    }
-
-    private async Task<bool> CanAccessSpaceAsync(Guid householdId, Guid spaceId, CancellationToken cancellationToken)
-    {
-        var household = await householdRepository.GetByIdAsync(householdId, cancellationToken);
-        if (household is null)
-            return false;
-
-        if (household.OwnerId != userAccessor.User.Id
-            && !await membershipRepository.IsMemberAsync(householdId, userAccessor.User.Id, cancellationToken))
-            return false;
-
-        var space = await spaceRepository.GetByIdAsync(spaceId, cancellationToken);
-        return space?.HouseholdId == householdId;
-    }
 }

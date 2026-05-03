@@ -10,8 +10,8 @@ public sealed class SearchSpacesAndItemsUseCaseTests
     public async Task ExecuteAsync_WithValidQuery_DelegatesToSearchService()
     {
         var service = new FakeSearchService();
-        var useCase = new SearchSpacesAndItemsUseCase(service);
-        var query = new SearchSpacesAndItemsQuery(Guid.NewGuid(), "milk", null, 20);
+        var useCase = new SearchSpacesAndItemsUseCase(service, new FakeHouseholdAccessService());
+        var query = new SearchSpacesAndItemsQuery(Guid.NewGuid(), Guid.NewGuid(), "milk", null, 20);
 
         await useCase.ExecuteAsync(query, CancellationToken.None);
 
@@ -21,10 +21,10 @@ public sealed class SearchSpacesAndItemsUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WithLimitAboveMaximum_Throws()
     {
-        var useCase = new SearchSpacesAndItemsUseCase(new FakeSearchService());
+        var useCase = new SearchSpacesAndItemsUseCase(new FakeSearchService(), new FakeHouseholdAccessService());
 
         var action = () => useCase.ExecuteAsync(
-            new SearchSpacesAndItemsQuery(Guid.NewGuid(), "milk", null, 101),
+            new SearchSpacesAndItemsQuery(Guid.NewGuid(), Guid.NewGuid(), "milk", null, 101),
             CancellationToken.None);
 
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(action);

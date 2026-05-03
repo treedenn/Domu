@@ -4,11 +4,19 @@ using Domu.Api.Features.Spaces.Domain.Spaces;
 
 namespace Domu.Api.Features.Spaces.Application.Spaces;
 
-public sealed class CreateSpaceUseCase(ISpaceRepository spaceRepository) : ICreateSpaceUseCase
+public sealed class CreateSpaceUseCase(
+    ISpaceRepository spaceRepository,
+    ISpaceAccessService spaceAccessService)
+    : ICreateSpaceUseCase
 {
     public async Task<SpaceView> ExecuteAsync(CreateSpaceCommand command, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
+        await spaceAccessService.EnsureCanAccessSpaceTargetAsync(
+            command.HouseholdId,
+            command.ParentId,
+            command.UserId,
+            cancellationToken);
 
         var space = new Space(Guid.CreateVersion7(), command.Name, command.HouseholdId);
         space.Describe(command.Description);

@@ -1,16 +1,27 @@
 using Domu.Api.Features.Spaces.Application.Items.Contracts;
 using Domu.Api.Features.Spaces.Application.Items.Ports;
+using Domu.Api.Features.Spaces.Application.Spaces;
 
 namespace Domu.Api.Features.Spaces.Application.Items;
 
-public sealed class UpdateItemUseCase(IItemRepository itemRepository) : IUpdateItemUseCase
+public sealed class UpdateItemUseCase(
+    IItemRepository itemRepository,
+    ISpaceAccessService spaceAccessService)
+    : IUpdateItemUseCase
 {
     public async Task<ItemView> ExecuteAsync(UpdateItemCommand command, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
+        await spaceAccessService.EnsureCanAccessSpaceAsync(
+            command.HouseholdId,
+            command.SpaceId,
+            command.UserId,
+            cancellationToken);
 
         var item = await itemRepository.GetByIdAsync(command.ItemId, cancellationToken)
                    ?? throw new KeyNotFoundException($"Item '{command.ItemId}' was not found.");
+        if (item.SpaceId != command.SpaceId)
+            throw new KeyNotFoundException($"Item '{command.ItemId}' was not found.");
 
         item.Rename(command.Name);
         item.ChangeCategory(command.Category);

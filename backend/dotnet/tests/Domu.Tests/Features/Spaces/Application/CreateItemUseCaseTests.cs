@@ -11,11 +11,13 @@ public sealed class CreateItemUseCaseTests
     public async Task ExecuteAsync_CreatesItemAndPersistsIt()
     {
         var repository = new FakeItemRepository();
-        var useCase = new CreateItemUseCase(repository);
+        var useCase = new CreateItemUseCase(repository, new FakeSpaceAccessService());
         var spaceId = Guid.NewGuid();
 
         var result = await useCase.ExecuteAsync(
             new CreateItemCommand(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
                 spaceId,
                 "Milk",
                 "Dairy",

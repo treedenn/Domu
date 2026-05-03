@@ -10,12 +10,12 @@ public sealed class CreateSpaceUseCaseTests
     public async Task ExecuteAsync_CreatesSpaceAndPersistsIt()
     {
         var repository = new FakeSpaceRepository();
-        var useCase = new CreateSpaceUseCase(repository);
+        var useCase = new CreateSpaceUseCase(repository, new FakeSpaceAccessService());
         var householdId = Guid.NewGuid();
         var parentId = Guid.NewGuid();
 
         var result = await useCase.ExecuteAsync(
-            new CreateSpaceCommand(householdId, "Pantry", "Food storage", parentId),
+            new CreateSpaceCommand(Guid.NewGuid(), householdId, "Pantry", "Food storage", parentId),
             CancellationToken.None);
 
         Assert.Equal(householdId, result.HouseholdId);
