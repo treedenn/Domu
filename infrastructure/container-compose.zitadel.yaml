@@ -155,7 +155,7 @@ services:
         condition: service_healthy
     labels:
       - traefik.enable=true
-      - traefik.docker.network=zitadel
+      - traefik.docker.network=domu-net
       - traefik.http.services.zitadel-login.loadbalancer.server.port=3000
 
       - traefik.http.middlewares.zitadel-root-rewrite.replacepath.path=/ui/v2/login/

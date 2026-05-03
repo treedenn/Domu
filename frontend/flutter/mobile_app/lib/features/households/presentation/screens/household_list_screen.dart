@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../app/theme/tokens.dart';
 import '../../../../core/auth/auth_session.dart';
@@ -9,6 +10,7 @@ import '../../../../core/ui/loading_view.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../data/households_repository.dart';
 import '../../domain/household.dart';
+import '../view_models/household_list_view_model.dart';
 
 class HouseholdListScreen extends StatefulWidget {
   const HouseholdListScreen({
@@ -27,137 +29,137 @@ class HouseholdListScreen extends StatefulWidget {
 }
 
 class _HouseholdListScreenState extends State<HouseholdListScreen> {
-  late Future<List<Household>> _households;
+  late final HouseholdListViewModel _viewModel;
 
   @override
   void initState() {
     super.initState();
-    _households = _loadHouseholds();
+    _viewModel = HouseholdListViewModel(
+      repository: widget.repository,
+      session: widget.session,
+    );
   }
 
   @override
   void didUpdateWidget(HouseholdListScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.repository != widget.repository ||
-        oldWidget.session != widget.session) {
-      _households = _loadHouseholds();
-    }
+    _viewModel.updateDependencies(
+      repository: widget.repository,
+      session: widget.session,
+    );
   }
 
-  Future<List<Household>> _loadHouseholds() {
-    final HouseholdsRepository? repository = widget.repository;
-    final AuthSession? session = widget.session;
-    if (repository == null || session == null) {
-      return Future<List<Household>>.value(const <Household>[]);
-    }
-
-    return repository.getHouseholds(session);
-  }
-
-  void _reload() {
-    setState(() {
-      _households = _loadHouseholds();
-    });
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Households'),
-        actions: <Widget>[
-          if (widget.onSignOut != null)
-            IconButton(
-              onPressed: widget.onSignOut,
-              tooltip: 'Sign out',
-              icon: const Icon(Icons.logout),
-            ),
-        ],
-      ),
-      body: FutureBuilder<List<Household>>(
-        future: _households,
-        builder: (BuildContext context, AsyncSnapshot<List<Household>> snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const LoadingView(label: 'Loading households...');
-          }
-
-          if (snapshot.hasError) {
-            return ErrorView(
-              title: 'Could not load households',
-              message: snapshot.error.toString(),
-              onRetry: _reload,
-            );
-          }
-
-          final List<Household> households = snapshot.data ?? const <Household>[];
-          if (households.isEmpty) {
-            return EmptyView(
-              title: 'You have not joined any households yet',
-              message: 'Create a household to start organizing spaces and items.',
-              action: FilledButton.icon(
-                onPressed: () => _showCreateHouseholdSheet(context),
-                icon: const Icon(Icons.add_home_outlined),
-                label: const Text('Create household'),
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () async => _reload(),
-            child: ListView.separated(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              itemCount: households.length,
-              separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
-              itemBuilder: (BuildContext context, int index) {
-                final Household household = households[index];
-                return AppCard(
-                  onTap: () {
-                    context.go(
-                      '/households/${household.id}/spaces?name=${Uri.encodeQueryComponent(household.name)}',
-                    );
-                  },
-                  child: Row(
-                    children: <Widget>[
-                      EntityAvatar(
-                        id: household.id,
-                        name: household.name,
-                        size: EntityAvatarSize.lg,
-                      ),
-                      const SizedBox(width: AppSpacing.lg),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              household.name,
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: AppSpacing.sm),
-                            Wrap(
-                              spacing: AppSpacing.sm,
-                              runSpacing: AppSpacing.xs,
-                              children: <Widget>[
-                                Chip(label: Text(household.subscriptionPlan)),
-                                Chip(label: Text(household.subscriptionStatus)),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Icon(Icons.chevron_right),
-                    ],
+    return ChangeNotifierProvider<HouseholdListViewModel>.value(
+      value: _viewModel,
+      child: Consumer<HouseholdListViewModel>(
+        builder: (BuildContext context, HouseholdListViewModel viewModel, _) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Households'),
+              actions: <Widget>[
+                if (widget.onSignOut != null)
+                  IconButton(
+                    onPressed: widget.onSignOut,
+                    tooltip: 'Sign out',
+                    icon: const Icon(Icons.logout),
                   ),
-                );
-              },
+              ],
+            ),
+            body: _buildBody(context, viewModel),
+            floatingActionButton: FloatingActionButton.extended(
+              onPressed: () => _showCreateHouseholdSheet(context),
+              tooltip: 'Create household',
+              icon: const Icon(Icons.add),
+              label: const Text('Create'),
             ),
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showCreateHouseholdSheet(context),
-        tooltip: 'Create household',
-        icon: const Icon(Icons.add),
-        label: const Text('Create'),
+    );
+  }
+
+  Widget _buildBody(BuildContext context, HouseholdListViewModel viewModel) {
+    if (viewModel.isLoading) {
+      return const LoadingView(label: 'Loading households...');
+    }
+
+    if (viewModel.error != null) {
+      return ErrorView(
+        title: 'Could not load households',
+        error: viewModel.error,
+        stackTrace: viewModel.stackTrace,
+        onRetry: viewModel.load,
+      );
+    }
+
+    final List<Household> households = viewModel.households;
+    if (households.isEmpty) {
+      return EmptyView(
+        title: 'You have not joined any households yet',
+        message: 'Create a household to start organizing spaces and items.',
+        action: FilledButton.icon(
+          onPressed: () => _showCreateHouseholdSheet(context),
+          icon: const Icon(Icons.add_home_outlined),
+          label: const Text('Create household'),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: viewModel.load,
+      child: ListView.separated(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        itemCount: households.length,
+        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+        itemBuilder: (BuildContext context, int index) {
+          final Household household = households[index];
+          return AppCard(
+            onTap: () {
+              context.go(
+                '/households/${household.id}/spaces?name=${Uri.encodeQueryComponent(household.name)}',
+              );
+            },
+            child: Row(
+              children: <Widget>[
+                EntityAvatar(
+                  id: household.id,
+                  name: household.name,
+                  size: EntityAvatarSize.lg,
+                ),
+                const SizedBox(width: AppSpacing.lg),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        household.name,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Wrap(
+                        spacing: AppSpacing.sm,
+                        runSpacing: AppSpacing.xs,
+                        children: <Widget>[
+                          Chip(label: Text(household.subscriptionPlan)),
+                          Chip(label: Text(household.subscriptionStatus)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_right),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

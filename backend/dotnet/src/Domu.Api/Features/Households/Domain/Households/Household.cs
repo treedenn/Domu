@@ -111,6 +111,14 @@ public sealed class Household
         DateTimeOffset? subscriptionCurrentPeriodEndsAt,
         DateTimeOffset? subscriptionCancelledAt)
     {
+        if (!Enum.IsDefined(subscriptionPlan))
+            throw new ArgumentException("Subscription plan is invalid.", nameof(subscriptionPlan));
+        if (!Enum.IsDefined(subscriptionStatus))
+            throw new ArgumentException("Subscription status is invalid.", nameof(subscriptionStatus));
+        if (subscriptionPlan == HouseholdSubscriptionPlan.Unknown)
+            throw new ArgumentException("Subscription plan must be specified.", nameof(subscriptionPlan));
+        if (subscriptionStatus == HouseholdSubscriptionStatus.Unknown)
+            throw new ArgumentException("Subscription status must be specified.", nameof(subscriptionStatus));
         if (subscriptionPlan == HouseholdSubscriptionPlan.Free && subscriptionCurrentPeriodEndsAt is not null)
             throw new ArgumentException("Free households cannot have a subscription period end.", nameof(subscriptionCurrentPeriodEndsAt));
         if (subscriptionPlan == HouseholdSubscriptionPlan.Premium && subscriptionCurrentPeriodEndsAt is null)

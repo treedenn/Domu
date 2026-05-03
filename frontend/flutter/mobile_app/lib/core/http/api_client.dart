@@ -32,6 +32,7 @@ class ApiClient {
         throw ApiError(
           _extractErrorMessage(body) ?? 'Request failed.',
           statusCode: response.statusCode,
+          uri: uri,
         );
       }
 
@@ -41,9 +42,15 @@ class ApiClient {
 
       return jsonDecode(body);
     } on SocketException catch (error) {
-      throw ApiError('Unable to reach the API. ${error.message}');
-    } on FormatException {
-      throw const ApiError('The API returned invalid JSON.');
+      throw ApiError('Unable to reach the API.', uri: uri, cause: error);
+    } on HttpException catch (error) {
+      throw ApiError(
+        'Unable to complete the API request.',
+        uri: uri,
+        cause: error,
+      );
+    } on FormatException catch (error) {
+      throw ApiError('The API returned invalid JSON.', uri: uri, cause: error);
     } finally {
       client.close(force: true);
     }
@@ -65,10 +72,7 @@ class ApiClient {
     return _sendJson('PUT', path, session: session, body: body);
   }
 
-  Future<void> deleteJson(
-    String path, {
-    required AuthSession session,
-  }) async {
+  Future<void> deleteJson(String path, {required AuthSession session}) async {
     await _sendJson('DELETE', path, session: session);
   }
 
@@ -100,6 +104,7 @@ class ApiClient {
         throw ApiError(
           _extractErrorMessage(responseBody) ?? 'Request failed.',
           statusCode: response.statusCode,
+          uri: uri,
         );
       }
 
@@ -109,9 +114,15 @@ class ApiClient {
 
       return jsonDecode(responseBody);
     } on SocketException catch (error) {
-      throw ApiError('Unable to reach the API. ${error.message}');
-    } on FormatException {
-      throw const ApiError('The API returned invalid JSON.');
+      throw ApiError('Unable to reach the API.', uri: uri, cause: error);
+    } on HttpException catch (error) {
+      throw ApiError(
+        'Unable to complete the API request.',
+        uri: uri,
+        cause: error,
+      );
+    } on FormatException catch (error) {
+      throw ApiError('The API returned invalid JSON.', uri: uri, cause: error);
     } finally {
       client.close(force: true);
     }
@@ -132,10 +143,12 @@ class ApiClient {
       return uri;
     }
 
-    return uri.replace(queryParameters: <String, String>{
-      ...uri.queryParameters,
-      ...cleanedQueryParameters,
-    });
+    return uri.replace(
+      queryParameters: <String, String>{
+        ...uri.queryParameters,
+        ...cleanedQueryParameters,
+      },
+    );
   }
 
   String? _extractErrorMessage(String body) {

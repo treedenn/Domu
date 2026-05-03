@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../app/theme/tokens.dart';
 import '../../../../core/auth/auth_session.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../data/items_repository.dart';
 import '../../domain/consumable_state.dart';
-import '../../domain/item_entry.dart';
+import '../view_models/entry_editor_view_model.dart';
 
 class EntryEditorScreen extends StatefulWidget {
   const EntryEditorScreen({
@@ -30,140 +31,166 @@ class EntryEditorScreen extends StatefulWidget {
 }
 
 class _EntryEditorScreenState extends State<EntryEditorScreen> {
-  int _quantity = 1;
-  DateTime _acquiredAt = DateTime.now();
-  DateTime? _expiresAt;
-  ConsumableState _state = ConsumableState.unknown;
-  String? _error;
+  late final EntryEditorViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = EntryEditorViewModel(
+      householdId: widget.householdId,
+      spaceId: widget.spaceId,
+      itemId: widget.itemId,
+      repository: widget.repository,
+      session: widget.session,
+      entryId: widget.entryId,
+    );
+  }
+
+  @override
+  void didUpdateWidget(EntryEditorScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _viewModel.updateDependencies(
+      householdId: widget.householdId,
+      spaceId: widget.spaceId,
+      itemId: widget.itemId,
+      repository: widget.repository,
+      session: widget.session,
+      entryId: widget.entryId,
+    );
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        children: <Widget>[
-          AppCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return ChangeNotifierProvider<EntryEditorViewModel>.value(
+      value: _viewModel,
+      child: Consumer<EntryEditorViewModel>(
+        builder: (BuildContext context, EntryEditorViewModel viewModel, _) {
+          return Scaffold(
+            body: ListView(
+              padding: const EdgeInsets.all(AppSpacing.lg),
               children: <Widget>[
-                Text('Quantity', style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: AppSpacing.md),
-                QuantityStepper(
-                  value: _quantity,
-                  min: 1,
-                  onChanged: (int value) => setState(() => _quantity = value),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          AppCard(
-            child: Column(
-              children: <Widget>[
-                DateField(
-                  labelText: 'Acquired on',
-                  value: _acquiredAt,
-                  onChanged: (DateTime? value) {
-                    if (value != null) {
-                      setState(() => _acquiredAt = value);
-                    }
-                  },
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime.now(),
+                AppCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        'Quantity',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      QuantityStepper(
+                        value: viewModel.quantity,
+                        min: 1,
+                        onChanged: viewModel.updateQuantity,
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                DateField(
-                  labelText: 'Expires on',
-                  value: _expiresAt,
-                  clearable: true,
-                  onChanged: (DateTime? value) => setState(() => _expiresAt = value),
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime(2100),
+                AppCard(
+                  child: Column(
+                    children: <Widget>[
+                      DateField(
+                        labelText: 'Acquired on',
+                        value: viewModel.acquiredAt,
+                        onChanged: (DateTime? value) {
+                          if (value != null) {
+                            viewModel.updateAcquiredAt(value);
+                          }
+                        },
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime.now(),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      DateField(
+                        labelText: 'Expires on',
+                        value: viewModel.expiresAt,
+                        clearable: true,
+                        onChanged: viewModel.updateExpiresAt,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(height: AppSpacing.md),
+                AppCard(
+                  child: SegmentedButton<ConsumableState>(
+                    segments: const <ButtonSegment<ConsumableState>>[
+                      ButtonSegment<ConsumableState>(
+                        value: ConsumableState.unknown,
+                        label: Text('Unknown'),
+                      ),
+                      ButtonSegment<ConsumableState>(
+                        value: ConsumableState.unopened,
+                        label: Text('Unopened'),
+                      ),
+                      ButtonSegment<ConsumableState>(
+                        value: ConsumableState.opened,
+                        label: Text('Opened'),
+                      ),
+                    ],
+                    selected: <ConsumableState>{viewModel.state},
+                    onSelectionChanged: (Set<ConsumableState> value) {
+                      viewModel.updateState(value.first);
+                    },
+                  ),
+                ),
+                if (viewModel.error != null) ...<Widget>[
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    viewModel.error!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ],
               ],
             ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          AppCard(
-            child: SegmentedButton<ConsumableState>(
-              segments: const <ButtonSegment<ConsumableState>>[
-                ButtonSegment<ConsumableState>(
-                  value: ConsumableState.unknown,
-                  label: Text('Unknown'),
-                ),
-                ButtonSegment<ConsumableState>(
-                  value: ConsumableState.unopened,
-                  label: Text('Unopened'),
-                ),
-                ButtonSegment<ConsumableState>(
-                  value: ConsumableState.opened,
-                  label: Text('Opened'),
-                ),
-              ],
-              selected: <ConsumableState>{_state},
-              onSelectionChanged: (Set<ConsumableState> value) {
-                setState(() => _state = value.first);
-              },
-            ),
-          ),
-          if (_error != null) ...<Widget>[
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              _error!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-          ],
-        ],
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
+            bottomNavigationBar: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: viewModel.isSaving
+                            ? null
+                            : () => Navigator.of(context).pop(),
+                        child: const Text('Cancel'),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: viewModel.isSaving
+                            ? null
+                            : () => _save(context, viewModel),
+                        child: const Text('Save'),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: FilledButton(
-                  onPressed: _save,
-                  child: const Text('Save'),
-                ),
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Future<void> _save() async {
-    if (_expiresAt != null && _expiresAt!.isBefore(_acquiredAt)) {
-      setState(() => _error = 'Expiration must be after acquired date.');
-      return;
-    }
-    final AuthSession? session = widget.session;
-    if (session == null) {
-      setState(() => _error = 'You need to sign in before saving.');
-      return;
-    }
-    await widget.repository.saveEntry(
-      session: session,
-      householdId: widget.householdId,
-      spaceId: widget.spaceId,
-      entry: ItemEntry(
-        id: widget.entryId ?? '',
-        itemId: widget.itemId,
-        quantity: _quantity,
-        acquiredAt: _acquiredAt,
-        expiresAt: _expiresAt,
-        state: _state,
-      ),
-    );
-    if (mounted) {
+  Future<void> _save(
+    BuildContext context,
+    EntryEditorViewModel viewModel,
+  ) async {
+    final bool saved = await viewModel.save();
+    if (saved && context.mounted) {
       Navigator.of(context).pop();
     }
   }

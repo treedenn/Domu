@@ -6,7 +6,7 @@ include:
 services:
   pgdb:
     image: ${POSTGRES_IMAGE}
-    restart: always
+    restart: unless-stopped
     shm_size: 128mb
     ports:
       - 5432:5432
@@ -40,6 +40,8 @@ services:
       MP_MAX_MESSAGES: 5000
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    networks:
+      - domu-net
       
   swaggerui:
     image: docker.swagger.io/swaggerapi/swagger-ui
@@ -48,6 +50,8 @@ services:
       - 5001:8080
     environment:
       URL: "http://localhost:5000/openapi/v1.json"
+    networks:
+      - domu-net
 
 networks:
   domu-net:

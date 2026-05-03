@@ -30,6 +30,10 @@ public sealed class HouseholdInvitation
         InvitedByUserId = invitedByUserId == Guid.Empty
             ? throw new ArgumentException("Invited-by user id cannot be empty.", nameof(invitedByUserId))
             : invitedByUserId;
+        if (!Enum.IsDefined(role))
+            throw new ArgumentException("Invitation role is invalid.", nameof(role));
+        if (role == HouseholdMemberRole.Unspecified)
+            throw new ArgumentException("Invitation role must be specified.", nameof(role));
         if (role == HouseholdMemberRole.Owner)
             throw new ArgumentException("Invitations cannot grant owner role.", nameof(role));
         Role = role;
@@ -54,6 +58,10 @@ public sealed class HouseholdInvitation
         DateTimeOffset? acceptedAt)
         : this(id, householdId, email, invitedByUserId, role, token, createdAt, expiresAt)
     {
+        if (!Enum.IsDefined(status))
+            throw new ArgumentException("Invitation status is invalid.", nameof(status));
+        if (status == HouseholdInvitationStatus.Unknown)
+            throw new ArgumentException("Invitation status must be specified.", nameof(status));
         if (status == HouseholdInvitationStatus.Accepted && acceptedAt is null)
             throw new ArgumentException("Accepted invitations must have an accepted time.", nameof(acceptedAt));
         if (status != HouseholdInvitationStatus.Accepted && acceptedAt is not null)

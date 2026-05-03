@@ -2,7 +2,8 @@ namespace Domu.Api.Features.Households.Domain.Households;
 
 public enum HouseholdSubscriptionStatus
 {
-    Active,
-    CancellationScheduled,
-    Expired
+    Unknown = 0,
+    Active = 1,
+    CancellationScheduled = 2,
+    Expired = 3
 }

@@ -25,7 +25,7 @@ public sealed class ItemEntry
 
     public int Quantity { get; private set; }
 
-    public ConsumableState State { get; private set; } = ConsumableState.Unknown;
+    public ConsumableState State { get; private set; } = ConsumableState.Unspecified;
 
     public void SetDates(DateTimeOffset? acquisitionDate, DateTimeOffset? expirationDate)
     {
@@ -46,6 +46,9 @@ public sealed class ItemEntry
 
     public void ChangeState(ConsumableState state)
     {
+        if (!Enum.IsDefined(state))
+            throw new ArgumentException("Consumable state is invalid.", nameof(state));
+
         State = state;
     }
 }

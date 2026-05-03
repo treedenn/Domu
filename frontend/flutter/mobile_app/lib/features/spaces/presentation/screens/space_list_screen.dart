@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../app/theme/tokens.dart';
 import '../../../../core/auth/auth_session.dart';
@@ -10,6 +11,7 @@ import '../../../../features/items/data/items_repository.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../data/spaces_repository.dart';
 import '../../domain/space.dart';
+import '../view_models/space_list_view_model.dart';
 
 class SpaceListScreen extends StatefulWidget {
   const SpaceListScreen({
@@ -32,139 +34,123 @@ class SpaceListScreen extends StatefulWidget {
 }
 
 class _SpaceListScreenState extends State<SpaceListScreen> {
-  late Future<SpacePage> _spaces;
   final TextEditingController _searchController = TextEditingController();
-  String _query = '';
+  late final SpaceListViewModel _viewModel;
 
   @override
   void initState() {
     super.initState();
-    _spaces = _loadSpaces();
+    _viewModel = SpaceListViewModel(
+      householdId: widget.householdId,
+      householdName: widget.householdName,
+      itemsRepository: widget.itemsRepository,
+      repository: widget.repository,
+      session: widget.session,
+    );
   }
 
   @override
   void didUpdateWidget(SpaceListScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.repository != widget.repository ||
-        oldWidget.session != widget.session ||
-        oldWidget.householdId != widget.householdId) {
-      _spaces = _loadSpaces();
-    }
+    _viewModel.updateDependencies(
+      householdId: widget.householdId,
+      householdName: widget.householdName,
+      itemsRepository: widget.itemsRepository,
+      repository: widget.repository,
+      session: widget.session,
+    );
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _viewModel.dispose();
     super.dispose();
-  }
-
-  Future<SpacePage> _loadSpaces() {
-    final SpacesRepository? repository = widget.repository;
-    final AuthSession? session = widget.session;
-    if (repository == null || session == null) {
-      return Future<SpacePage>.value(
-        const SpacePage(
-          spaces: <Space>[],
-          pageNumber: 1,
-          pageSize: 20,
-          totalCount: 0,
-        ),
-      );
-    }
-
-    return repository.getSpaces(
-      session: session,
-      householdId: widget.householdId,
-    );
-  }
-
-  void _reload() {
-    setState(() {
-      _spaces = _loadSpaces();
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: FutureBuilder<SpacePage>(
-        future: _spaces,
-        builder: (BuildContext context, AsyncSnapshot<SpacePage> snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const LoadingView(label: 'Loading spaces...');
-          }
-          if (snapshot.hasError) {
-            return ErrorView(
-              title: 'Could not load spaces',
-              message: snapshot.error.toString(),
-              onRetry: _reload,
-            );
-          }
-
-          final List<Space> allSpaces =
-              snapshot.data?.spaces ?? const <Space>[];
-          final List<Space> spaces = allSpaces
-              .where((Space space) =>
-                  space.name.toLowerCase().contains(_query.toLowerCase()))
-              .toList(growable: false);
-
-          if (allSpaces.isEmpty) {
-            return EmptyView(
-              title: 'Create your first space',
-              message: 'Spaces can be rooms, cupboards, boxes, or any nested place you store things.',
-              action: FilledButton.icon(
-                onPressed: () => _showAddSpaceSheet(context),
-                icon: const Icon(Icons.add),
-                label: const Text('Add space'),
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () async => _reload(),
-            child: ListView(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              children: <Widget>[
-                AppSearchField(
-                  controller: _searchController,
-                  hintText: 'Search spaces',
-                  onChanged: (String value) {
-                    setState(() => _query = value);
-                  },
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Callout(
-                  severity: CalloutSeverity.warning,
-                  message: 'Items expiring soon need attention',
-                  actionLabel: 'View',
-                  onAction: () => context.go(
-                    '/households/${widget.householdId}/search?name=${Uri.encodeQueryComponent(widget.householdName)}&expiring=7d',
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                for (final Space space in spaces) ...<Widget>[
-                  _SpaceCard(
-                    space: space,
-                    onTap: () => context.go(
-                      '/households/${widget.householdId}/spaces/${space.id}?name=${Uri.encodeQueryComponent(widget.householdName)}',
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                ],
-              ],
+    return ChangeNotifierProvider<SpaceListViewModel>.value(
+      value: _viewModel,
+      child: Consumer<SpaceListViewModel>(
+        builder: (BuildContext context, SpaceListViewModel viewModel, _) {
+          return Scaffold(
+            body: _buildBody(context, viewModel),
+            floatingActionButton: FloatingActionButton.extended(
+              onPressed: () => _showAddSpaceSheet(context, viewModel),
+              icon: const Icon(Icons.add),
+              label: const Text('Add space'),
             ),
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddSpaceSheet(context),
-        icon: const Icon(Icons.add),
-        label: const Text('Add space'),
+    );
+  }
+
+  Widget _buildBody(BuildContext context, SpaceListViewModel viewModel) {
+    if (viewModel.isLoading) {
+      return const LoadingView(label: 'Loading spaces...');
+    }
+    if (viewModel.error != null) {
+      return ErrorView(
+        title: 'Could not load spaces',
+        error: viewModel.error,
+        stackTrace: viewModel.stackTrace,
+        onRetry: viewModel.load,
+      );
+    }
+
+    final List<Space> allSpaces = viewModel.allSpaces;
+    final List<Space> spaces = viewModel.spaces;
+
+    if (allSpaces.isEmpty) {
+      return EmptyView(
+        title: 'Create your first space',
+        message:
+            'Spaces can be rooms, cupboards, boxes, or any nested place you store things.',
+        action: FilledButton.icon(
+          onPressed: () => _showAddSpaceSheet(context, viewModel),
+          icon: const Icon(Icons.add),
+          label: const Text('Add space'),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: viewModel.load,
+      child: ListView(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        children: <Widget>[
+          AppSearchField(
+            controller: _searchController,
+            hintText: 'Search spaces',
+            onChanged: viewModel.updateQuery,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Callout(
+            severity: CalloutSeverity.warning,
+            message: 'Items expiring soon need attention',
+            actionLabel: 'View',
+            onAction: () => context.go(
+              '/households/${viewModel.householdId}/search?name=${Uri.encodeQueryComponent(viewModel.householdName)}&expiring=7d',
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          for (final Space space in spaces) ...<Widget>[
+            _SpaceCard(
+              space: space,
+              onTap: () => context.go(
+                '/households/${viewModel.householdId}/spaces/${space.id}?name=${Uri.encodeQueryComponent(viewModel.householdName)}',
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+          ],
+        ],
       ),
     );
   }
 
-  void _showAddSpaceSheet(BuildContext context) {
+  void _showAddSpaceSheet(BuildContext context, SpaceListViewModel viewModel) {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController descriptionController = TextEditingController();
     showModalBottomSheet<void>(
@@ -198,17 +184,10 @@ class _SpaceListScreenState extends State<SpaceListScreen> {
               const SizedBox(height: AppSpacing.lg),
               FilledButton(
                 onPressed: () async {
-                  final AuthSession? session = widget.session;
-                  final SpacesRepository? repository = widget.repository;
-                  if (session != null && repository != null) {
-                    await repository.create(
-                      session: session,
-                      householdId: widget.householdId,
-                      name: nameController.text.trim(),
-                      description: descriptionController.text.trim(),
-                    );
-                    _reload();
-                  }
+                  await viewModel.createSpace(
+                    name: nameController.text.trim(),
+                    description: descriptionController.text.trim(),
+                  );
                   if (context.mounted) {
                     Navigator.of(context).pop();
                   }
@@ -244,7 +223,10 @@ class _SpaceCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(space.name, style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  space.name,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   _subtitle(space),

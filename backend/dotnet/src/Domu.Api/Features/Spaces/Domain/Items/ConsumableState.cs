@@ -2,7 +2,7 @@ namespace Domu.Api.Features.Spaces.Domain.Items;
 
 public enum ConsumableState
 {
-    Unknown = 0,
+    Unspecified = 0,
     Unopened = 1,
     Opened = 2
 }

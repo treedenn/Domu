@@ -21,8 +21,7 @@ public sealed class ItemEntryConfiguration : IEntityTypeConfiguration<ItemEntryE
             .IsRequired();
 
         builder.Property(entry => entry.State)
-            .HasConversion<string>()
-            .HasMaxLength(32)
+            .HasConversion<int>()
             .IsRequired();
     }
 }

@@ -93,7 +93,7 @@ public sealed class HouseholdsController(
                 new InviteHouseholdMemberCommand(householdId, userAccessor.User.Id, request.Email, request.Role),
                 cancellationToken);
 
-            return Created($"/api/v1/household-invitations/{invitation.Id}", invitation);
+            return Created($"/api/v1/households/{householdId}/invitations/{invitation.Id}", invitation);
         }
         catch (KeyNotFoundException)
         {

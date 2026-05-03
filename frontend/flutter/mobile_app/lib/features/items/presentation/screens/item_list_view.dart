@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../app/theme/tokens.dart';
 import '../../../../core/auth/auth_session.dart';
@@ -10,6 +11,7 @@ import '../../../../shared/widgets/widgets.dart';
 import '../../data/items_repository.dart';
 import '../../domain/consumable_state.dart';
 import '../../domain/item.dart';
+import '../view_models/item_list_view_model.dart';
 
 class ItemListView extends StatefulWidget {
   const ItemListView({
@@ -32,156 +34,155 @@ class ItemListView extends StatefulWidget {
 }
 
 class _ItemListViewState extends State<ItemListView> {
-  late Future<List<Item>> _items;
   final TextEditingController _searchController = TextEditingController();
-  ConsumableState? _stateFilter;
-  String _query = '';
+  late final ItemListViewModel _viewModel;
 
   @override
   void initState() {
     super.initState();
-    _items = _loadItems();
+    _viewModel = ItemListViewModel(
+      householdId: widget.householdId,
+      householdName: widget.householdName,
+      spaceId: widget.spaceId,
+      repository: widget.repository,
+      session: widget.session,
+    );
+  }
+
+  @override
+  void didUpdateWidget(ItemListView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _viewModel.updateDependencies(
+      householdId: widget.householdId,
+      householdName: widget.householdName,
+      spaceId: widget.spaceId,
+      repository: widget.repository,
+      session: widget.session,
+    );
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _viewModel.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Item>>(
-      future: _items,
-      builder: (BuildContext context, AsyncSnapshot<List<Item>> snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const LoadingView(label: 'Loading items...');
-        }
-        if (snapshot.hasError) {
-          return ErrorView(
-            title: 'Could not load items',
-            message: snapshot.error.toString(),
-            onRetry: _reload,
-          );
-        }
-        final List<Item> items = _filtered(snapshot.data ?? const <Item>[]);
-        if ((snapshot.data ?? const <Item>[]).isEmpty) {
-          return EmptyView(
-            title: 'No items yet',
-            message: 'Add the first item stored in this space.',
-            action: FilledButton.icon(
-              onPressed: _showAddItemSheet,
-              icon: const Icon(Icons.add),
-              label: const Text('Add item'),
-            ),
-          );
-        }
-        return ListView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          children: <Widget>[
-            AppSearchField(
-              controller: _searchController,
-              hintText: 'Search items',
-              onChanged: (String value) => setState(() => _query = value),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            FilterChipStrip<ConsumableState?>(
-              defaultValue: null,
-              selected: _stateFilter,
-              onSelected: (ConsumableState? value) {
-                setState(() => _stateFilter = value);
-              },
-              options: const <FilterChipOption<ConsumableState?>>[
-                FilterChipOption<ConsumableState?>(
-                  value: null,
-                  label: 'Any state',
-                ),
-                FilterChipOption<ConsumableState?>(
-                  value: ConsumableState.unopened,
-                  label: 'Unopened',
-                ),
-                FilterChipOption<ConsumableState?>(
-                  value: ConsumableState.opened,
-                  label: 'Opened',
-                ),
-                FilterChipOption<ConsumableState?>(
-                  value: ConsumableState.unknown,
-                  label: 'Unknown',
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            for (final Item item in items) ...<Widget>[
-              AppCard(
-                onTap: () => context.go(
-                  '/households/${widget.householdId}/spaces/${widget.spaceId}/items/${item.id}?name=${Uri.encodeQueryComponent(widget.householdName)}',
-                ),
-                child: Row(
-                  children: <Widget>[
-                    Icon(item.barcode == null
-                        ? Icons.inventory_2_outlined
-                        : Icons.qr_code_2),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(
-                            item.name,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: AppSpacing.sm),
-                          Wrap(
-                            spacing: AppSpacing.sm,
-                            runSpacing: AppSpacing.xs,
-                            children: <Widget>[
-                              StateChip(state: item.dominantState, dense: true),
-                              ExpirationBadge(expiresAt: item.earliestExpiresAt),
-                              Chip(label: Text('x ${item.totalQuantity}')),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.chevron_right),
-                  ],
-                ),
+    return ChangeNotifierProvider<ItemListViewModel>.value(
+      value: _viewModel,
+      child: Consumer<ItemListViewModel>(
+        builder: (BuildContext context, ItemListViewModel viewModel, _) {
+          if (viewModel.isLoading) {
+            return const LoadingView(label: 'Loading items...');
+          }
+          if (viewModel.error != null) {
+            return ErrorView(
+              title: 'Could not load items',
+              error: viewModel.error,
+              stackTrace: viewModel.stackTrace,
+              onRetry: viewModel.load,
+            );
+          }
+          final List<Item> items = viewModel.items;
+          if (viewModel.allItems.isEmpty) {
+            return EmptyView(
+              title: 'No items yet',
+              message: 'Add the first item stored in this space.',
+              action: FilledButton.icon(
+                onPressed: () => _showAddItemSheet(viewModel),
+                icon: const Icon(Icons.add),
+                label: const Text('Add item'),
+              ),
+            );
+          }
+          return ListView(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            children: <Widget>[
+              AppSearchField(
+                controller: _searchController,
+                hintText: 'Search items',
+                onChanged: viewModel.updateQuery,
               ),
               const SizedBox(height: AppSpacing.md),
+              FilterChipStrip<ConsumableState?>(
+                defaultValue: null,
+                selected: viewModel.stateFilter,
+                onSelected: viewModel.updateStateFilter,
+                options: const <FilterChipOption<ConsumableState?>>[
+                  FilterChipOption<ConsumableState?>(
+                    value: null,
+                    label: 'Any state',
+                  ),
+                  FilterChipOption<ConsumableState?>(
+                    value: ConsumableState.unopened,
+                    label: 'Unopened',
+                  ),
+                  FilterChipOption<ConsumableState?>(
+                    value: ConsumableState.opened,
+                    label: 'Opened',
+                  ),
+                  FilterChipOption<ConsumableState?>(
+                    value: ConsumableState.unknown,
+                    label: 'Unknown',
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              for (final Item item in items) ...<Widget>[
+                AppCard(
+                  onTap: () => context.go(
+                    '/households/${viewModel.householdId}/spaces/${viewModel.spaceId}/items/${item.id}?name=${Uri.encodeQueryComponent(viewModel.householdName)}',
+                  ),
+                  child: Row(
+                    children: <Widget>[
+                      Icon(
+                        item.barcode == null
+                            ? Icons.inventory_2_outlined
+                            : Icons.qr_code_2,
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              item.name,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            Wrap(
+                              spacing: AppSpacing.sm,
+                              runSpacing: AppSpacing.xs,
+                              children: <Widget>[
+                                StateChip(
+                                  state: item.dominantState,
+                                  dense: true,
+                                ),
+                                ExpirationBadge(
+                                  expiresAt: item.earliestExpiresAt,
+                                ),
+                                Chip(label: Text('x ${item.totalQuantity}')),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+              ],
             ],
-          ],
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
-  List<Item> _filtered(List<Item> items) {
-    return items
-        .where((Item item) =>
-            item.name.toLowerCase().contains(_query.toLowerCase()) &&
-            (_stateFilter == null || item.dominantState == _stateFilter))
-        .toList(growable: false);
-  }
-
-  void _reload() {
-    setState(() {
-      _items = _loadItems();
-    });
-  }
-
-  Future<List<Item>> _loadItems() {
-    final AuthSession? session = widget.session;
-    if (session == null) {
-      return Future<List<Item>>.value(const <Item>[]);
-    }
-    return widget.repository.getItems(
-      session: session,
-      householdId: widget.householdId,
-      spaceId: widget.spaceId,
-    );
-  }
-
-  void _showAddItemSheet() {
+  void _showAddItemSheet(ItemListViewModel viewModel) {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController barcodeController = TextEditingController();
     showModalBottomSheet<void>(
@@ -225,18 +226,10 @@ class _ItemListViewState extends State<ItemListView> {
               const SizedBox(height: AppSpacing.lg),
               FilledButton(
                 onPressed: () async {
-                  final AuthSession? session = widget.session;
-                  if (session == null) {
-                    return;
-                  }
-                  await widget.repository.addItem(
-                    session: session,
-                    householdId: widget.householdId,
-                    spaceId: widget.spaceId,
+                  await viewModel.addItem(
                     name: nameController.text.trim(),
                     barcode: barcodeController.text.trim(),
                   );
-                  _reload();
                   if (context.mounted) {
                     Navigator.of(context).pop();
                   }

@@ -18,6 +18,10 @@ public sealed class HouseholdMember
         UserId = userId == Guid.Empty
             ? throw new ArgumentException("User id cannot be empty.", nameof(userId))
             : userId;
+        if (!Enum.IsDefined(role))
+            throw new ArgumentException("Household member role is invalid.", nameof(role));
+        if (role == HouseholdMemberRole.Unspecified)
+            throw new ArgumentException("Household member role must be specified.", nameof(role));
         Role = role;
         JoinedAt = joinedAt;
     }

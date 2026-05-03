@@ -26,13 +26,11 @@ public sealed class HouseholdInvitationConfiguration : IEntityTypeConfiguration<
             .IsRequired();
 
         builder.Property(invitation => invitation.Role)
-            .HasConversion<string>()
-            .HasMaxLength(32)
+            .HasConversion<int>()
             .IsRequired();
 
         builder.Property(invitation => invitation.Status)
-            .HasConversion<string>()
-            .HasMaxLength(32)
+            .HasConversion<int>()
             .IsRequired();
 
         builder.HasIndex(invitation => invitation.Token)

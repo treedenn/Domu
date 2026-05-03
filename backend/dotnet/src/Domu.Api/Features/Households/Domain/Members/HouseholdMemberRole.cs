@@ -2,7 +2,8 @@ namespace Domu.Api.Features.Households.Domain.Members;
 
 public enum HouseholdMemberRole
 {
-    Owner,
-    Admin,
-    Member
+    Unspecified = 0,
+    Owner = 1,
+    Admin = 2,
+    Member = 3
 }

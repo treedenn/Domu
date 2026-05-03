@@ -17,8 +17,7 @@ public sealed class HouseholdMemberConfiguration : IEntityTypeConfiguration<Hous
             .ValueGeneratedNever();
 
         builder.Property(member => member.Role)
-            .HasConversion<string>()
-            .HasMaxLength(32)
+            .HasConversion<int>()
             .IsRequired();
 
         builder.HasIndex(member => new { member.HouseholdId, member.UserId })

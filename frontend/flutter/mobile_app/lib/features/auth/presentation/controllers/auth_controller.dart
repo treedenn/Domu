@@ -2,11 +2,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
 
 import '../../../../core/auth/auth_session.dart';
+import '../../../../core/errors/user_error_message.dart';
+import '../../../../core/logging/logger.dart';
 import '../../data/auth_repository.dart';
 import '../../data/zitadel_auth_repository.dart';
 
 class AuthController extends ChangeNotifier {
   AuthController(this._repository);
+
+  static const Logger _logger = Logger();
 
   final AuthRepository _repository;
 
@@ -20,14 +24,14 @@ class AuthController extends ChangeNotifier {
 
     try {
       final AuthSession? session = await _repository.restoreSession();
-      _state = AuthState(
-        session: session,
-        isInitializing: false,
+      _state = AuthState(session: session, isInitializing: false);
+    } catch (error, stackTrace) {
+      _logger.error(
+        'Could not restore session',
+        error: error,
+        stackTrace: stackTrace,
       );
-    } catch (error) {
-      _state = AuthState.unauthenticated(
-        errorMessage: _formatError(error),
-      );
+      _state = AuthState.unauthenticated(errorMessage: _formatError(error));
     }
 
     notifyListeners();
@@ -38,10 +42,7 @@ class AuthController extends ChangeNotifier {
     String? preferredIdpId,
     bool createAccount = false,
   }) async {
-    _state = _state.copyWith(
-      isBusy: true,
-      errorMessage: null,
-    );
+    _state = _state.copyWith(isBusy: true, errorMessage: null);
     notifyListeners();
 
     try {
@@ -54,10 +55,9 @@ class AuthController extends ChangeNotifier {
       _state = AuthState.authenticated(session);
     } on FlutterAppAuthUserCancelledException {
       _state = _state.copyWith(isBusy: false);
-    } catch (error) {
-      _state = AuthState.unauthenticated(
-        errorMessage: _formatError(error),
-      );
+    } catch (error, stackTrace) {
+      _logger.error('Could not sign in', error: error, stackTrace: stackTrace);
+      _state = AuthState.unauthenticated(errorMessage: _formatError(error));
     }
 
     notifyListeners();
@@ -66,19 +66,15 @@ class AuthController extends ChangeNotifier {
   Future<void> signOut() async {
     final AuthSession? existingSession = _state.session;
 
-    _state = _state.copyWith(
-      isBusy: true,
-      errorMessage: null,
-    );
+    _state = _state.copyWith(isBusy: true, errorMessage: null);
     notifyListeners();
 
     try {
       await _repository.signOut(existingSession);
       _state = const AuthState.unauthenticated();
-    } catch (error) {
-      _state = AuthState.unauthenticated(
-        errorMessage: _formatError(error),
-      );
+    } catch (error, stackTrace) {
+      _logger.error('Could not sign out', error: error, stackTrace: stackTrace);
+      _state = AuthState.unauthenticated(errorMessage: _formatError(error));
     }
 
     notifyListeners();
@@ -90,11 +86,10 @@ class AuthController extends ChangeNotifier {
     }
 
     if (error is FlutterAppAuthPlatformException) {
-      final String details = error.details.toString();
-      return details.isEmpty ? (error.message ?? 'Authentication failed.') : details;
+      return error.message ?? 'Authentication failed.';
     }
 
-    return error.toString();
+    return userErrorMessage(error);
   }
 }
 
@@ -107,20 +102,20 @@ class AuthState {
   });
 
   const AuthState.initializing()
-      : session = null,
-        isInitializing = true,
-        isBusy = false,
-        errorMessage = null;
+    : session = null,
+      isInitializing = true,
+      isBusy = false,
+      errorMessage = null;
 
   const AuthState.unauthenticated({this.errorMessage})
-      : session = null,
-        isInitializing = false,
-        isBusy = false;
+    : session = null,
+      isInitializing = false,
+      isBusy = false;
 
   const AuthState.authenticated(AuthSession this.session)
-      : isInitializing = false,
-        isBusy = false,
-        errorMessage = null;
+    : isInitializing = false,
+      isBusy = false,
+      errorMessage = null;
 
   final AuthSession? session;
   final bool isInitializing;

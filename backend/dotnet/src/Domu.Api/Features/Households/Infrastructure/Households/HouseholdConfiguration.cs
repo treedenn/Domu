@@ -22,13 +22,11 @@ public sealed class HouseholdConfiguration : IEntityTypeConfiguration<HouseholdE
             .IsRequired();
 
         builder.Property(household => household.SubscriptionPlan)
-            .HasConversion<string>()
-            .HasMaxLength(32)
+            .HasConversion<int>()
             .IsRequired();
 
         builder.Property(household => household.SubscriptionStatus)
-            .HasConversion<string>()
-            .HasMaxLength(32)
+            .HasConversion<int>()
             .IsRequired();
 
         builder.HasIndex(household => new { household.OwnerId, household.Name });
