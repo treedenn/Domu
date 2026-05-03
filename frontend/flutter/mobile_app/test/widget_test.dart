@@ -13,6 +13,9 @@ import 'package:domu_mobile_app/features/households/domain/member.dart';
 import 'package:domu_mobile_app/features/items/data/items_repository.dart';
 import 'package:domu_mobile_app/features/items/domain/item.dart';
 import 'package:domu_mobile_app/features/items/domain/item_entry.dart';
+import 'package:domu_mobile_app/features/search/data/search_repository.dart';
+import 'package:domu_mobile_app/features/search/domain/search_engine.dart';
+import 'package:domu_mobile_app/features/search/domain/search_query.dart';
 import 'package:domu_mobile_app/features/spaces/data/spaces_repository.dart';
 import 'package:domu_mobile_app/features/spaces/domain/space.dart';
 
@@ -154,6 +157,17 @@ class FakeItemsRepository implements ItemsRepository {
   }
 }
 
+class FakeSearchRepository implements SearchRepository {
+  @override
+  Future<SearchResults> search({
+    required AuthSession session,
+    required String householdId,
+    required SearchQuery query,
+  }) async {
+    return const SearchResults(spaces: <Space>[], items: <Item>[]);
+  }
+}
+
 void main() {
   testWidgets('renders bootstrap shell', (WidgetTester tester) async {
     final AuthController authController = AuthController(FakeAuthRepository());
@@ -177,6 +191,7 @@ void main() {
           membersRepository: FakeMembersRepository(),
           spacesRepository: FakeSpacesRepository(),
           itemsRepository: FakeItemsRepository(),
+          searchRepository: FakeSearchRepository(),
         ),
       ),
     );
