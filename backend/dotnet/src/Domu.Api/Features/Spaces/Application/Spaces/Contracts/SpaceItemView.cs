@@ -6,4 +6,4 @@ public sealed record SpaceItemView(
     string Name,
     string? Category,
     string? Barcode,
-    int TotalQuantity);
+    decimal TotalQuantity);

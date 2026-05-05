@@ -163,7 +163,7 @@ class _ItemListViewState extends State<ItemListView> {
                                 ExpirationBadge(
                                   expiresAt: item.earliestExpiresAt,
                                 ),
-                                Chip(label: Text('x ${item.totalQuantity}')),
+                                Chip(label: Text(item.quantityLabel)),
                               ],
                             ),
                           ],

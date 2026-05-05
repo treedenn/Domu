@@ -11,7 +11,9 @@ import '../../../../core/ui/loading_view.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../data/items_repository.dart';
 import '../../domain/item.dart';
+import '../../domain/item_container_type.dart';
 import '../../domain/item_entry.dart';
+import '../../domain/item_unit.dart';
 import '../view_models/item_detail_view_model.dart';
 
 class ItemDetailScreen extends StatefulWidget {
@@ -137,9 +139,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                 ),
               ],
               const SizedBox(height: AppSpacing.md),
-              Text(
-                'x ${item.totalQuantity} total - ${item.entryCount} entries',
-              ),
+              Text('${item.quantityLabel} total - ${item.entryCount} entries'),
             ],
           ),
         ),
@@ -164,7 +164,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                 children: <Widget>[
                   StateChip(state: entry.state, dense: true),
                   const SizedBox(width: AppSpacing.md),
-                  Expanded(child: Text('x ${entry.quantity}')),
+                  Expanded(child: Text(_entryQuantityLabel(entry))),
                   ExpirationBadge(expiresAt: entry.expiresAt, verbose: true),
                 ],
               ),
@@ -179,5 +179,15 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     context.go(
       '/households/${widget.householdId}/spaces/${widget.spaceId}/items/${widget.itemId}/entries/new',
     );
+  }
+
+  String _entryQuantityLabel(ItemEntry entry) {
+    final String current = Item.formatQuantity(entry.currentQuantity);
+    final String initial = Item.formatQuantity(entry.initialQuantity);
+    final String amount = entry.currentQuantity == entry.initialQuantity
+        ? '$current ${entry.unit.shortLabel}'
+        : '$current / $initial ${entry.unit.shortLabel}';
+    final String container = entry.containerType.shortLabel;
+    return container.isEmpty ? amount : '$amount $container';
   }
 }

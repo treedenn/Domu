@@ -11,7 +11,10 @@ public sealed class ItemEntryEntity
     public ItemEntryEntity(
         Guid id,
         Guid itemId,
-        int quantity,
+        decimal initialQuantity,
+        decimal currentQuantity,
+        ItemUnit unit,
+        ItemContainerType containerType,
         ConsumableState state,
         DateTimeOffset? acquisitionDate,
         DateTimeOffset? expirationDate)
@@ -22,12 +25,23 @@ public sealed class ItemEntryEntity
         ItemId = itemId == Guid.Empty
             ? throw new ArgumentException("Item id cannot be empty.", nameof(itemId))
             : itemId;
-        if (quantity < 0)
-            throw new ArgumentOutOfRangeException(nameof(quantity), "Item entry quantity must be >= 0.");
+        if (initialQuantity < 0)
+            throw new ArgumentOutOfRangeException(nameof(initialQuantity), "Item entry initial quantity must be >= 0.");
+        if (currentQuantity < 0)
+            throw new ArgumentOutOfRangeException(nameof(currentQuantity), "Item entry current quantity must be >= 0.");
+        if (currentQuantity > initialQuantity)
+            throw new ArgumentException("Item entry current quantity cannot be greater than initial quantity.");
+        if (!Enum.IsDefined(unit))
+            throw new ArgumentException("Item unit is invalid.", nameof(unit));
+        if (!Enum.IsDefined(containerType))
+            throw new ArgumentException("Item container type is invalid.", nameof(containerType));
         if (acquisitionDate is not null && expirationDate is not null && acquisitionDate > expirationDate)
             throw new ArgumentException("Item entry acquisition date cannot be after expiration date.");
 
-        Quantity = quantity;
+        InitialQuantity = initialQuantity;
+        CurrentQuantity = currentQuantity;
+        Unit = unit;
+        ContainerType = containerType;
         State = state;
         AcquisitionDate = acquisitionDate;
         ExpirationDate = expirationDate;
@@ -35,7 +49,10 @@ public sealed class ItemEntryEntity
 
     public Guid Id { get; private set; }
     public Guid ItemId { get; private set; }
-    public int Quantity { get; private set; }
+    public decimal InitialQuantity { get; private set; }
+    public decimal CurrentQuantity { get; private set; }
+    public ItemUnit Unit { get; private set; } = ItemUnit.Piece;
+    public ItemContainerType ContainerType { get; private set; } = ItemContainerType.Unspecified;
     public ConsumableState State { get; private set; }
     public DateTimeOffset? AcquisitionDate { get; private set; }
     public DateTimeOffset? ExpirationDate { get; private set; }
@@ -44,7 +61,9 @@ public sealed class ItemEntryEntity
     {
         var entry = new ItemEntry(Id, ItemId);
         entry.SetDates(AcquisitionDate, ExpirationDate);
-        entry.SetQuantity(Quantity);
+        entry.SetQuantities(InitialQuantity, CurrentQuantity);
+        entry.SetUnit(Unit);
+        entry.SetContainerType(ContainerType);
         entry.ChangeState(State);
         return entry;
     }
@@ -56,7 +75,10 @@ public sealed class ItemEntryEntity
         return new ItemEntryEntity(
             entry.Id,
             entry.ItemId,
-            entry.Quantity,
+            entry.InitialQuantity,
+            entry.CurrentQuantity,
+            entry.Unit,
+            entry.ContainerType,
             entry.State,
             entry.AcquisitionDate,
             entry.ExpirationDate);
@@ -69,7 +91,10 @@ public sealed class ItemEntryEntity
             throw new ArgumentException("Cannot update item entry entity from a different entry.", nameof(entry));
 
         ItemId = entry.ItemId;
-        Quantity = entry.Quantity;
+        InitialQuantity = entry.InitialQuantity;
+        CurrentQuantity = entry.CurrentQuantity;
+        Unit = entry.Unit;
+        ContainerType = entry.ContainerType;
         State = entry.State;
         AcquisitionDate = entry.AcquisitionDate;
         ExpirationDate = entry.ExpirationDate;

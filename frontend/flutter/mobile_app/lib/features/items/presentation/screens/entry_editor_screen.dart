@@ -6,6 +6,8 @@ import '../../../../core/auth/auth_session.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../data/items_repository.dart';
 import '../../domain/consumable_state.dart';
+import '../../domain/item_container_type.dart';
+import '../../domain/item_unit.dart';
 import '../view_models/entry_editor_view_model.dart';
 
 class EntryEditorScreen extends StatefulWidget {
@@ -80,14 +82,84 @@ class _EntryEditorScreenState extends State<EntryEditorScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
-                        'Quantity',
+                        'Amount',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: AppSpacing.md),
-                      QuantityStepper(
-                        value: viewModel.quantity,
-                        min: 1,
-                        onChanged: viewModel.updateQuantity,
+                      TextFormField(
+                        initialValue: _formatNumber(viewModel.initialQuantity),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Initial quantity',
+                        ),
+                        onChanged: (String value) {
+                          final double? quantity = double.tryParse(value);
+                          if (quantity != null) {
+                            viewModel.updateInitialQuantity(quantity);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      TextFormField(
+                        initialValue: _formatNumber(viewModel.currentQuantity),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Current quantity',
+                        ),
+                        onChanged: (String value) {
+                          final double? quantity = double.tryParse(value);
+                          if (quantity != null) {
+                            viewModel.updateCurrentQuantity(quantity);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      DropdownButtonFormField<ItemUnit>(
+                        initialValue: viewModel.unit,
+                        decoration: const InputDecoration(labelText: 'Unit'),
+                        items: ItemUnit.values
+                            .where(
+                              (ItemUnit unit) => unit != ItemUnit.unspecified,
+                            )
+                            .map(
+                              (ItemUnit unit) => DropdownMenuItem<ItemUnit>(
+                                value: unit,
+                                child: Text(
+                                  '${unit.label} (${unit.kind.label.toLowerCase()})',
+                                ),
+                              ),
+                            )
+                            .toList(growable: false),
+                        onChanged: (ItemUnit? value) {
+                          if (value != null) {
+                            viewModel.updateUnit(value);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      DropdownButtonFormField<ItemContainerType>(
+                        initialValue: viewModel.containerType,
+                        decoration: const InputDecoration(
+                          labelText: 'Container',
+                        ),
+                        items: ItemContainerType.values
+                            .map(
+                              (ItemContainerType containerType) =>
+                                  DropdownMenuItem<ItemContainerType>(
+                                    value: containerType,
+                                    child: Text(containerType.label),
+                                  ),
+                            )
+                            .toList(growable: false),
+                        onChanged: (ItemContainerType? value) {
+                          if (value != null) {
+                            viewModel.updateContainerType(value);
+                          }
+                        },
                       ),
                     ],
                   ),
@@ -193,5 +265,12 @@ class _EntryEditorScreenState extends State<EntryEditorScreen> {
     if (saved && context.mounted) {
       Navigator.of(context).pop();
     }
+  }
+
+  String _formatNumber(double value) {
+    if (value == value.roundToDouble()) {
+      return value.toStringAsFixed(0);
+    }
+    return value.toString();
   }
 }

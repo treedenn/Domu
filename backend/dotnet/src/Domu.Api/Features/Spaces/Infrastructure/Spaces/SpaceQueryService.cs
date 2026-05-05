@@ -119,7 +119,7 @@ public sealed class SpaceQueryService(AppDbContext dbContext) : ISpaceQueryServi
                 .Select(item => item.Id)
                 .Contains(entry.ItemId))
             .GroupBy(entry => entry.ItemId)
-            .Select(group => new { ItemId = group.Key, TotalQuantity = group.Sum(entry => entry.Quantity) })
+            .Select(group => new { ItemId = group.Key, TotalQuantity = group.Sum(entry => entry.CurrentQuantity) })
             .ToDictionaryAsync(entry => entry.ItemId, entry => entry.TotalQuantity, cancellationToken);
 
         var items = await dbContext.Items

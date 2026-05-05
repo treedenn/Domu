@@ -22,7 +22,7 @@ public sealed class CreateItemUseCaseTests
                 "Milk",
                 "Dairy",
                 "123",
-                [new ItemEntryDraft(null, 2, ConsumableState.Unopened, null, null)]),
+                [new ItemEntryDraft(null, 2, 2, ItemUnit.Piece, ItemContainerType.Unspecified, ConsumableState.Unopened, null, null)]),
             CancellationToken.None);
 
         Assert.Equal("Milk", result.Name);

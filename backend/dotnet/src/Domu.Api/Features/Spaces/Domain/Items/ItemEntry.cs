@@ -23,7 +23,13 @@ public sealed class ItemEntry
 
     public DateTimeOffset? ExpirationDate => _expirationDate;
 
-    public int Quantity { get; private set; }
+    public decimal InitialQuantity { get; private set; }
+
+    public decimal CurrentQuantity { get; private set; }
+
+    public ItemUnit Unit { get; private set; } = ItemUnit.Piece;
+
+    public ItemContainerType ContainerType { get; private set; } = ItemContainerType.Unspecified;
 
     public ConsumableState State { get; private set; } = ConsumableState.Unspecified;
 
@@ -36,12 +42,33 @@ public sealed class ItemEntry
         _expirationDate = expirationDate;
     }
 
-    public void SetQuantity(int quantity)
+    public void SetQuantities(decimal initialQuantity, decimal currentQuantity)
     {
-        if (quantity < 0)
-            throw new ArgumentException("Item entry quantity must be >= 0.", nameof(quantity));
+        if (initialQuantity < 0)
+            throw new ArgumentException("Item entry initial quantity must be >= 0.", nameof(initialQuantity));
+        if (currentQuantity < 0)
+            throw new ArgumentException("Item entry current quantity must be >= 0.", nameof(currentQuantity));
+        if (currentQuantity > initialQuantity)
+            throw new ArgumentException("Item entry current quantity cannot be greater than initial quantity.");
 
-        Quantity = quantity;
+        InitialQuantity = initialQuantity;
+        CurrentQuantity = currentQuantity;
+    }
+
+    public void SetUnit(ItemUnit unit)
+    {
+        if (!Enum.IsDefined(unit))
+            throw new ArgumentException("Item unit is invalid.", nameof(unit));
+
+        Unit = unit;
+    }
+
+    public void SetContainerType(ItemContainerType containerType)
+    {
+        if (!Enum.IsDefined(containerType))
+            throw new ArgumentException("Item container type is invalid.", nameof(containerType));
+
+        ContainerType = containerType;
     }
 
     public void ChangeState(ConsumableState state)

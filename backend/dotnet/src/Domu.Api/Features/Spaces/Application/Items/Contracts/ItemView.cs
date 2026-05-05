@@ -8,7 +8,7 @@ public sealed record ItemView(
     string Name,
     string? Category,
     string? Barcode,
-    int TotalQuantity,
+    decimal TotalQuantity,
     IReadOnlyList<ItemEntryView> Entries)
 {
     public static ItemView FromDomain(Item item)

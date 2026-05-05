@@ -3,7 +3,9 @@ import 'package:flutter/foundation.dart';
 import '../../../../core/auth/auth_session.dart';
 import '../../data/items_repository.dart';
 import '../../domain/consumable_state.dart';
+import '../../domain/item_container_type.dart';
 import '../../domain/item_entry.dart';
+import '../../domain/item_unit.dart';
 
 class EntryEditorViewModel extends ChangeNotifier {
   EntryEditorViewModel({
@@ -26,14 +28,20 @@ class EntryEditorViewModel extends ChangeNotifier {
   ItemsRepository _repository;
   AuthSession? _session;
   String? _entryId;
-  int _quantity = 1;
+  double _initialQuantity = 1;
+  double _currentQuantity = 1;
+  ItemUnit _unit = ItemUnit.piece;
+  ItemContainerType _containerType = ItemContainerType.unspecified;
   DateTime _acquiredAt = DateTime.now();
   DateTime? _expiresAt;
   ConsumableState _state = ConsumableState.unknown;
   String? _error;
   bool _isSaving = false;
 
-  int get quantity => _quantity;
+  double get initialQuantity => _initialQuantity;
+  double get currentQuantity => _currentQuantity;
+  ItemUnit get unit => _unit;
+  ItemContainerType get containerType => _containerType;
   DateTime get acquiredAt => _acquiredAt;
   DateTime? get expiresAt => _expiresAt;
   ConsumableState get state => _state;
@@ -57,8 +65,26 @@ class EntryEditorViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateQuantity(int value) {
-    _quantity = value;
+  void updateInitialQuantity(double value) {
+    _initialQuantity = value;
+    _error = null;
+    notifyListeners();
+  }
+
+  void updateCurrentQuantity(double value) {
+    _currentQuantity = value;
+    _error = null;
+    notifyListeners();
+  }
+
+  void updateUnit(ItemUnit value) {
+    _unit = value;
+    _error = null;
+    notifyListeners();
+  }
+
+  void updateContainerType(ItemContainerType value) {
+    _containerType = value;
     _error = null;
     notifyListeners();
   }
@@ -87,6 +113,16 @@ class EntryEditorViewModel extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+    if (_initialQuantity < 0 || _currentQuantity < 0) {
+      _error = 'Quantities must be zero or greater.';
+      notifyListeners();
+      return false;
+    }
+    if (_currentQuantity > _initialQuantity) {
+      _error = 'Current quantity cannot be greater than initial quantity.';
+      notifyListeners();
+      return false;
+    }
 
     final AuthSession? session = _session;
     if (session == null) {
@@ -107,7 +143,10 @@ class EntryEditorViewModel extends ChangeNotifier {
         entry: ItemEntry(
           id: _entryId ?? '',
           itemId: _itemId,
-          quantity: _quantity,
+          initialQuantity: _initialQuantity,
+          currentQuantity: _currentQuantity,
+          unit: _unit,
+          containerType: _containerType,
           acquiredAt: _acquiredAt,
           expiresAt: _expiresAt,
           state: _state,

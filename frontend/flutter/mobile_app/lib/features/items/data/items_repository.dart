@@ -150,12 +150,12 @@ class ApiItemsRepository implements ItemsRepository {
     final Object? entriesJson = itemJson?['entries'];
     return entriesJson is List<Object?>
         ? entriesJson
-            .whereType<Map<String, Object?>>()
-            .map((Map<String, Object?> entryJson) => ItemEntry.fromJson(
-                  itemId: itemId,
-                  json: entryJson,
-                ))
-            .toList(growable: false)
+              .whereType<Map<String, Object?>>()
+              .map(
+                (Map<String, Object?> entryJson) =>
+                    ItemEntry.fromJson(itemId: itemId, json: entryJson),
+              )
+              .toList(growable: false)
         : const <ItemEntry>[];
   }
 
@@ -208,8 +208,9 @@ class ApiItemsRepository implements ItemsRepository {
       spaceId: spaceId,
       itemId: entry.itemId,
     );
-    final int index =
-        entries.indexWhere((ItemEntry value) => value.id == entry.id);
+    final int index = entries.indexWhere(
+      (ItemEntry value) => value.id == entry.id,
+    );
     final List<ItemEntry> updated = List<ItemEntry>.of(entries);
     if (index == -1) {
       updated.add(entry);
@@ -225,9 +226,12 @@ class ApiItemsRepository implements ItemsRepository {
       entries: updated,
     );
     return item.entries
-        .where((ItemEntry saved) =>
-            entry.id.isNotEmpty ? saved.id == entry.id : saved.quantity == entry.quantity)
-        .lastOrNull ??
+            .where(
+              (ItemEntry saved) => entry.id.isNotEmpty
+                  ? saved.id == entry.id
+                  : saved.currentQuantity == entry.currentQuantity,
+            )
+            .lastOrNull ??
         entry;
   }
 

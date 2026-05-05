@@ -18,14 +18,36 @@ public sealed class ItemEntryUnitTest
     }
 
     [Fact]
-    public void SetQuantity_WithNegativeValue_Throws()
+    public void SetQuantities_WithNegativeInitialValue_Throws()
     {
         var entry = new ItemEntry(Guid.NewGuid(), Guid.NewGuid());
 
-        var action = () => entry.SetQuantity(-1);
+        var action = () => entry.SetQuantities(-1, 0);
 
         var exception = Assert.Throws<ArgumentException>(action);
-        Assert.Contains("quantity must be >= 0", exception.Message);
+        Assert.Contains("initial quantity must be >= 0", exception.Message);
+    }
+
+    [Fact]
+    public void SetQuantities_UpdatesQuantities()
+    {
+        var entry = new ItemEntry(Guid.NewGuid(), Guid.NewGuid());
+
+        entry.SetQuantities(2.5m, 1.25m);
+
+        Assert.Equal(2.5m, entry.InitialQuantity);
+        Assert.Equal(1.25m, entry.CurrentQuantity);
+    }
+
+    [Fact]
+    public void SetQuantities_WithCurrentGreaterThanInitial_Throws()
+    {
+        var entry = new ItemEntry(Guid.NewGuid(), Guid.NewGuid());
+
+        var action = () => entry.SetQuantities(1, 2);
+
+        var exception = Assert.Throws<ArgumentException>(action);
+        Assert.Contains("current quantity cannot be greater than initial quantity", exception.Message);
     }
 
     [Fact]
@@ -36,5 +58,25 @@ public sealed class ItemEntryUnitTest
         entry.ChangeState(ConsumableState.Opened);
 
         Assert.Equal(ConsumableState.Opened, entry.State);
+    }
+
+    [Fact]
+    public void SetUnit_UpdatesUnit()
+    {
+        var entry = new ItemEntry(Guid.NewGuid(), Guid.NewGuid());
+
+        entry.SetUnit(ItemUnit.Liter);
+
+        Assert.Equal(ItemUnit.Liter, entry.Unit);
+    }
+
+    [Fact]
+    public void SetContainerType_UpdatesContainerType()
+    {
+        var entry = new ItemEntry(Guid.NewGuid(), Guid.NewGuid());
+
+        entry.SetContainerType(ItemContainerType.Carton);
+
+        Assert.Equal(ItemContainerType.Carton, entry.ContainerType);
     }
 }

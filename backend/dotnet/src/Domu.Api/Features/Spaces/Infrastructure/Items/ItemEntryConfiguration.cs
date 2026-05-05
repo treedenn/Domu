@@ -17,7 +17,20 @@ public sealed class ItemEntryConfiguration : IEntityTypeConfiguration<ItemEntryE
         builder.Property(entry => entry.ItemId)
             .IsRequired();
 
-        builder.Property(entry => entry.Quantity)
+        builder.Property(entry => entry.InitialQuantity)
+            .HasPrecision(18, 3)
+            .IsRequired();
+
+        builder.Property(entry => entry.CurrentQuantity)
+            .HasPrecision(18, 3)
+            .IsRequired();
+
+        builder.Property(entry => entry.Unit)
+            .HasConversion<int>()
+            .IsRequired();
+
+        builder.Property(entry => entry.ContainerType)
+            .HasConversion<int>()
             .IsRequired();
 
         builder.Property(entry => entry.State)

@@ -24,7 +24,7 @@ public sealed class Item
     public Guid Id { get; }
     public Guid SpaceId { get; private set; }
     public IReadOnlySet<ItemEntry> Entries => _entries.AsReadOnly();
-    public int TotalQuantity => _entries.Sum(entry => entry.Quantity);
+    public decimal TotalQuantity => _entries.Sum(entry => entry.CurrentQuantity);
 
     public string Name
     {
