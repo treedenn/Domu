@@ -35,7 +35,7 @@ public sealed class ItemEntry
 
     public void SetDates(DateTimeOffset? acquisitionDate, DateTimeOffset? expirationDate)
     {
-        if (acquisitionDate is not null && expirationDate is not null && acquisitionDate > expirationDate)
+        if (acquisitionDate > expirationDate)
             throw new ArgumentException("Item entry acquisition date cannot be after expiration date.");
 
         _acquisitionDate = acquisitionDate;

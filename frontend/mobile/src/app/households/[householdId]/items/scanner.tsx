@@ -1,1 +1,1 @@
-export { default } from '@/features/items/AddViaScannerScreen';
+export { default } from '@/features/items/ScannerScreen';
