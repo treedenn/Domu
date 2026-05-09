@@ -74,6 +74,15 @@ export function getItems(householdId: string, spaceId: string, options?: ApiRequ
   return apiRequest<ItemView[]>(itemsPath(householdId, spaceId), options);
 }
 
+export function getItem(
+  householdId: string,
+  spaceId: string,
+  itemId: string,
+  options?: ApiRequestOptions,
+) {
+  return apiRequest<ItemView>(`${itemsPath(householdId, spaceId)}/${itemId}`, options);
+}
+
 export function createItem(
   householdId: string,
   spaceId: string,

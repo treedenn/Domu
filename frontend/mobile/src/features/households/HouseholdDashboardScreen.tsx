@@ -1,6 +1,6 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -13,15 +13,17 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { TimeoutError } from '@/core/async/timeout';
 import { ApiError } from '@/core/http/apiClient';
 import { useAuthSession } from '@/features/auth/authSession';
 import { getHousehold, type HouseholdView } from '@/features/households/api';
 import { createSpace, getSpaces, type SpaceView } from '@/features/spaces/api';
+import { AppTopBar, type AppTopBarAction } from '@/ui/AppTopBar';
 
 export default function HouseholdDashboardScreen() {
   const { householdId } = useLocalSearchParams<{ householdId?: string | string[] }>();
   const resolvedHouseholdId = firstParam(householdId);
-  const { accessToken } = useAuthSession();
+  const { accessToken, clearTokenResponse } = useAuthSession();
   const [household, setHousehold] = useState<HouseholdView | null>(null);
   const [spaces, setSpaces] = useState<SpaceView[]>([]);
   const [totalSpaces, setTotalSpaces] = useState(0);
@@ -29,12 +31,13 @@ export default function HouseholdDashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [creating, setCreating] = useState(false);
   const [showCreateSpace, setShowCreateSpace] = useState(false);
-  const [spaceName, setSpaceName] = useState('');
-  const [spaceDescription, setSpaceDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const trimmedSpaceName = spaceName.trim();
-  const trimmedSpaceDescription = spaceDescription.trim();
-  const canCreateSpace = Boolean(accessToken && resolvedHouseholdId && trimmedSpaceName && !creating);
+  const [formResetKey, setFormResetKey] = useState(0);
+
+  const returnToSignIn = useCallback(async () => {
+    await clearTokenResponse();
+    router.replace('/');
+  }, [clearTokenResponse]);
 
   const itemCount = useMemo(
     () => spaces.reduce((total, space) => total + (space.items?.count ?? 0), 0),
@@ -78,20 +81,28 @@ export default function HouseholdDashboardScreen() {
         setSpaces(spacesPage.spaces);
         setTotalSpaces(spacesPage.totalCount);
       } catch (exception) {
+        if (isExpiredSessionError(exception)) {
+          await returnToSignIn();
+          return;
+        }
+
         setError(getUserFacingError(exception));
       } finally {
         setLoading(false);
         setRefreshing(false);
       }
     },
-    [accessToken, resolvedHouseholdId],
+    [accessToken, resolvedHouseholdId, returnToSignIn],
   );
 
   useEffect(() => {
     loadDashboard();
   }, [loadDashboard]);
 
-  const submitSpace = useCallback(async () => {
+  const submitSpace = useCallback(async (name: string, description: string) => {
+    const trimmedSpaceName = name.trim();
+    const trimmedSpaceDescription = description.trim();
+
     if (!accessToken || !resolvedHouseholdId || !trimmedSpaceName) {
       return;
     }
@@ -112,15 +123,31 @@ export default function HouseholdDashboardScreen() {
 
       setSpaces((currentSpaces) => [space, ...currentSpaces]);
       setTotalSpaces((currentTotal) => currentTotal + 1);
-      setSpaceName('');
-      setSpaceDescription('');
+      setFormResetKey((key) => key + 1);
       setShowCreateSpace(false);
     } catch (exception) {
+      if (isExpiredSessionError(exception)) {
+        await returnToSignIn();
+        return;
+      }
+
       setError(getUserFacingError(exception));
     } finally {
       setCreating(false);
     }
-  }, [accessToken, resolvedHouseholdId, trimmedSpaceDescription, trimmedSpaceName]);
+  }, [accessToken, resolvedHouseholdId, returnToSignIn]);
+
+  const topBarActions = useMemo<AppTopBarAction[]>(
+    () => [
+      {
+        disabled: loading || refreshing || !accessToken,
+        icon: 'refresh',
+        label: 'Refresh',
+        onPress: () => loadDashboard({ refresh: true }),
+      },
+    ],
+    [accessToken, loadDashboard, loading, refreshing],
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -128,31 +155,15 @@ export default function HouseholdDashboardScreen() {
         ListHeaderComponent={
           <View style={styles.content}>
             <View style={styles.header}>
-              <View style={styles.headerActions}>
-                <Pressable
-                  accessibilityLabel="Back to households"
-                  accessibilityRole="button"
-                  onPress={() => router.back()}
-                  style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
-                  <MaterialIcons color="#526049" name="arrow-back" size={22} />
-                </Pressable>
-                <Pressable
-                  accessibilityLabel="Refresh household dashboard"
-                  accessibilityRole="button"
-                  disabled={loading || refreshing || !accessToken}
-                  onPress={() => loadDashboard({ refresh: true })}
-                  style={({ pressed }) => [
-                    styles.iconButton,
-                    pressed && styles.pressed,
-                    (!accessToken || loading || refreshing) && styles.disabledButton,
-                  ]}>
-                  <MaterialIcons color="#526049" name="refresh" size={22} />
-                </Pressable>
-              </View>
+              <AppTopBar
+                actions={topBarActions}
+                backAccessibilityLabel="Back to households"
+                onBack={() => router.back()}
+                subtitle="Household"
+                title={household?.name ?? 'Household Dashboard'}
+              />
 
               <View style={styles.titleBlock}>
-                <Text style={styles.eyebrow}>Household</Text>
-                <Text style={styles.title}>{household?.name ?? 'Household Dashboard'}</Text>
                 <Text style={styles.body}>Overview of spaces and inventory in this home.</Text>
               </View>
             </View>
@@ -202,57 +213,12 @@ export default function HouseholdDashboardScreen() {
               </View>
 
               {showCreateSpace && (
-                <View style={styles.formPanel}>
-                  <View style={styles.formHeader}>
-                    <MaterialIcons color="#526049" name="create-new-folder" size={22} />
-                    <Text style={styles.formTitle}>Add Space</Text>
-                  </View>
-
-                  <View style={styles.field}>
-                    <Text style={styles.label}>Name</Text>
-                    <TextInput
-                      autoCapitalize="words"
-                      onChangeText={setSpaceName}
-                      onSubmitEditing={submitSpace}
-                      placeholder="Kitchen"
-                      placeholderTextColor="#8c8a81"
-                      returnKeyType="next"
-                      style={styles.input}
-                      value={spaceName}
-                    />
-                  </View>
-
-                  <View style={styles.field}>
-                    <Text style={styles.label}>Description</Text>
-                    <TextInput
-                      multiline
-                      onChangeText={setSpaceDescription}
-                      placeholder="Cooking tools and everyday food storage"
-                      placeholderTextColor="#8c8a81"
-                      style={[styles.input, styles.textArea]}
-                      value={spaceDescription}
-                    />
-                  </View>
-
-                  <Pressable
-                    accessibilityRole="button"
-                    disabled={!canCreateSpace}
-                    onPress={submitSpace}
-                    style={({ pressed }) => [
-                      styles.primaryButton,
-                      pressed && styles.primaryButtonPressed,
-                      !canCreateSpace && styles.primaryButtonDisabled,
-                    ]}>
-                    {creating ? (
-                      <ActivityIndicator color="#ffffff" />
-                    ) : (
-                      <>
-                        <MaterialIcons color="#ffffff" name="add" size={20} />
-                        <Text style={styles.primaryButtonText}>Create space</Text>
-                      </>
-                    )}
-                  </Pressable>
-                </View>
+                <CreateSpaceForm
+                  canSubmit={Boolean(accessToken && resolvedHouseholdId)}
+                  creating={creating}
+                  onSubmit={submitSpace}
+                  resetKey={formResetKey}
+                />
               )}
             </View>
           </View>
@@ -281,6 +247,85 @@ export default function HouseholdDashboardScreen() {
     </SafeAreaView>
   );
 }
+
+const CreateSpaceForm = memo(function CreateSpaceForm({
+  canSubmit,
+  creating,
+  onSubmit,
+  resetKey,
+}: {
+  canSubmit: boolean;
+  creating: boolean;
+  onSubmit: (name: string, description: string) => void;
+  resetKey: number;
+}) {
+  const [spaceName, setSpaceName] = useState('');
+  const [spaceDescription, setSpaceDescription] = useState('');
+  const canCreateSpace = canSubmit && Boolean(spaceName.trim()) && !creating;
+
+  useEffect(() => {
+    setSpaceName('');
+    setSpaceDescription('');
+  }, [resetKey]);
+
+  const submit = useCallback(() => {
+    onSubmit(spaceName, spaceDescription);
+  }, [onSubmit, spaceDescription, spaceName]);
+
+  return (
+    <View style={styles.formPanel}>
+      <View style={styles.formHeader}>
+        <MaterialIcons color="#526049" name="create-new-folder" size={22} />
+        <Text style={styles.formTitle}>Add Space</Text>
+      </View>
+
+      <View style={styles.field}>
+        <Text style={styles.label}>Name</Text>
+        <TextInput
+          autoCapitalize="words"
+          onChangeText={setSpaceName}
+          onSubmitEditing={submit}
+          placeholder="Kitchen"
+          placeholderTextColor="#8c8a81"
+          returnKeyType="next"
+          style={styles.input}
+          value={spaceName}
+        />
+      </View>
+
+      <View style={styles.field}>
+        <Text style={styles.label}>Description</Text>
+        <TextInput
+          multiline
+          onChangeText={setSpaceDescription}
+          placeholder="Cooking tools and everyday food storage"
+          placeholderTextColor="#8c8a81"
+          style={[styles.input, styles.textArea]}
+          value={spaceDescription}
+        />
+      </View>
+
+      <Pressable
+        accessibilityRole="button"
+        disabled={!canCreateSpace}
+        onPress={submit}
+        style={({ pressed }) => [
+          styles.primaryButton,
+          pressed && styles.primaryButtonPressed,
+          !canCreateSpace && styles.primaryButtonDisabled,
+        ]}>
+        {creating ? (
+          <ActivityIndicator color="#ffffff" />
+        ) : (
+          <>
+            <MaterialIcons color="#ffffff" name="add" size={20} />
+            <Text style={styles.primaryButtonText}>Create space</Text>
+          </>
+        )}
+      </Pressable>
+    </View>
+  );
+});
 
 function SummaryMetric({
   icon,
@@ -356,6 +401,10 @@ function formatCount(value: number, noun: string) {
 }
 
 function getUserFacingError(exception: unknown) {
+  if (exception instanceof TimeoutError) {
+    return `${exception.message} Check adb reverse or EXPO_PUBLIC_API_URL.`;
+  }
+
   if (exception instanceof ApiError) {
     if (exception.status === 401) {
       return 'Your session is missing or expired. Sign in again.';
@@ -369,6 +418,10 @@ function getUserFacingError(exception: unknown) {
   }
 
   return 'Check that the backend is running at the configured API URL.';
+}
+
+function isExpiredSessionError(exception: unknown) {
+  return exception instanceof ApiError && exception.status === 401;
 }
 
 const styles = StyleSheet.create({

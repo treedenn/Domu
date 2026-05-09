@@ -19,6 +19,11 @@ export default function RootLayout() {
           <Stack.Screen name="households" />
           <Stack.Screen name="households/[householdId]/index" />
           <Stack.Screen name="households/[householdId]/spaces" />
+          <Stack.Screen name="households/[householdId]/items/add" />
+          <Stack.Screen name="households/[householdId]/items/scanner" />
+          <Stack.Screen name="households/[householdId]/items/basket" />
+          <Stack.Screen name="households/[householdId]/items/[itemId]/entry" />
+          <Stack.Screen name="households/[householdId]/items/[itemId]" />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>

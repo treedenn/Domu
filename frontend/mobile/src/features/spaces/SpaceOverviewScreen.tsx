@@ -1,6 +1,6 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { type ComponentProps, useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, type ComponentProps, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { TimeoutError } from '@/core/async/timeout';
 import { ApiError } from '@/core/http/apiClient';
 import { useAuthSession } from '@/features/auth/authSession';
 import { getHousehold, type HouseholdView } from '@/features/households/api';
@@ -26,39 +27,47 @@ import {
   type SpacePage,
   type SpaceView,
 } from '@/features/spaces/api';
+import { AppTopBar, type AppTopBarAction } from '@/ui/AppTopBar';
 
 type OverviewTab = 'subSpaces' | 'items';
 type OverviewListItem = SpaceView | ItemView;
 
+const addItemRoute = '/households/[householdId]/items/add' as never;
+const itemDetailsRoute = '/households/[householdId]/items/[itemId]' as never;
+const scannerRoute = '/households/[householdId]/items/scanner' as never;
+
 export default function SpaceOverviewScreen() {
-  const { householdId, parentId } = useLocalSearchParams<{
+  const { householdId, parentId, tab } = useLocalSearchParams<{
     householdId?: string | string[];
     parentId?: string | string[];
+    tab?: string | string[];
   }>();
-  const { accessToken } = useAuthSession();
+  const { accessToken, clearTokenResponse } = useAuthSession();
   const resolvedHouseholdId = firstParam(householdId);
   const resolvedParentId = firstParam(parentId);
+  const requestedTab = parseOverviewTab(firstParam(tab));
   const [household, setHousehold] = useState<HouseholdView | null>(null);
   const [parentSpace, setParentSpace] = useState<SpaceView | null>(null);
   const [page, setPage] = useState<SpacePage | null>(null);
   const [items, setItems] = useState<ItemView[]>([]);
-  const [activeTab, setActiveTab] = useState<OverviewTab>('subSpaces');
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+  const [activeTab, setActiveTab] = useState<OverviewTab>(requestedTab ?? 'subSpaces');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [creating, setCreating] = useState(false);
   const [showCreateSpace, setShowCreateSpace] = useState(false);
-  const trimmedName = name.trim();
-  const trimmedDescription = description.trim();
+  const [formResetKey, setFormResetKey] = useState(0);
   const spaces = useMemo(() => page?.spaces ?? [], [page?.spaces]);
   const currentData = useMemo<OverviewListItem[]>(
     () => (activeTab === 'subSpaces' ? spaces : items),
     [activeTab, items, spaces],
   );
-  const canCreate = Boolean(accessToken && resolvedHouseholdId && trimmedName && !creating);
   const screenTitle = parentSpace?.name ?? household?.name ?? 'Space Overview';
+
+  const returnToSignIn = useCallback(async () => {
+    await clearTokenResponse();
+    router.replace('/');
+  }, [clearTokenResponse]);
 
   const summary = useMemo(() => {
     const itemCount = resolvedParentId
@@ -116,20 +125,34 @@ export default function SpaceOverviewScreen() {
         setPage(nextPage);
         setItems(nextItems);
       } catch (exception) {
+        if (isExpiredSessionError(exception)) {
+          await returnToSignIn();
+          return;
+        }
+
         setError(getUserFacingError(exception));
       } finally {
         setLoading(false);
         setRefreshing(false);
       }
     },
-    [accessToken, resolvedHouseholdId, resolvedParentId],
+    [accessToken, resolvedHouseholdId, resolvedParentId, returnToSignIn],
   );
 
   useEffect(() => {
     loadOverview();
   }, [loadOverview]);
 
-  const submitSpace = useCallback(async () => {
+  useEffect(() => {
+    if (requestedTab) {
+      setActiveTab(requestedTab);
+    }
+  }, [requestedTab]);
+
+  const submitSpace = useCallback(async (name: string, description: string) => {
+    const trimmedName = name.trim();
+    const trimmedDescription = description.trim();
+
     if (!accessToken || !resolvedHouseholdId || !trimmedName) {
       return;
     }
@@ -164,10 +187,14 @@ export default function SpaceOverviewScreen() {
           totalCount: currentPage.totalCount + 1,
         };
       });
-      setName('');
-      setDescription('');
+      setFormResetKey((key) => key + 1);
       setShowCreateSpace(false);
     } catch (exception) {
+      if (isExpiredSessionError(exception)) {
+        await returnToSignIn();
+        return;
+      }
+
       setError(getUserFacingError(exception));
     } finally {
       setCreating(false);
@@ -176,13 +203,46 @@ export default function SpaceOverviewScreen() {
     accessToken,
     resolvedHouseholdId,
     resolvedParentId,
-    trimmedDescription,
-    trimmedName,
+    returnToSignIn,
   ]);
 
   const subtitle = parentSpace
     ? parentSpace.description || `Inside ${household?.name ?? 'household'}`
     : 'Top-level spaces in this household';
+
+  const openAddItem = useCallback(() => {
+    if (!resolvedHouseholdId || !resolvedParentId) {
+      return;
+    }
+
+    router.push({
+      pathname: addItemRoute,
+      params: { householdId: resolvedHouseholdId, spaceId: resolvedParentId },
+    });
+  }, [resolvedHouseholdId, resolvedParentId]);
+
+  const openScanner = useCallback(() => {
+    if (!resolvedHouseholdId || !resolvedParentId) {
+      return;
+    }
+
+    router.push({
+      pathname: scannerRoute,
+      params: { householdId: resolvedHouseholdId, spaceId: resolvedParentId },
+    });
+  }, [resolvedHouseholdId, resolvedParentId]);
+
+  const topBarActions = useMemo<AppTopBarAction[]>(
+    () => [
+      {
+        disabled: loading || refreshing || !accessToken,
+        icon: 'refresh',
+        label: 'Refresh',
+        onPress: () => loadOverview({ refresh: true }),
+      },
+    ],
+    [accessToken, loadOverview, loading, refreshing],
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -193,33 +253,14 @@ export default function SpaceOverviewScreen() {
           ListHeaderComponent={
             <View style={styles.content}>
               <View style={styles.header}>
-                <View style={styles.headerActions}>
-                  <Pressable
-                    accessibilityLabel="Go back"
-                    accessibilityRole="button"
-                    onPress={() => router.back()}
-                    style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
-                    <MaterialIcons color="#526049" name="arrow-back" size={22} />
-                  </Pressable>
-                  <Pressable
-                    accessibilityLabel="Refresh spaces"
-                    accessibilityRole="button"
-                    disabled={loading || refreshing || !accessToken}
-                    onPress={() => loadOverview({ refresh: true })}
-                    style={({ pressed }) => [
-                      styles.iconButton,
-                      pressed && styles.pressed,
-                      (!accessToken || loading || refreshing) && styles.disabledButton,
-                    ]}>
-                    <MaterialIcons color="#526049" name="refresh" size={22} />
-                  </Pressable>
-                </View>
+                <AppTopBar
+                  actions={topBarActions}
+                  onBack={() => router.back()}
+                  subtitle={parentSpace ? 'Space View' : 'Household Spaces'}
+                  title={screenTitle}
+                />
 
                 <View style={styles.titleBlock}>
-                  <Text style={styles.eyebrow}>
-                    {parentSpace ? 'Space View' : 'Household Spaces'}
-                  </Text>
-                  <Text style={styles.title}>{screenTitle}</Text>
                   <Text style={styles.body}>{subtitle}</Text>
                 </View>
               </View>
@@ -272,60 +313,40 @@ export default function SpaceOverviewScreen() {
                       </Text>
                     </Pressable>
                   )}
+                  {activeTab === 'items' && resolvedParentId && (
+                    <View style={styles.itemActions}>
+                      <Pressable
+                        accessibilityLabel="Add item manually"
+                        accessibilityRole="button"
+                        onPress={openAddItem}
+                        style={({ pressed }) => [
+                          styles.iconActionButton,
+                          pressed && styles.pressed,
+                        ]}>
+                        <MaterialIcons color="#526049" name="edit-note" size={18} />
+                      </Pressable>
+                      <Pressable
+                        accessibilityLabel="Add item via scanner"
+                        accessibilityRole="button"
+                        onPress={openScanner}
+                        style={({ pressed }) => [
+                          styles.ghostActionButton,
+                          pressed && styles.pressed,
+                        ]}>
+                        <MaterialIcons color="#526049" name="qr-code-scanner" size={18} />
+                        <Text style={styles.ghostActionText}>Scan</Text>
+                      </Pressable>
+                    </View>
+                  )}
                 </View>
 
                 {activeTab === 'subSpaces' && showCreateSpace && (
-                  <View style={styles.formPanel}>
-                    <View style={styles.formHeader}>
-                      <MaterialIcons color="#526049" name="create-new-folder" size={22} />
-                      <Text style={styles.formTitle}>Add Sub-space</Text>
-                    </View>
-
-                    <View style={styles.field}>
-                      <Text style={styles.label}>Name</Text>
-                      <TextInput
-                        autoCapitalize="words"
-                        onChangeText={setName}
-                        onSubmitEditing={submitSpace}
-                        placeholder="Pantry"
-                        placeholderTextColor="#8c8a81"
-                        returnKeyType="next"
-                        style={styles.input}
-                        value={name}
-                      />
-                    </View>
-
-                    <View style={styles.field}>
-                      <Text style={styles.label}>Description</Text>
-                      <TextInput
-                        multiline
-                        onChangeText={setDescription}
-                        placeholder="Dry goods and weekly essentials"
-                        placeholderTextColor="#8c8a81"
-                        style={[styles.input, styles.textArea]}
-                        value={description}
-                      />
-                    </View>
-
-                    <Pressable
-                      accessibilityRole="button"
-                      disabled={!canCreate}
-                      onPress={submitSpace}
-                      style={({ pressed }) => [
-                        styles.primaryButton,
-                        pressed && styles.primaryButtonPressed,
-                        !canCreate && styles.primaryButtonDisabled,
-                      ]}>
-                      {creating ? (
-                        <ActivityIndicator color="#ffffff" />
-                      ) : (
-                        <>
-                          <MaterialIcons color="#ffffff" name="add" size={20} />
-                          <Text style={styles.primaryButtonText}>Create sub-space</Text>
-                        </>
-                      )}
-                    </Pressable>
-                  </View>
+                  <CreateSubSpaceForm
+                    canSubmit={Boolean(accessToken && resolvedHouseholdId)}
+                    creating={creating}
+                    onSubmit={submitSpace}
+                    resetKey={formResetKey}
+                  />
                 )}
               </View>
 
@@ -358,7 +379,11 @@ export default function SpaceOverviewScreen() {
               activeTab === 'subSpaces' ? (
                 <EmptySpaces onCreate={() => setShowCreateSpace(true)} />
               ) : (
-                <EmptyItems hasSelectedSpace={Boolean(resolvedParentId)} />
+                <EmptyItems
+                  hasSelectedSpace={Boolean(resolvedParentId)}
+                  onCreate={openAddItem}
+                  onScan={openScanner}
+                />
               )
             ) : null
           }
@@ -372,8 +397,12 @@ export default function SpaceOverviewScreen() {
           renderItem={({ item }) =>
             resolvedHouseholdId && activeTab === 'subSpaces' ? (
               <SpaceCard householdId={resolvedHouseholdId} space={item as SpaceView} />
-            ) : activeTab === 'items' ? (
-              <ItemCard item={item as ItemView} />
+            ) : activeTab === 'items' && resolvedHouseholdId && resolvedParentId ? (
+              <ItemCard
+                householdId={resolvedHouseholdId}
+                item={item as ItemView}
+                spaceId={resolvedParentId}
+              />
             ) : null
           }
         />
@@ -381,6 +410,85 @@ export default function SpaceOverviewScreen() {
     </SafeAreaView>
   );
 }
+
+const CreateSubSpaceForm = memo(function CreateSubSpaceForm({
+  canSubmit,
+  creating,
+  onSubmit,
+  resetKey,
+}: {
+  canSubmit: boolean;
+  creating: boolean;
+  onSubmit: (name: string, description: string) => void;
+  resetKey: number;
+}) {
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const canCreate = canSubmit && Boolean(name.trim()) && !creating;
+
+  useEffect(() => {
+    setName('');
+    setDescription('');
+  }, [resetKey]);
+
+  const submit = useCallback(() => {
+    onSubmit(name, description);
+  }, [description, name, onSubmit]);
+
+  return (
+    <View style={styles.formPanel}>
+      <View style={styles.formHeader}>
+        <MaterialIcons color="#526049" name="create-new-folder" size={22} />
+        <Text style={styles.formTitle}>Add Sub-space</Text>
+      </View>
+
+      <View style={styles.field}>
+        <Text style={styles.label}>Name</Text>
+        <TextInput
+          autoCapitalize="words"
+          onChangeText={setName}
+          onSubmitEditing={submit}
+          placeholder="Pantry"
+          placeholderTextColor="#8c8a81"
+          returnKeyType="next"
+          style={styles.input}
+          value={name}
+        />
+      </View>
+
+      <View style={styles.field}>
+        <Text style={styles.label}>Description</Text>
+        <TextInput
+          multiline
+          onChangeText={setDescription}
+          placeholder="Dry goods and weekly essentials"
+          placeholderTextColor="#8c8a81"
+          style={[styles.input, styles.textArea]}
+          value={description}
+        />
+      </View>
+
+      <Pressable
+        accessibilityRole="button"
+        disabled={!canCreate}
+        onPress={submit}
+        style={({ pressed }) => [
+          styles.primaryButton,
+          pressed && styles.primaryButtonPressed,
+          !canCreate && styles.primaryButtonDisabled,
+        ]}>
+        {creating ? (
+          <ActivityIndicator color="#ffffff" />
+        ) : (
+          <>
+            <MaterialIcons color="#ffffff" name="add" size={20} />
+            <Text style={styles.primaryButtonText}>Create sub-space</Text>
+          </>
+        )}
+      </Pressable>
+    </View>
+  );
+});
 
 function TabButton({
   active,
@@ -446,10 +554,26 @@ function SpaceCard({ householdId, space }: { householdId: string; space: SpaceVi
   );
 }
 
-function ItemCard({ item }: { item: ItemView }) {
+function ItemCard({
+  householdId,
+  item,
+  spaceId,
+}: {
+  householdId: string;
+  item: ItemView;
+  spaceId: string;
+}) {
+  const openItem = useCallback(() => {
+    router.push({
+      pathname: itemDetailsRoute,
+      params: { householdId, itemId: item.id, spaceId },
+    });
+  }, [householdId, item.id, spaceId]);
+
   return (
     <Pressable
       accessibilityRole="button"
+      onPress={openItem}
       style={({ pressed }) => [styles.itemCard, pressed && styles.cardPressed]}>
       <View style={styles.itemIcon}>
         <MaterialIcons color="#944931" name="kitchen" size={24} />
@@ -515,7 +639,15 @@ function EmptySpaces({ onCreate }: { onCreate: () => void }) {
   );
 }
 
-function EmptyItems({ hasSelectedSpace }: { hasSelectedSpace: boolean }) {
+function EmptyItems({
+  hasSelectedSpace,
+  onCreate,
+  onScan,
+}: {
+  hasSelectedSpace: boolean;
+  onCreate: () => void;
+  onScan: () => void;
+}) {
   return (
     <View style={styles.emptyPanel}>
       <View style={styles.emptyIcon}>
@@ -527,12 +659,37 @@ function EmptyItems({ hasSelectedSpace }: { hasSelectedSpace: boolean }) {
           ? 'Items added to this space will appear here.'
           : 'Household-level item browsing needs a selected space.'}
       </Text>
+      {hasSelectedSpace ? (
+        <View style={styles.emptyActionRow}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={onCreate}
+            style={({ pressed }) => [
+              styles.emptyButton,
+              styles.emptyActionButton,
+              pressed && styles.pressed,
+            ]}>
+            <Text style={styles.emptyButtonText}>Create item</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={onScan}
+            style={({ pressed }) => [styles.emptySecondaryButton, pressed && styles.pressed]}>
+            <MaterialIcons color="#526049" name="qr-code-scanner" size={18} />
+            <Text style={styles.emptySecondaryButtonText}>Scan</Text>
+          </Pressable>
+        </View>
+      ) : null}
     </View>
   );
 }
 
 function firstParam(value?: string | string[]) {
   return Array.isArray(value) ? value[0] : value;
+}
+
+function parseOverviewTab(value?: string): OverviewTab | null {
+  return value === 'items' || value === 'subSpaces' ? value : null;
 }
 
 function formatCount(value: number, noun: string) {
@@ -544,6 +701,10 @@ function formatQuantity(value: number) {
 }
 
 function getUserFacingError(exception: unknown) {
+  if (exception instanceof TimeoutError) {
+    return `${exception.message} Check adb reverse or EXPO_PUBLIC_API_URL.`;
+  }
+
   if (exception instanceof ApiError) {
     if (exception.status === 401) {
       return 'Your session is missing or expired. Sign in again.';
@@ -557,6 +718,10 @@ function getUserFacingError(exception: unknown) {
   }
 
   return 'Check that the backend is running at the configured API URL.';
+}
+
+function isExpiredSessionError(exception: unknown) {
+  return exception instanceof ApiError && exception.status === 401;
 }
 
 const styles = StyleSheet.create({
@@ -787,6 +952,21 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 0,
   },
+  itemActions: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  iconActionButton: {
+    alignItems: 'center',
+    backgroundColor: '#faf2ed',
+    borderColor: '#c5c8be',
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 42,
+    justifyContent: 'center',
+    width: 42,
+  },
   errorPanel: {
     alignItems: 'flex-start',
     backgroundColor: '#ffdbd0',
@@ -934,6 +1114,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#526049',
     borderRadius: 8,
+    flex: 1,
     justifyContent: 'center',
     marginTop: 8,
     minHeight: 42,
@@ -941,6 +1122,34 @@ const styles = StyleSheet.create({
   },
   emptyButtonText: {
     color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  emptyActionRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 8,
+    width: '100%',
+  },
+  emptyActionButton: {
+    marginTop: 0,
+  },
+  emptySecondaryButton: {
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderColor: '#526049',
+    borderRadius: 8,
+    borderWidth: 1,
+    flex: 1,
+    flexDirection: 'row',
+    gap: 6,
+    justifyContent: 'center',
+    minHeight: 42,
+    paddingHorizontal: 14,
+  },
+  emptySecondaryButtonText: {
+    color: '#526049',
     fontSize: 14,
     fontWeight: '800',
   },

@@ -10,9 +10,12 @@ import {
   useState,
 } from 'react';
 
+import { withTimeout } from '@/core/async/timeout';
+
 import { zitadelClientId, zitadelIssuer, zitadelScopes } from './zitadelAuth';
 
 const tokenStorageKey = 'domu.auth.tokenResponse';
+const authNetworkTimeoutMs = 15000;
 
 type StoredTokenResponse = ReturnType<AuthSession.TokenResponse['getRequestConfig']>;
 
@@ -55,13 +58,21 @@ export function AuthSessionProvider({ children }: PropsWithChildren) {
           return;
         }
 
-        const discovery = await AuthSession.fetchDiscoveryAsync(zitadelIssuer);
-        const refreshedTokenResponse = await restoredTokenResponse.refreshAsync(
-          {
-            clientId: zitadelClientId,
-            scopes: zitadelScopes,
-          },
-          discovery,
+        const discovery = await withTimeout(
+          AuthSession.fetchDiscoveryAsync(zitadelIssuer),
+          authNetworkTimeoutMs,
+          'ZITADEL discovery timed out while restoring your session.',
+        );
+        const refreshedTokenResponse = await withTimeout(
+          restoredTokenResponse.refreshAsync(
+            {
+              clientId: zitadelClientId,
+              scopes: zitadelScopes,
+            },
+            discovery,
+          ),
+          authNetworkTimeoutMs,
+          'ZITADEL token refresh timed out while restoring your session.',
         );
 
         await writeStoredTokenResponse(refreshedTokenResponse);

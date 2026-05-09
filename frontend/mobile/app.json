@@ -39,6 +39,18 @@
           }
         }
       ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Domu to scan item barcodes."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Domu to read photos for item detection."
+        }
+      ],
       "expo-secure-store"
     ],
     "experiments": {

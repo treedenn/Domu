@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -13,6 +13,8 @@ import * as AuthSession from 'expo-auth-session';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 
+import { TimeoutError, withTimeout } from '@/core/async/timeout';
+
 import {
   getZitadelRedirectUri,
   isZitadelConfigured,
@@ -24,15 +26,15 @@ import { useAuthSession } from './authSession';
 
 WebBrowser.maybeCompleteAuthSession();
 
+const authNetworkTimeoutMs = 15000;
+
 export default function ZitadelSignInScreen() {
   const { accessToken, hydrated, setTokenResponse } = useAuthSession();
   const [error, setError] = useState<string | null>(null);
-  const [username, setUsername] = useState('');
   const [discovery, setDiscovery] = useState<AuthSession.DiscoveryDocument | null>(null);
   const [discoveryLoading, setDiscoveryLoading] = useState(false);
   const redirectUri = useMemo(() => getZitadelRedirectUri(), []);
   const configured = isZitadelConfigured();
-  const loginHint = username.trim();
 
   useEffect(() => {
     if (hydrated && accessToken) {
@@ -53,15 +55,19 @@ export default function ZitadelSignInScreen() {
       setError(null);
 
       try {
-        const document = await AuthSession.fetchDiscoveryAsync(zitadelIssuer);
+        const document = await withTimeout(
+          AuthSession.fetchDiscoveryAsync(zitadelIssuer),
+          authNetworkTimeoutMs,
+          'Could not reach ZITADEL discovery within 15 seconds.',
+        );
 
         if (!cancelled) {
           setDiscovery(document);
         }
-      } catch {
+      } catch (exception) {
         if (!cancelled) {
           setDiscovery(null);
-          setError('Could not reach ZITADEL. Check EXPO_PUBLIC_ZITADEL_ISSUER and your network.');
+          setError(getUserFacingError(exception));
         }
       } finally {
         if (!cancelled) {
@@ -77,19 +83,9 @@ export default function ZitadelSignInScreen() {
     };
   }, []);
 
-  const [request, , promptAsync] = AuthSession.useAuthRequest(
-    {
-      clientId: zitadelClientId ?? '',
-      redirectUri,
-      responseType: AuthSession.ResponseType.Code,
-      scopes: zitadelScopes,
-      usePKCE: true,
-      extraParams: loginHint ? { login_hint: loginHint } : undefined,
-    },
-    discovery,
-  );
+  const signIn = useCallback(async (username: string) => {
+    const loginHint = username.trim();
 
-  const signIn = useCallback(async () => {
     if (!configured) {
       setError('Set EXPO_PUBLIC_ZITADEL_ISSUER and EXPO_PUBLIC_ZITADEL_CLIENT_ID first.');
       return;
@@ -100,14 +96,22 @@ export default function ZitadelSignInScreen() {
       return;
     }
 
-    if (!request || !discovery) {
+    if (!discovery) {
       setError('ZITADEL discovery is still loading.');
       return;
     }
 
     setError(null);
 
-    const result = await promptAsync();
+    const authRequest = new AuthSession.AuthRequest({
+      clientId: zitadelClientId ?? '',
+      extraParams: { login_hint: loginHint },
+      redirectUri,
+      responseType: AuthSession.ResponseType.Code,
+      scopes: zitadelScopes,
+      usePKCE: true,
+    });
+    const result = await authRequest.promptAsync(discovery);
 
     if (result.type === 'success') {
       try {
@@ -118,17 +122,21 @@ export default function ZitadelSignInScreen() {
           return;
         }
 
-        const tokenResponse = await AuthSession.exchangeCodeAsync(
-          {
-            clientId: zitadelClientId ?? '',
-            code,
-            extraParams: {
-              code_verifier: request.codeVerifier ?? '',
+        const tokenResponse = await withTimeout(
+          AuthSession.exchangeCodeAsync(
+            {
+              clientId: zitadelClientId ?? '',
+              code,
+              extraParams: {
+                code_verifier: authRequest.codeVerifier ?? '',
+              },
+              redirectUri,
+              scopes: zitadelScopes,
             },
-            redirectUri,
-            scopes: zitadelScopes,
-          },
-          discovery,
+            discovery,
+          ),
+          authNetworkTimeoutMs,
+          'ZITADEL token exchange timed out.',
         );
 
         await setTokenResponse(tokenResponse);
@@ -149,9 +157,9 @@ export default function ZitadelSignInScreen() {
     if (result.type === 'dismiss' || result.type === 'cancel') {
       setError('Sign-in was cancelled.');
     }
-  }, [configured, discovery, loginHint, promptAsync, redirectUri, request, setTokenResponse]);
+  }, [configured, discovery, redirectUri, setTokenResponse]);
 
-  const canSignIn = configured && Boolean(request) && Boolean(discovery) && Boolean(loginHint);
+  const canStartSignIn = configured && Boolean(discovery);
 
   return (
     <KeyboardAvoidingView
@@ -164,38 +172,11 @@ export default function ZitadelSignInScreen() {
           Enter your username, then continue to ZITADEL to finish authentication.
         </Text>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Username</Text>
-          <TextInput
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="email-address"
-            onChangeText={setUsername}
-            placeholder="you@example.com"
-            placeholderTextColor="#89918a"
-            returnKeyType="go"
-            style={styles.input}
-            textContentType="username"
-            value={username}
-            onSubmitEditing={signIn}
-          />
-        </View>
-
-        <Pressable
-          accessibilityRole="button"
-          disabled={!canSignIn}
-          onPress={signIn}
-          style={({ pressed }) => [
-            styles.button,
-            !canSignIn && styles.buttonDisabled,
-            pressed && styles.buttonPressed,
-          ]}>
-          {discoveryLoading ? (
-            <ActivityIndicator color="#ffffff" />
-          ) : (
-            <Text style={styles.buttonText}>Continue</Text>
-          )}
-        </Pressable>
+        <SignInForm
+          canSubmit={canStartSignIn}
+          discoveryLoading={discoveryLoading}
+          onSubmit={signIn}
+        />
 
         <View style={styles.notice}>
           <Text style={styles.noticeTitle}>
@@ -215,6 +196,68 @@ export default function ZitadelSignInScreen() {
     </KeyboardAvoidingView>
   );
 }
+
+function getUserFacingError(exception: unknown) {
+  if (exception instanceof TimeoutError) {
+    return exception.message;
+  }
+
+  return 'Could not reach ZITADEL. Check EXPO_PUBLIC_ZITADEL_ISSUER and your network.';
+}
+
+const SignInForm = memo(function SignInForm({
+  canSubmit,
+  discoveryLoading,
+  onSubmit,
+}: {
+  canSubmit: boolean;
+  discoveryLoading: boolean;
+  onSubmit: (username: string) => void;
+}) {
+  const [username, setUsername] = useState('');
+  const canSignIn = canSubmit && Boolean(username.trim());
+
+  const submit = useCallback(() => {
+    onSubmit(username);
+  }, [onSubmit, username]);
+
+  return (
+    <>
+      <View style={styles.field}>
+        <Text style={styles.label}>Username</Text>
+        <TextInput
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="email-address"
+          onChangeText={setUsername}
+          placeholder="you@example.com"
+          placeholderTextColor="#89918a"
+          returnKeyType="go"
+          style={styles.input}
+          textContentType="username"
+          value={username}
+          onSubmitEditing={submit}
+        />
+      </View>
+
+      <Pressable
+        accessibilityRole="button"
+        disabled={!canSignIn}
+        onPress={submit}
+        style={({ pressed }) => [
+          styles.button,
+          !canSignIn && styles.buttonDisabled,
+          pressed && styles.buttonPressed,
+        ]}>
+        {discoveryLoading ? (
+          <ActivityIndicator color="#ffffff" />
+        ) : (
+          <Text style={styles.buttonText}>Continue</Text>
+        )}
+      </Pressable>
+    </>
+  );
+});
 
 const styles = StyleSheet.create({
   screen: {

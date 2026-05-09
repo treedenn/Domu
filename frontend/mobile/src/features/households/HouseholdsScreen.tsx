@@ -1,6 +1,6 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { TimeoutError } from '@/core/async/timeout';
 import { ApiError } from '@/core/http/apiClient';
 import { useAuthSession } from '@/features/auth/authSession';
 import {
@@ -22,17 +23,21 @@ import {
   getHouseholds,
   type HouseholdView,
 } from '@/features/households/api';
+import { AppTopBar, type AppTopBarAction } from '@/ui/AppTopBar';
 
 export default function HouseholdsScreen() {
   const { accessToken, clearTokenResponse } = useAuthSession();
   const [households, setHouseholds] = useState<HouseholdView[]>([]);
-  const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [creating, setCreating] = useState(false);
-  const trimmedName = name.trim();
-  const canCreate = Boolean(accessToken && trimmedName && !creating);
+  const [formResetKey, setFormResetKey] = useState(0);
+
+  const returnToSignIn = useCallback(async () => {
+    await clearTokenResponse();
+    router.replace('/');
+  }, [clearTokenResponse]);
 
   const householdCountLabel = useMemo(() => {
     if (households.length === 1) {
@@ -62,20 +67,27 @@ export default function HouseholdsScreen() {
         const nextHouseholds = await getHouseholds({ accessToken });
         setHouseholds(nextHouseholds);
       } catch (exception) {
+        if (isExpiredSessionError(exception)) {
+          await returnToSignIn();
+          return;
+        }
+
         setError(getUserFacingError(exception));
       } finally {
         setLoading(false);
         setRefreshing(false);
       }
     },
-    [accessToken],
+    [accessToken, returnToSignIn],
   );
 
   useEffect(() => {
     loadHouseholds();
   }, [loadHouseholds]);
 
-  const submitHousehold = useCallback(async () => {
+  const submitHousehold = useCallback(async (name: string) => {
+    const trimmedName = name.trim();
+
     if (!accessToken || !trimmedName) {
       return;
     }
@@ -86,18 +98,34 @@ export default function HouseholdsScreen() {
     try {
       const household = await createHousehold({ name: trimmedName }, { accessToken });
       setHouseholds((currentHouseholds) => [household, ...currentHouseholds]);
-      setName('');
+      setFormResetKey((key) => key + 1);
     } catch (exception) {
+      if (isExpiredSessionError(exception)) {
+        await returnToSignIn();
+        return;
+      }
+
       setError(getUserFacingError(exception));
     } finally {
       setCreating(false);
     }
-  }, [accessToken, trimmedName]);
+  }, [accessToken, returnToSignIn]);
 
   const signInAgain = useCallback(() => {
-    clearTokenResponse();
-    router.replace('/');
-  }, [clearTokenResponse]);
+    returnToSignIn();
+  }, [returnToSignIn]);
+
+  const topBarActions = useMemo<AppTopBarAction[]>(
+    () => [
+      {
+        disabled: loading || refreshing || !accessToken,
+        icon: 'refresh',
+        label: 'Refresh',
+        onPress: () => loadHouseholds({ refresh: true }),
+      },
+    ],
+    [accessToken, loadHouseholds, loading, refreshing],
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -108,68 +136,18 @@ export default function HouseholdsScreen() {
           ListHeaderComponent={
             <View style={styles.content}>
               <View style={styles.header}>
-                <View style={styles.headerTop}>
-                  <View>
-                    <Text style={styles.eyebrow}>Domu</Text>
-                    <Text style={styles.title}>Your Households</Text>
-                  </View>
-                  <Pressable
-                    accessibilityLabel="Refresh households"
-                    accessibilityRole="button"
-                    disabled={loading || refreshing || !accessToken}
-                    onPress={() => loadHouseholds({ refresh: true })}
-                    style={({ pressed }) => [
-                      styles.iconButton,
-                      pressed && styles.pressed,
-                      (!accessToken || loading || refreshing) && styles.disabledButton,
-                    ]}>
-                    <MaterialIcons color="#526049" name="refresh" size={22} />
-                  </Pressable>
-                </View>
+                <AppTopBar actions={topBarActions} subtitle="Domu" title="Your Households" />
                 <Text style={styles.body}>
                   Choose a home to manage its spaces and inventory, or add a new household.
                 </Text>
               </View>
 
-              <View style={styles.formPanel}>
-                <View style={styles.formHeader}>
-                  <MaterialIcons color="#526049" name="add-home" size={22} />
-                  <Text style={styles.formTitle}>Add Household</Text>
-                </View>
-
-                <View style={styles.field}>
-                  <Text style={styles.label}>Household name</Text>
-                  <TextInput
-                    autoCapitalize="words"
-                    onChangeText={setName}
-                    onSubmitEditing={submitHousehold}
-                    placeholder="Oak Street Home"
-                    placeholderTextColor="#8c8a81"
-                    returnKeyType="done"
-                    style={styles.input}
-                    value={name}
-                  />
-                </View>
-
-                <Pressable
-                  accessibilityRole="button"
-                  disabled={!canCreate}
-                  onPress={submitHousehold}
-                  style={({ pressed }) => [
-                    styles.primaryButton,
-                    pressed && styles.primaryButtonPressed,
-                    !canCreate && styles.primaryButtonDisabled,
-                  ]}>
-                  {creating ? (
-                    <ActivityIndicator color="#ffffff" />
-                  ) : (
-                    <>
-                      <MaterialIcons color="#ffffff" name="add" size={20} />
-                      <Text style={styles.primaryButtonText}>Create household</Text>
-                    </>
-                  )}
-                </Pressable>
-              </View>
+              <CreateHouseholdForm
+                canSubmit={Boolean(accessToken)}
+                creating={creating}
+                onSubmit={submitHousehold}
+                resetKey={formResetKey}
+              />
 
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Households</Text>
@@ -222,6 +200,71 @@ export default function HouseholdsScreen() {
   );
 }
 
+const CreateHouseholdForm = memo(function CreateHouseholdForm({
+  canSubmit,
+  creating,
+  onSubmit,
+  resetKey,
+}: {
+  canSubmit: boolean;
+  creating: boolean;
+  onSubmit: (name: string) => void;
+  resetKey: number;
+}) {
+  const [name, setName] = useState('');
+  const canCreate = canSubmit && Boolean(name.trim()) && !creating;
+
+  useEffect(() => {
+    setName('');
+  }, [resetKey]);
+
+  const submit = useCallback(() => {
+    onSubmit(name);
+  }, [name, onSubmit]);
+
+  return (
+    <View style={styles.formPanel}>
+      <View style={styles.formHeader}>
+        <MaterialIcons color="#526049" name="add-home" size={22} />
+        <Text style={styles.formTitle}>Add Household</Text>
+      </View>
+
+      <View style={styles.field}>
+        <Text style={styles.label}>Household name</Text>
+        <TextInput
+          autoCapitalize="words"
+          onChangeText={setName}
+          onSubmitEditing={submit}
+          placeholder="Oak Street Home"
+          placeholderTextColor="#8c8a81"
+          returnKeyType="done"
+          style={styles.input}
+          value={name}
+        />
+      </View>
+
+      <Pressable
+        accessibilityRole="button"
+        disabled={!canCreate}
+        onPress={submit}
+        style={({ pressed }) => [
+          styles.primaryButton,
+          pressed && styles.primaryButtonPressed,
+          !canCreate && styles.primaryButtonDisabled,
+        ]}>
+        {creating ? (
+          <ActivityIndicator color="#ffffff" />
+        ) : (
+          <>
+            <MaterialIcons color="#ffffff" name="add" size={20} />
+            <Text style={styles.primaryButtonText}>Create household</Text>
+          </>
+        )}
+      </Pressable>
+    </View>
+  );
+});
+
 function HouseholdCard({ household }: { household: HouseholdView }) {
   const openHousehold = useCallback(() => {
     router.push({
@@ -269,6 +312,10 @@ function formatSubscription(household: HouseholdView) {
 }
 
 function getUserFacingError(exception: unknown) {
+  if (exception instanceof TimeoutError) {
+    return `${exception.message} Check adb reverse or EXPO_PUBLIC_API_URL.`;
+  }
+
   if (exception instanceof ApiError) {
     if (exception.status === 401) {
       return 'Your session is missing or expired. Sign in again.';
@@ -282,6 +329,10 @@ function getUserFacingError(exception: unknown) {
   }
 
   return 'Check that the backend is running at the configured API URL.';
+}
+
+function isExpiredSessionError(exception: unknown) {
+  return exception instanceof ApiError && exception.status === 401;
 }
 
 const styles = StyleSheet.create({

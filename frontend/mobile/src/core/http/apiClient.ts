@@ -1,4 +1,5 @@
 import { apiV1Url } from '@/config/env';
+import { TimeoutError } from '@/core/async/timeout';
 
 export type ApiQueryValue = string | number | boolean | null | undefined;
 
@@ -27,11 +28,33 @@ export class ApiError extends Error {
   }
 }
 
+const defaultRequestTimeoutMs = 15000;
+
 export async function apiRequest<TResponse>(
   path: string,
   options: ApiRequestOptions = {},
 ): Promise<TResponse> {
-  const response = await fetch(buildUrl(path, options.query), buildInit(options));
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), defaultRequestTimeoutMs);
+
+  let response: Response;
+
+  try {
+    response = await fetch(buildUrl(path, options.query), {
+      ...buildInit(options),
+      signal: options.signal ?? controller.signal,
+    });
+  } catch (exception) {
+    if (isAbortError(exception)) {
+      throw new TimeoutError(
+        `The API did not respond within ${defaultRequestTimeoutMs / 1000} seconds.`,
+      );
+    }
+
+    throw exception;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     const problem = await readProblemDetails(response);
@@ -47,6 +70,15 @@ export async function apiRequest<TResponse>(
   }
 
   return (await response.json()) as TResponse;
+}
+
+function isAbortError(exception: unknown) {
+  return (
+    typeof exception === 'object' &&
+    exception !== null &&
+    'name' in exception &&
+    exception.name === 'AbortError'
+  );
 }
 
 function buildUrl(path: string, query?: Record<string, ApiQueryValue>) {
