@@ -1,6 +1,6 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState, type ComponentProps, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ComponentProps } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -9,7 +9,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -30,6 +29,11 @@ import {
   type ItemEntryView,
   type ItemView,
 } from '@/features/items/api';
+import { ItemEntryRow } from '@/features/items/components/ItemEntryRow';
+import {
+  ItemIdentityForm,
+  type ItemIdentityFormValue,
+} from '@/features/items/components/ItemIdentityForm';
 import { AppTopBar, type AppTopBarAction } from '@/ui/AppTopBar';
 
 type QuantitySummary = {
@@ -38,12 +42,6 @@ type QuantitySummary = {
   initial: number;
   label: string;
   unit: ItemUnit;
-};
-
-type ItemIdentityFormValue = {
-  barcode: string;
-  category: string;
-  name: string;
 };
 
 const emptyEntries: ItemEntryView[] = [];
@@ -66,6 +64,7 @@ export default function ItemDetailsScreen() {
   const [savingItem, setSavingItem] = useState(false);
   const [deletingItem, setDeletingItem] = useState(false);
   const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
+  const [updatingEntryId, setUpdatingEntryId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -270,6 +269,68 @@ export default function ItemDetailsScreen() {
     [deleteEntry, item?.name],
   );
 
+  const updateEntry = useCallback(
+    async (entryId: string, update: (entry: ItemEntryView) => ItemEntryRequest) => {
+      if (!accessToken || !resolvedHouseholdId || !resolvedItemId || !resolvedSpaceId || !item) {
+        setError('Open an item from a space before updating an entry.');
+        return;
+      }
+
+      setUpdatingEntryId(entryId);
+      setError(null);
+
+      try {
+        const nextItem = await replaceItemEntries(
+          resolvedHouseholdId,
+          resolvedSpaceId,
+          resolvedItemId,
+          {
+            entries: item.entries.map((entry) =>
+              entry.id === entryId ? update(entry) : toItemEntryRequest(entry),
+            ),
+          },
+          { accessToken },
+        );
+        setItem(nextItem);
+      } catch (exception) {
+        if (isExpiredSessionError(exception)) {
+          await returnToSignIn();
+          return;
+        }
+
+        setError(getUserFacingError(exception));
+      } finally {
+        setUpdatingEntryId(null);
+      }
+    },
+    [accessToken, item, resolvedHouseholdId, resolvedItemId, resolvedSpaceId, returnToSignIn],
+  );
+
+  const openEntry = useCallback(
+    (entry: ItemEntryView) => {
+      updateEntry(entry.id, (currentEntry) => ({
+        ...toItemEntryRequest(currentEntry),
+        currentQuantity: currentEntry.initialQuantity,
+        state: ConsumableState.Opened,
+      }));
+    },
+    [updateEntry],
+  );
+
+  const setEntryCurrentQuantity = useCallback(
+    (entry: ItemEntryView, currentQuantity: number) => {
+      updateEntry(entry.id, (currentEntry) => ({
+        ...toItemEntryRequest(currentEntry),
+        currentQuantity: clampQuantity(currentQuantity, currentEntry.initialQuantity),
+        state:
+          currentEntry.state === ConsumableState.Unopened
+            ? ConsumableState.Opened
+            : currentEntry.state,
+      }));
+    },
+    [updateEntry],
+  );
+
   const saveItemIdentity = useCallback(
     async (value: ItemIdentityFormValue) => {
       if (!accessToken || !resolvedHouseholdId || !resolvedItemId || !resolvedSpaceId) {
@@ -469,13 +530,16 @@ export default function ItemDetailsScreen() {
 
               <View style={styles.entryList}>
                 {entries.map((entry, index) => (
-                  <EntryRow
+                  <ItemEntryRow
                     deleting={deletingEntryId === entry.id}
                     entry={entry}
                     index={index}
                     key={entry.id}
                     onDelete={confirmDeleteEntry}
                     onEdit={() => openEntryForm(entry.id)}
+                    onOpen={openEntry}
+                    onSetCurrentQuantity={setEntryCurrentQuantity}
+                    updating={updatingEntryId === entry.id}
                   />
                 ))}
               </View>
@@ -548,183 +612,6 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ItemIdentityForm({
-  item,
-  onCancel,
-  onSubmit,
-  saving,
-}: {
-  item: ItemView;
-  onCancel: () => void;
-  onSubmit: (value: ItemIdentityFormValue) => void;
-  saving: boolean;
-}) {
-  const [name, setName] = useState(item.name);
-  const [category, setCategory] = useState(item.category ?? '');
-  const [barcode, setBarcode] = useState(item.barcode ?? '');
-  const canSave = Boolean(name.trim()) && !saving;
-
-  useEffect(() => {
-    setName(item.name);
-    setCategory(item.category ?? '');
-    setBarcode(item.barcode ?? '');
-  }, [item]);
-
-  const submit = useCallback(() => {
-    onSubmit({ barcode, category, name });
-  }, [barcode, category, name, onSubmit]);
-
-  return (
-    <View style={styles.formStack}>
-      <FormField label="Name">
-        <TextInput
-          autoCapitalize="words"
-          onChangeText={setName}
-          placeholder="Item name"
-          placeholderTextColor="#8c8a81"
-          style={styles.input}
-          value={name}
-        />
-      </FormField>
-      <FormField label="Category">
-        <TextInput
-          autoCapitalize="words"
-          onChangeText={setCategory}
-          placeholder="Kitchen"
-          placeholderTextColor="#8c8a81"
-          style={styles.input}
-          value={category}
-        />
-      </FormField>
-      <FormField label="Barcode">
-        <TextInput
-          autoCapitalize="none"
-          keyboardType="number-pad"
-          onChangeText={setBarcode}
-          placeholder="Barcode"
-          placeholderTextColor="#8c8a81"
-          style={styles.input}
-          value={barcode}
-        />
-      </FormField>
-      <FormActions
-        canSave={canSave}
-        onCancel={onCancel}
-        onSave={submit}
-        saving={saving}
-      />
-    </View>
-  );
-}
-
-function EntryRow({
-  deleting,
-  entry,
-  index,
-  onDelete,
-  onEdit,
-}: {
-  deleting: boolean;
-  entry: ItemEntryView;
-  index: number;
-  onDelete: (entry: ItemEntryView) => void;
-  onEdit: () => void;
-}) {
-  return (
-    <View style={styles.entryRow}>
-      <View style={styles.entryNumber}>
-        <Text style={styles.entryNumberText}>{index + 1}</Text>
-      </View>
-      <View style={styles.entryContent}>
-        <View style={styles.entryTopRow}>
-          <Text style={styles.entryTitle}>{formatEntryQuantity(entry)}</Text>
-          <View style={styles.entryActions}>
-            <Text style={styles.entryState}>{formatState(entry.state)}</Text>
-            <Pressable
-              accessibilityLabel="Edit entry"
-              accessibilityRole="button"
-              onPress={onEdit}
-              style={({ pressed }) => [styles.entryEditButton, pressed && styles.pressed]}>
-              <MaterialIcons color="#526049" name="edit" size={18} />
-            </Pressable>
-            <Pressable
-              accessibilityLabel="Delete entry"
-              accessibilityRole="button"
-              disabled={deleting}
-              onPress={() => onDelete(entry)}
-              style={({ pressed }) => [
-                styles.entryDeleteButton,
-                pressed && styles.pressed,
-                deleting && styles.disabledButton,
-              ]}>
-              {deleting ? (
-                <ActivityIndicator color="#944931" size="small" />
-              ) : (
-                <MaterialIcons color="#944931" name="delete-outline" size={18} />
-              )}
-            </Pressable>
-          </View>
-        </View>
-        <View style={styles.entryMetaGrid}>
-          <MetaPill icon="shopping-bag" label={formatDate(entry.acquisitionDate)} />
-          <MetaPill icon="event" label={formatDate(entry.expirationDate)} />
-          <MetaPill icon="inventory-2" label={formatContainer(entry.containerType)} />
-        </View>
-      </View>
-    </View>
-  );
-}
-
-function FormField({ children, label }: { children: ReactNode; label: string }) {
-  return (
-    <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
-      {children}
-    </View>
-  );
-}
-
-function FormActions({
-  canSave,
-  onCancel,
-  onSave,
-  saving,
-}: {
-  canSave: boolean;
-  onCancel: () => void;
-  onSave: () => void;
-  saving: boolean;
-}) {
-  return (
-    <View style={styles.formActions}>
-      <Pressable
-        accessibilityRole="button"
-        onPress={onCancel}
-        style={({ pressed }) => [styles.cancelButton, pressed && styles.pressed]}>
-        <Text style={styles.cancelButtonText}>Cancel</Text>
-      </Pressable>
-      <Pressable
-        accessibilityRole="button"
-        disabled={!canSave}
-        onPress={onSave}
-        style={({ pressed }) => [
-          styles.saveButton,
-          pressed && styles.pressed,
-          !canSave && styles.disabledButton,
-        ]}>
-        {saving ? (
-          <ActivityIndicator color="#ffffff" />
-        ) : (
-          <>
-            <MaterialIcons color="#ffffff" name="save" size={18} />
-            <Text style={styles.saveButtonText}>Save</Text>
-          </>
-        )}
-      </Pressable>
-    </View>
-  );
-}
-
 function toItemEntryRequest(entry: ItemEntryView): ItemEntryRequest {
   return {
     acquisitionDate: entry.acquisitionDate,
@@ -736,23 +623,6 @@ function toItemEntryRequest(entry: ItemEntryView): ItemEntryRequest {
     state: entry.state,
     unit: entry.unit,
   };
-}
-
-function MetaPill({
-  icon,
-  label,
-}: {
-  icon: ComponentProps<typeof MaterialIcons>['name'];
-  label: string;
-}) {
-  return (
-    <View style={styles.metaPill}>
-      <MaterialIcons color="#757870" name={icon} size={14} />
-      <Text numberOfLines={1} style={styles.metaPillText}>
-        {label}
-      </Text>
-    </View>
-  );
 }
 
 function buildItemDetails(entries: ItemEntryView[]) {
@@ -877,7 +747,7 @@ function formatQuantity(summary: QuantitySummary) {
 }
 
 function formatNumber(value: number) {
-  return Number.isInteger(value) ? String(value) : value.toLocaleString(undefined, { maximumFractionDigits: 1 });
+  return Number.isInteger(value) ? String(value) : value.toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 
 function formatPercent(current: number, initial: number) {
@@ -894,6 +764,10 @@ function getProgress(current: number, initial: number) {
   }
 
   return Math.max(0, Math.min(100, Math.round((current / initial) * 100)));
+}
+
+function clampQuantity(value: number, initial: number) {
+  return Math.max(0, Math.min(initial, value));
 }
 
 function formatUnit(unit: ItemUnit) {
@@ -1178,62 +1052,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '800',
   },
-  formStack: {
-    gap: 14,
-  },
-  field: {
-    flex: 1,
-    gap: 8,
-  },
-  label: {
-    color: '#444841',
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  input: {
-    backgroundColor: '#faf2ed',
-    borderColor: '#c5c8be',
-    borderRadius: 8,
-    borderWidth: 1,
-    color: '#1e1b18',
-    fontSize: 15,
-    minHeight: 46,
-    paddingHorizontal: 12,
-  },
-  formActions: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  cancelButton: {
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderColor: '#c5c8be',
-    borderRadius: 8,
-    borderWidth: 1,
-    flex: 1,
-    justifyContent: 'center',
-    minHeight: 46,
-  },
-  cancelButtonText: {
-    color: '#444841',
-    fontSize: 14,
-    fontWeight: '800',
-  },
-  saveButton: {
-    alignItems: 'center',
-    backgroundColor: '#526049',
-    borderRadius: 8,
-    flex: 1,
-    flexDirection: 'row',
-    gap: 6,
-    justifyContent: 'center',
-    minHeight: 46,
-  },
-  saveButtonText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '800',
-  },
   amountHero: {
     backgroundColor: '#faf2ed',
     borderColor: '#e8e1dc',
@@ -1288,96 +1106,6 @@ const styles = StyleSheet.create({
   },
   entryList: {
     gap: 12,
-  },
-  entryRow: {
-    alignItems: 'flex-start',
-    backgroundColor: '#faf2ed',
-    borderColor: '#e8e1dc',
-    borderRadius: 8,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 12,
-    padding: 12,
-  },
-  entryNumber: {
-    alignItems: 'center',
-    backgroundColor: '#d8e8cb',
-    borderRadius: 8,
-    height: 34,
-    justifyContent: 'center',
-    width: 34,
-  },
-  entryNumberText: {
-    color: '#121f0d',
-    fontSize: 14,
-    fontWeight: '800',
-  },
-  entryContent: {
-    flex: 1,
-    gap: 8,
-    minWidth: 0,
-  },
-  entryTopRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 8,
-    justifyContent: 'space-between',
-  },
-  entryTitle: {
-    color: '#1e1b18',
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '800',
-  },
-  entryState: {
-    color: '#526049',
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  entryActions: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 8,
-  },
-  entryEditButton: {
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderColor: '#c5c8be',
-    borderRadius: 8,
-    borderWidth: 1,
-    height: 34,
-    justifyContent: 'center',
-    width: 34,
-  },
-  entryDeleteButton: {
-    alignItems: 'center',
-    backgroundColor: '#ffdbd0',
-    borderColor: '#ffb59e',
-    borderRadius: 8,
-    borderWidth: 1,
-    height: 34,
-    justifyContent: 'center',
-    width: 34,
-  },
-  entryMetaGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  metaPill: {
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    flexDirection: 'row',
-    gap: 4,
-    minHeight: 28,
-    paddingHorizontal: 8,
-  },
-  metaPillText: {
-    color: '#444841',
-    fontSize: 12,
-    fontWeight: '700',
-    maxWidth: 112,
   },
   pressed: {
     opacity: 0.78,

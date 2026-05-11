@@ -1,16 +1,13 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { memo, type ComponentProps, useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  RefreshControl,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -27,10 +24,14 @@ import {
   type SpacePage,
   type SpaceView,
 } from '@/features/spaces/api';
+import { AddSubSpaceForm } from '@/features/spaces/components/AddSubSpaceForm';
+import { OverviewTabs, type OverviewTab } from '@/features/spaces/components/OverviewTabs';
+import {
+  SpaceOverviewList,
+  type OverviewListItem,
+} from '@/features/spaces/components/SpaceOverviewList';
+import { SpaceOverviewSummary } from '@/features/spaces/components/SpaceOverviewSummary';
 import { AppTopBar, type AppTopBarAction } from '@/ui/AppTopBar';
-
-type OverviewTab = 'subSpaces' | 'items';
-type OverviewListItem = SpaceView | ItemView;
 
 const addItemRoute = '/households/[householdId]/items/add' as never;
 const itemDetailsRoute = '/households/[householdId]/items/[itemId]' as never;
@@ -232,6 +233,34 @@ export default function SpaceOverviewScreen() {
     });
   }, [resolvedHouseholdId, resolvedParentId]);
 
+  const openSpace = useCallback(
+    (space: SpaceView) => {
+      if (!resolvedHouseholdId) {
+        return;
+      }
+
+      router.push({
+        pathname: '/households/[householdId]/spaces',
+        params: { householdId: resolvedHouseholdId, parentId: space.id },
+      });
+    },
+    [resolvedHouseholdId],
+  );
+
+  const openItem = useCallback(
+    (item: ItemView) => {
+      if (!resolvedHouseholdId || !resolvedParentId) {
+        return;
+      }
+
+      router.push({
+        pathname: itemDetailsRoute,
+        params: { householdId: resolvedHouseholdId, itemId: item.id, spaceId: resolvedParentId },
+      });
+    },
+    [resolvedHouseholdId, resolvedParentId],
+  );
+
   const topBarActions = useMemo<AppTopBarAction[]>(
     () => [
       {
@@ -249,8 +278,12 @@ export default function SpaceOverviewScreen() {
       <KeyboardAvoidingView
         behavior={Platform.select({ ios: 'padding', default: undefined })}
         style={styles.screen}>
-        <FlatList<OverviewListItem>
-          ListHeaderComponent={
+        <SpaceOverviewList
+          activeTab={activeTab}
+          data={currentData}
+          error={error}
+          hasSelectedSpace={Boolean(resolvedParentId)}
+          listHeader={
             <View style={styles.content}>
               <View style={styles.header}>
                 <AppTopBar
@@ -265,23 +298,12 @@ export default function SpaceOverviewScreen() {
                 </View>
               </View>
 
-              <View style={styles.summaryGrid}>
-                <SummaryMetric label="Spaces" value={summary.spaceCount} />
-                <SummaryMetric label="Items" value={summary.itemCount} />
-              </View>
+              <SpaceOverviewSummary
+                itemCount={summary.itemCount}
+                spaceCount={summary.spaceCount}
+              />
 
-              <View style={styles.tabs}>
-                <TabButton
-                  active={activeTab === 'subSpaces'}
-                  label="Sub-spaces"
-                  onPress={() => setActiveTab('subSpaces')}
-                />
-                <TabButton
-                  active={activeTab === 'items'}
-                  label="Items"
-                  onPress={() => setActiveTab('items')}
-                />
-              </View>
+              <OverviewTabs activeTab={activeTab} onChange={setActiveTab} />
 
               <View style={styles.listSection}>
                 <View style={styles.sectionHeader}>
@@ -341,7 +363,7 @@ export default function SpaceOverviewScreen() {
                 </View>
 
                 {activeTab === 'subSpaces' && showCreateSpace && (
-                  <CreateSubSpaceForm
+                  <AddSubSpaceForm
                     canSubmit={Boolean(accessToken && resolvedHouseholdId)}
                     creating={creating}
                     onSubmit={submitSpace}
@@ -368,319 +390,17 @@ export default function SpaceOverviewScreen() {
               )}
             </View>
           }
-          ListHeaderComponentStyle={styles.listHeader}
-          contentContainerStyle={styles.listContent}
-          data={currentData}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          keyExtractor={(item) => item.id}
-          keyboardShouldPersistTaps="handled"
-          ListEmptyComponent={
-            !loading && !error ? (
-              activeTab === 'subSpaces' ? (
-                <EmptySpaces onCreate={() => setShowCreateSpace(true)} />
-              ) : (
-                <EmptyItems
-                  hasSelectedSpace={Boolean(resolvedParentId)}
-                  onCreate={openAddItem}
-                  onScan={openScanner}
-                />
-              )
-            ) : null
-          }
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={() => loadOverview({ refresh: true })}
-              tintColor="#526049"
-            />
-          }
-          renderItem={({ item }) =>
-            resolvedHouseholdId && activeTab === 'subSpaces' ? (
-              <SpaceCard householdId={resolvedHouseholdId} space={item as SpaceView} />
-            ) : activeTab === 'items' && resolvedHouseholdId && resolvedParentId ? (
-              <ItemCard
-                householdId={resolvedHouseholdId}
-                item={item as ItemView}
-                spaceId={resolvedParentId}
-              />
-            ) : null
-          }
+          loading={loading}
+          onAddItem={openAddItem}
+          onCreateSubSpace={() => setShowCreateSpace(true)}
+          onItemPress={openItem}
+          onRefresh={() => loadOverview({ refresh: true })}
+          onScan={openScanner}
+          onSpacePress={openSpace}
+          refreshing={refreshing}
         />
       </KeyboardAvoidingView>
     </SafeAreaView>
-  );
-}
-
-const CreateSubSpaceForm = memo(function CreateSubSpaceForm({
-  canSubmit,
-  creating,
-  onSubmit,
-  resetKey,
-}: {
-  canSubmit: boolean;
-  creating: boolean;
-  onSubmit: (name: string, description: string) => void;
-  resetKey: number;
-}) {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const canCreate = canSubmit && Boolean(name.trim()) && !creating;
-
-  useEffect(() => {
-    setName('');
-    setDescription('');
-  }, [resetKey]);
-
-  const submit = useCallback(() => {
-    onSubmit(name, description);
-  }, [description, name, onSubmit]);
-
-  return (
-    <View style={styles.formPanel}>
-      <View style={styles.formHeader}>
-        <MaterialIcons color="#526049" name="create-new-folder" size={22} />
-        <Text style={styles.formTitle}>Add Sub-space</Text>
-      </View>
-
-      <View style={styles.field}>
-        <Text style={styles.label}>Name</Text>
-        <TextInput
-          autoCapitalize="words"
-          onChangeText={setName}
-          onSubmitEditing={submit}
-          placeholder="Pantry"
-          placeholderTextColor="#8c8a81"
-          returnKeyType="next"
-          style={styles.input}
-          value={name}
-        />
-      </View>
-
-      <View style={styles.field}>
-        <Text style={styles.label}>Description</Text>
-        <TextInput
-          multiline
-          onChangeText={setDescription}
-          placeholder="Dry goods and weekly essentials"
-          placeholderTextColor="#8c8a81"
-          style={[styles.input, styles.textArea]}
-          value={description}
-        />
-      </View>
-
-      <Pressable
-        accessibilityRole="button"
-        disabled={!canCreate}
-        onPress={submit}
-        style={({ pressed }) => [
-          styles.primaryButton,
-          pressed && styles.primaryButtonPressed,
-          !canCreate && styles.primaryButtonDisabled,
-        ]}>
-        {creating ? (
-          <ActivityIndicator color="#ffffff" />
-        ) : (
-          <>
-            <MaterialIcons color="#ffffff" name="add" size={20} />
-            <Text style={styles.primaryButtonText}>Create sub-space</Text>
-          </>
-        )}
-      </Pressable>
-    </View>
-  );
-});
-
-function TabButton({
-  active,
-  label,
-  onPress,
-}: {
-  active: boolean;
-  label: string;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      accessibilityRole="tab"
-      accessibilityState={{ selected: active }}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.tabButton,
-        active && styles.tabButtonActive,
-        pressed && styles.pressed,
-      ]}>
-      <Text style={[styles.tabButtonText, active && styles.tabButtonTextActive]}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function SpaceCard({ householdId, space }: { householdId: string; space: SpaceView }) {
-  const openSpace = useCallback(() => {
-    router.push({
-      pathname: '/households/[householdId]/spaces',
-      params: { householdId, parentId: space.id },
-    });
-  }, [householdId, space.id]);
-
-  const itemCount = space.items?.count ?? 0;
-  const childCount = space.childSpaces?.count ?? 0;
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={openSpace}
-      style={({ pressed }) => [styles.spaceCard, pressed && styles.cardPressed]}>
-      <View style={styles.spaceIcon}>
-        <MaterialIcons color="#526049" name="inventory-2" size={24} />
-      </View>
-
-      <View style={styles.spaceContent}>
-        <Text numberOfLines={1} style={styles.spaceName}>
-          {space.name}
-        </Text>
-        {space.description ? (
-          <Text numberOfLines={2} style={styles.spaceDescription}>
-            {space.description}
-          </Text>
-        ) : null}
-        <View style={styles.spaceMetaRow}>
-          <SpaceMeta icon="category" label={formatCount(childCount, 'space')} />
-          <SpaceMeta icon="kitchen" label={formatCount(itemCount, 'item')} />
-        </View>
-      </View>
-
-      <MaterialIcons color="#757870" name="chevron-right" size={24} />
-    </Pressable>
-  );
-}
-
-function ItemCard({
-  householdId,
-  item,
-  spaceId,
-}: {
-  householdId: string;
-  item: ItemView;
-  spaceId: string;
-}) {
-  const openItem = useCallback(() => {
-    router.push({
-      pathname: itemDetailsRoute,
-      params: { householdId, itemId: item.id, spaceId },
-    });
-  }, [householdId, item.id, spaceId]);
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={openItem}
-      style={({ pressed }) => [styles.itemCard, pressed && styles.cardPressed]}>
-      <View style={styles.itemIcon}>
-        <MaterialIcons color="#944931" name="kitchen" size={24} />
-      </View>
-
-      <View style={styles.spaceContent}>
-        <Text numberOfLines={1} style={styles.spaceName}>
-          {item.name}
-        </Text>
-        <Text style={styles.spaceDescription}>
-          {item.category || 'Uncategorized'} - {formatQuantity(item.totalQuantity)}
-        </Text>
-        <View style={styles.spaceMetaRow}>
-          <SpaceMeta icon="inventory" label={formatCount(item.entries.length, 'entry')} />
-          {item.barcode ? <SpaceMeta icon="qr-code-2" label={item.barcode} /> : null}
-        </View>
-      </View>
-
-      <MaterialIcons color="#757870" name="chevron-right" size={24} />
-    </Pressable>
-  );
-}
-
-function SummaryMetric({ label, value }: { label: string; value: number }) {
-  return (
-    <View style={styles.summaryMetric}>
-      <Text style={styles.summaryValue}>{value}</Text>
-      <Text style={styles.summaryLabel}>{label}</Text>
-    </View>
-  );
-}
-
-function SpaceMeta({
-  icon,
-  label,
-}: {
-  icon: ComponentProps<typeof MaterialIcons>['name'];
-  label: string;
-}) {
-  return (
-    <View style={styles.spaceMeta}>
-      <MaterialIcons color="#757870" name={icon} size={15} />
-      <Text style={styles.spaceMetaText}>{label}</Text>
-    </View>
-  );
-}
-
-function EmptySpaces({ onCreate }: { onCreate: () => void }) {
-  return (
-    <View style={styles.emptyPanel}>
-      <View style={styles.emptyIcon}>
-        <MaterialIcons color="#526049" name="inventory-2" size={28} />
-      </View>
-      <Text style={styles.emptyTitle}>No sub-spaces here yet</Text>
-      <Text style={styles.emptyText}>Add a sub-space to organize this part of the home.</Text>
-      <Pressable
-        accessibilityRole="button"
-        onPress={onCreate}
-        style={({ pressed }) => [styles.emptyButton, pressed && styles.pressed]}>
-        <Text style={styles.emptyButtonText}>Create sub-space</Text>
-      </Pressable>
-    </View>
-  );
-}
-
-function EmptyItems({
-  hasSelectedSpace,
-  onCreate,
-  onScan,
-}: {
-  hasSelectedSpace: boolean;
-  onCreate: () => void;
-  onScan: () => void;
-}) {
-  return (
-    <View style={styles.emptyPanel}>
-      <View style={styles.emptyIcon}>
-        <MaterialIcons color="#944931" name="kitchen" size={28} />
-      </View>
-      <Text style={styles.emptyTitle}>{hasSelectedSpace ? 'No items here yet' : 'Open a space first'}</Text>
-      <Text style={styles.emptyText}>
-        {hasSelectedSpace
-          ? 'Items added to this space will appear here.'
-          : 'Household-level item browsing needs a selected space.'}
-      </Text>
-      {hasSelectedSpace ? (
-        <View style={styles.emptyActionRow}>
-          <Pressable
-            accessibilityRole="button"
-            onPress={onCreate}
-            style={({ pressed }) => [
-              styles.emptyButton,
-              styles.emptyActionButton,
-              pressed && styles.pressed,
-            ]}>
-            <Text style={styles.emptyButtonText}>Create item</Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            onPress={onScan}
-            style={({ pressed }) => [styles.emptySecondaryButton, pressed && styles.pressed]}>
-            <MaterialIcons color="#526049" name="qr-code-scanner" size={18} />
-            <Text style={styles.emptySecondaryButtonText}>Scan</Text>
-          </Pressable>
-        </View>
-      ) : null}
-    </View>
   );
 }
 
@@ -694,10 +414,6 @@ function parseOverviewTab(value?: string): OverviewTab | null {
 
 function formatCount(value: number, noun: string) {
   return `${value} ${noun}${value === 1 ? '' : 's'}`;
-}
-
-function formatQuantity(value: number) {
-  return `${value.toLocaleString()} total`;
 }
 
 function getUserFacingError(exception: unknown) {
@@ -733,13 +449,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff8f3',
   },
-  listContent: {
-    paddingBottom: 32,
-    paddingHorizontal: 20,
-  },
-  listHeader: {
-    marginBottom: 12,
-  },
   content: {
     gap: 24,
     paddingTop: 20,
@@ -747,171 +456,16 @@ const styles = StyleSheet.create({
   header: {
     gap: 18,
   },
-  headerActions: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
   titleBlock: {
     gap: 8,
-  },
-  eyebrow: {
-    color: '#526049',
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0,
-    textTransform: 'uppercase',
-  },
-  title: {
-    color: '#1e1b18',
-    fontSize: 32,
-    fontWeight: '800',
-    letterSpacing: 0,
-    lineHeight: 39,
   },
   body: {
     color: '#444841',
     fontSize: 16,
     lineHeight: 24,
   },
-  iconButton: {
-    alignItems: 'center',
-    backgroundColor: '#faf2ed',
-    borderColor: '#e8e1dc',
-    borderRadius: 8,
-    borderWidth: 1,
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
-  disabledButton: {
-    opacity: 0.5,
-  },
   pressed: {
     opacity: 0.78,
-  },
-  summaryGrid: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  summaryMetric: {
-    backgroundColor: '#faf2ed',
-    borderColor: '#e8e1dc',
-    borderRadius: 8,
-    borderWidth: 1,
-    flex: 1,
-    gap: 4,
-    minHeight: 78,
-    padding: 14,
-  },
-  summaryValue: {
-    color: '#1e1b18',
-    fontSize: 24,
-    fontWeight: '800',
-    letterSpacing: 0,
-  },
-  summaryLabel: {
-    color: '#444841',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  tabs: {
-    backgroundColor: '#faf2ed',
-    borderColor: '#e8e1dc',
-    borderRadius: 8,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 4,
-    padding: 4,
-  },
-  tabButton: {
-    alignItems: 'center',
-    borderRadius: 8,
-    flex: 1,
-    justifyContent: 'center',
-    minHeight: 42,
-    paddingHorizontal: 12,
-  },
-  tabButtonActive: {
-    backgroundColor: '#526049',
-  },
-  tabButtonText: {
-    color: '#444841',
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: 0,
-  },
-  tabButtonTextActive: {
-    color: '#ffffff',
-  },
-  formPanel: {
-    backgroundColor: '#ffffff',
-    borderColor: '#e8e1dc',
-    borderRadius: 8,
-    borderWidth: 1,
-    gap: 16,
-    padding: 16,
-    shadowColor: '#5c5854',
-    shadowOffset: { height: 4, width: 0 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-  },
-  formHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 8,
-  },
-  formTitle: {
-    color: '#1e1b18',
-    fontSize: 18,
-    fontWeight: '700',
-    letterSpacing: 0,
-  },
-  field: {
-    gap: 8,
-  },
-  label: {
-    color: '#444841',
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0,
-  },
-  input: {
-    backgroundColor: '#faf2ed',
-    borderColor: '#c5c8be',
-    borderRadius: 8,
-    borderWidth: 1,
-    color: '#1e1b18',
-    fontSize: 16,
-    minHeight: 52,
-    paddingHorizontal: 14,
-  },
-  textArea: {
-    minHeight: 86,
-    paddingTop: 14,
-    textAlignVertical: 'top',
-  },
-  primaryButton: {
-    alignItems: 'center',
-    backgroundColor: '#526049',
-    borderRadius: 8,
-    flexDirection: 'row',
-    gap: 8,
-    justifyContent: 'center',
-    minHeight: 52,
-    paddingHorizontal: 16,
-  },
-  primaryButtonDisabled: {
-    backgroundColor: '#9ca58f',
-  },
-  primaryButtonPressed: {
-    opacity: 0.86,
-  },
-  primaryButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 0,
   },
   listSection: {
     gap: 12,
@@ -1001,156 +555,5 @@ const styles = StyleSheet.create({
     color: '#444841',
     fontSize: 14,
     fontWeight: '600',
-  },
-  separator: {
-    height: 12,
-  },
-  spaceCard: {
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderColor: '#e8e1dc',
-    borderRadius: 8,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 12,
-    minHeight: 92,
-    padding: 14,
-  },
-  itemCard: {
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderColor: '#e8e1dc',
-    borderRadius: 8,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 12,
-    minHeight: 92,
-    padding: 14,
-  },
-  cardPressed: {
-    backgroundColor: '#faf2ed',
-  },
-  spaceIcon: {
-    alignItems: 'center',
-    backgroundColor: '#d8e8cb',
-    borderRadius: 8,
-    height: 48,
-    justifyContent: 'center',
-    width: 48,
-  },
-  itemIcon: {
-    alignItems: 'center',
-    backgroundColor: '#ffdbd0',
-    borderRadius: 8,
-    height: 48,
-    justifyContent: 'center',
-    width: 48,
-  },
-  spaceContent: {
-    flex: 1,
-    gap: 6,
-    minWidth: 0,
-  },
-  spaceName: {
-    color: '#1e1b18',
-    fontSize: 17,
-    fontWeight: '800',
-    letterSpacing: 0,
-  },
-  spaceDescription: {
-    color: '#444841',
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  spaceMetaRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  spaceMeta: {
-    alignItems: 'center',
-    backgroundColor: '#faf2ed',
-    borderRadius: 8,
-    flexDirection: 'row',
-    gap: 4,
-    minHeight: 26,
-    paddingHorizontal: 8,
-  },
-  spaceMetaText: {
-    color: '#444841',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  emptyPanel: {
-    alignItems: 'center',
-    backgroundColor: '#faf2ed',
-    borderColor: '#e8e1dc',
-    borderRadius: 8,
-    borderWidth: 1,
-    gap: 8,
-    padding: 24,
-  },
-  emptyIcon: {
-    alignItems: 'center',
-    backgroundColor: '#d8e8cb',
-    borderRadius: 8,
-    height: 54,
-    justifyContent: 'center',
-    marginBottom: 4,
-    width: 54,
-  },
-  emptyTitle: {
-    color: '#1e1b18',
-    fontSize: 18,
-    fontWeight: '800',
-  },
-  emptyText: {
-    color: '#444841',
-    fontSize: 14,
-    lineHeight: 20,
-    textAlign: 'center',
-  },
-  emptyButton: {
-    alignItems: 'center',
-    backgroundColor: '#526049',
-    borderRadius: 8,
-    flex: 1,
-    justifyContent: 'center',
-    marginTop: 8,
-    minHeight: 42,
-    paddingHorizontal: 16,
-  },
-  emptyButtonText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '800',
-  },
-  emptyActionRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 8,
-    width: '100%',
-  },
-  emptyActionButton: {
-    marginTop: 0,
-  },
-  emptySecondaryButton: {
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderColor: '#526049',
-    borderRadius: 8,
-    borderWidth: 1,
-    flex: 1,
-    flexDirection: 'row',
-    gap: 6,
-    justifyContent: 'center',
-    minHeight: 42,
-    paddingHorizontal: 14,
-  },
-  emptySecondaryButtonText: {
-    color: '#526049',
-    fontSize: 14,
-    fontWeight: '800',
   },
 });
