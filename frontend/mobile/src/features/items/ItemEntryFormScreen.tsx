@@ -132,8 +132,19 @@ export default function ItemEntryFormScreen() {
         return;
       }
 
-      const currentQuantity = Math.max(Number(value.currentQuantity) || 0, 0);
-      const initialQuantity = Math.max(Number(value.initialQuantity) || currentQuantity || 1, 0);
+      const parsedCurrentQuantity = Math.max(Number(value.currentQuantity) || 0, 0);
+      const initialQuantity = Math.max(Number(value.initialQuantity) || parsedCurrentQuantity || 1, 0);
+      const currentQuantity =
+        value.state === ConsumableState.Unopened
+          ? initialQuantity
+          : parsedCurrentQuantity;
+      const acquisitionDate = parseDateInput(value.acquisitionDate);
+
+      if (acquisitionDate && isAfterDate(acquisitionDate, new Date())) {
+        setError('Bought date cannot be in the future.');
+        return;
+      }
+
       const nextEntry: ItemEntryRequest = {
         acquisitionDate: normalizeDateInput(value.acquisitionDate),
         containerType: value.containerType,
@@ -240,6 +251,7 @@ function EntryForm({
   const [acquisitionDate, setAcquisitionDate] = useState(formatDateInput(entry?.acquisitionDate));
   const [expirationDate, setExpirationDate] = useState(formatDateInput(entry?.expirationDate));
   const canSave = !saving;
+  const showRemainingQuantity = state !== ConsumableState.Unopened;
 
   useEffect(() => {
     setCurrentQuantity(String(entry?.currentQuantity ?? 1));
@@ -255,7 +267,7 @@ function EntryForm({
     onSubmit({
       acquisitionDate,
       containerType,
-      currentQuantity,
+      currentQuantity: showRemainingQuantity ? currentQuantity : initialQuantity,
       expirationDate,
       initialQuantity,
       state,
@@ -268,6 +280,7 @@ function EntryForm({
     expirationDate,
     initialQuantity,
     onSubmit,
+    showRemainingQuantity,
     state,
     unit,
   ]);
@@ -275,16 +288,18 @@ function EntryForm({
   return (
     <View style={styles.formPanel}>
       <View style={styles.formRow}>
-        <FormField label="Left">
-          <TextInput
-            keyboardType="decimal-pad"
-            onChangeText={setCurrentQuantity}
-            placeholder="0"
-            placeholderTextColor="#8c8a81"
-            style={styles.input}
-            value={currentQuantity}
-          />
-        </FormField>
+        {showRemainingQuantity ? (
+          <FormField label="Remaining">
+            <TextInput
+              keyboardType="decimal-pad"
+              onChangeText={setCurrentQuantity}
+              placeholder="0"
+              placeholderTextColor="#8c8a81"
+              style={styles.input}
+              value={currentQuantity}
+            />
+          </FormField>
+        ) : null}
         <FormField label="Initial">
           <TextInput
             keyboardType="decimal-pad"
@@ -308,7 +323,7 @@ function EntryForm({
 
       <View style={styles.formRow}>
         <FormField label="Bought">
-          <DateInput onChange={setAcquisitionDate} value={acquisitionDate} />
+          <DateInput maxDate={new Date()} onChange={setAcquisitionDate} value={acquisitionDate} />
         </FormField>
         <FormField label="Expires">
           <DateInput onChange={setExpirationDate} value={expirationDate} />
@@ -376,11 +391,20 @@ function ChoiceGroup<T extends string | number>({
   );
 }
 
-function DateInput({ onChange, value }: { onChange: (value: string) => void; value: string }) {
+function DateInput({
+  maxDate,
+  onChange,
+  value,
+}: {
+  maxDate?: Date;
+  onChange: (value: string) => void;
+  value: string;
+}) {
   const [calendarVisible, setCalendarVisible] = useState(false);
   const selectedDate = parseDateInput(value);
   const [visibleMonth, setVisibleMonth] = useState(() => selectedDate ?? startOfMonth(new Date()));
   const displayValue = selectedDate ? formatDate(selectedDate.toISOString()) : 'Not set';
+  const normalizedMaxDate = maxDate ? startOfDay(maxDate) : null;
 
   useEffect(() => {
     if (calendarVisible) {
@@ -447,15 +471,18 @@ function DateInput({ onChange, value }: { onChange: (value: string) => void; val
               {buildCalendarDays(visibleMonth).map((date, index) => {
                 const inMonth = date.getMonth() === visibleMonth.getMonth();
                 const selected = selectedDate ? isSameDate(date, selectedDate) : false;
+                const disabled = normalizedMaxDate ? isAfterDate(date, normalizedMaxDate) : false;
 
                 return (
                   <Pressable
                     accessibilityRole="button"
+                    disabled={disabled}
                     key={`${index}-${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`}
                     onPress={() => selectDate(date)}
                     style={({ pressed }) => [
                       styles.calendarDay,
                       !inMonth && styles.calendarDayMuted,
+                      disabled && styles.calendarDayDisabled,
                       selected && styles.calendarDaySelected,
                       pressed && styles.pressed,
                     ]}>
@@ -463,6 +490,7 @@ function DateInput({ onChange, value }: { onChange: (value: string) => void; val
                       style={[
                         styles.calendarDayText,
                         !inMonth && styles.calendarDayTextMuted,
+                        disabled && styles.calendarDayTextDisabled,
                         selected && styles.calendarDayTextSelected,
                       ]}>
                       {date.getDate()}
@@ -641,6 +669,14 @@ function isSameDate(left: Date, right: Date) {
     left.getMonth() === right.getMonth() &&
     left.getDate() === right.getDate()
   );
+}
+
+function isAfterDate(left: Date, right: Date) {
+  return startOfDay(left).getTime() > startOfDay(right).getTime();
+}
+
+function startOfDay(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
 function normalizeDateInput(value: string) {
@@ -862,6 +898,9 @@ const styles = StyleSheet.create({
   calendarDayMuted: {
     opacity: 0.42,
   },
+  calendarDayDisabled: {
+    opacity: 0.24,
+  },
   calendarDaySelected: {
     backgroundColor: '#526049',
   },
@@ -871,6 +910,9 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   calendarDayTextMuted: {
+    color: '#757870',
+  },
+  calendarDayTextDisabled: {
     color: '#757870',
   },
   calendarDayTextSelected: {

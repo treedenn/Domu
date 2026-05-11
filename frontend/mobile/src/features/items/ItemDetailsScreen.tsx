@@ -34,6 +34,7 @@ import { AppTopBar, type AppTopBarAction } from '@/ui/AppTopBar';
 
 type QuantitySummary = {
   current: number;
+  hasOpened: boolean;
   initial: number;
   label: string;
   unit: ItemUnit;
@@ -418,7 +419,7 @@ export default function ItemDetailsScreen() {
 
             <View style={styles.panel}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Amount Left</Text>
+                <Text style={styles.sectionTitle}>Amount Remaining</Text>
                 <Text style={styles.sectionMeta}>{formatCount(entries.length, 'entry')}</Text>
               </View>
 
@@ -426,16 +427,20 @@ export default function ItemDetailsScreen() {
                 <View style={styles.amountHero}>
                   <Text style={styles.amountValue}>{formatQuantity(primarySummary)}</Text>
                   <Text style={styles.amountLabel}>
-                    {formatPercent(primarySummary.current, primarySummary.initial)} remaining
+                    {primarySummary.hasOpened
+                      ? `${formatPercent(primarySummary.current, primarySummary.initial)} remaining`
+                      : 'Unopened'}
                   </Text>
-                  <View style={styles.progressTrack}>
-                    <View
-                      style={[
-                        styles.progressFill,
-                        { width: `${getProgress(primarySummary.current, primarySummary.initial)}%` },
-                      ]}
-                    />
-                  </View>
+                  {primarySummary.hasOpened ? (
+                    <View style={styles.progressTrack}>
+                      <View
+                        style={[
+                          styles.progressFill,
+                          { width: `${getProgress(primarySummary.current, primarySummary.initial)}%` },
+                        ]}
+                      />
+                    </View>
+                  ) : null}
                 </View>
               ) : (
                 <Text style={styles.emptyText}>No quantity entries have been registered.</Text>
@@ -773,6 +778,7 @@ function summarizeQuantities(entries: ItemEntryView[]): QuantitySummary[] {
     const normalized = normalizeQuantity(entry.currentQuantity, entry.initialQuantity, entry.unit);
     const current = summaries.get(normalized.label) ?? {
       current: 0,
+      hasOpened: false,
       initial: 0,
       label: normalized.label,
       unit: normalized.unit,
@@ -781,6 +787,7 @@ function summarizeQuantities(entries: ItemEntryView[]): QuantitySummary[] {
     summaries.set(normalized.label, {
       ...current,
       current: current.current + normalized.current,
+      hasOpened: current.hasOpened || entry.state === ConsumableState.Opened,
       initial: current.initial + normalized.initial,
     });
   }
@@ -790,22 +797,22 @@ function summarizeQuantities(entries: ItemEntryView[]): QuantitySummary[] {
 
 function normalizeQuantity(current: number, initial: number, unit: ItemUnit) {
   if (unit === ItemUnit.Liter) {
-    return { current: current * 1000, initial: initial * 1000, label: 'Volume left', unit: ItemUnit.Milliliter };
+    return { current: current * 1000, initial: initial * 1000, label: 'Volume remaining', unit: ItemUnit.Milliliter };
   }
 
   if (unit === ItemUnit.Kilogram) {
-    return { current: current * 1000, initial: initial * 1000, label: 'Mass left', unit: ItemUnit.Gram };
+    return { current: current * 1000, initial: initial * 1000, label: 'Mass remaining', unit: ItemUnit.Gram };
   }
 
   if (unit === ItemUnit.Milliliter) {
-    return { current, initial, label: 'Volume left', unit };
+    return { current, initial, label: 'Volume remaining', unit };
   }
 
   if (unit === ItemUnit.Gram) {
-    return { current, initial, label: 'Mass left', unit };
+    return { current, initial, label: 'Mass remaining', unit };
   }
 
-  return { current, initial, label: 'Quantity left', unit: ItemUnit.Piece };
+  return { current, initial, label: 'Quantity remaining', unit: ItemUnit.Piece };
 }
 
 function sortDates(values: (string | null)[], direction: 'asc' | 'desc') {
@@ -854,10 +861,18 @@ function formatDate(value?: string | null) {
 }
 
 function formatEntryQuantity(entry: ItemEntryView) {
+  if (entry.state === ConsumableState.Unopened) {
+    return `${formatNumber(entry.initialQuantity)} ${formatUnit(entry.unit)}`;
+  }
+
   return `${formatNumber(entry.currentQuantity)} / ${formatNumber(entry.initialQuantity)} ${formatUnit(entry.unit)}`;
 }
 
 function formatQuantity(summary: QuantitySummary) {
+  if (!summary.hasOpened) {
+    return `${formatNumber(summary.initial)} ${formatUnit(summary.unit)}`;
+  }
+
   return `${formatNumber(summary.current)} / ${formatNumber(summary.initial)} ${formatUnit(summary.unit)}`;
 }
 
