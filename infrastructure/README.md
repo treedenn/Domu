@@ -72,12 +72,26 @@ The root route for the Zitadel domain is rewritten to the login UI.
 
 The application callback and logout URLs are not finalized yet.
 
-When the app integration is configured, document the exact values here:
+When the app integration is configured, document the exact values here.
+
+For Expo running on an emulator, Zitadel must include the Expo redirect URL for the host machine IP address. The IP address can differ between networks and machines.
 
 ```text
-Callback URL:
+exp://<host-machine-ip>:8081/--/ath/callback
+```
+
+Tracked values:
+
+```text
+Callback URL: exp://<host-machine-ip>:8081/--/ath/callback
 Logout URL:
 Post-logout redirect URL:
+```
+
+Example for a host machine at `192.168.0.60`:
+
+```text
+exp://192.168.0.60:8081/--/ath/callback
 ```
 
 These values must match both:

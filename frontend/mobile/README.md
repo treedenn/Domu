@@ -4,6 +4,31 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 
 ## Get started
 
+### Requirements
+
+Use Node.js 22 for this project.
+
+Newer Node.js versions are currently not supported for the local Expo Android
+workflow. In particular, Node.js 26 can fail while Expo tries to fetch and
+install Expo Go on the Android emulator.
+
+If this folder contains a `.mise.toml` file, install the pinned tools:
+
+```bash
+mise install
+node -v
+```
+
+The version should print `v22.x.x` before installing dependencies or starting
+Expo.
+
+If `node -v` still shows a different version, make sure `mise` is activated in
+your shell. For Bash, add this to `~/.bashrc` and restart the terminal:
+
+```bash
+eval "$(mise activate bash)"
+```
+
 1. Install dependencies
 
    ```bash

@@ -6,7 +6,7 @@
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
-    "android:reverse": "powershell -NoProfile -ExecutionPolicy Bypass -File ./tools/adb_reverse.ps1",
+    "android:adb": "bash ./tools/adb_reverse.sh",
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint"
