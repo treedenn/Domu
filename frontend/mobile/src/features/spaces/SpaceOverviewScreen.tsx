@@ -1,4 +1,5 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useFocusEffect } from '@react-navigation/native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -140,9 +141,11 @@ export default function SpaceOverviewScreen() {
     [accessToken, resolvedHouseholdId, resolvedParentId, returnToSignIn],
   );
 
-  useEffect(() => {
-    loadOverview();
-  }, [loadOverview]);
+  useFocusEffect(
+    useCallback(() => {
+      loadOverview();
+    }, [loadOverview]),
+  );
 
   useEffect(() => {
     if (requestedTab) {
