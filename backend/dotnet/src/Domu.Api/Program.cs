@@ -2,6 +2,8 @@ using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.Households.Application.Households.Ports;
 using Domu.Api.Features.Households.Application.Members;
 using Domu.Api.Features.Households.Application.Members.Ports;
+using Domu.Api.Features.Events.Application;
+using Domu.Api.Features.Events.Infrastructure;
 using Domu.Api.Features.Households.Infrastructure.Households;
 using Domu.Api.Features.Households.Infrastructure.Members;
 using Domu.Api.Features.ShoppingLists.Application.Items;
@@ -24,6 +26,7 @@ using Domu.Api.Features.Users.Application.Ports;
 using Domu.Api.Features.Users.Infrastructure;
 using Domu.Api.Features.Users.Interface.Auth;
 using Domu.Api.Infrastructure.Database;
+using Domu.Api.Interface.RequestContext;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 
@@ -40,6 +43,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention());
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IClientRequestContextAccessor, ClientRequestContextAccessor>();
+builder.Services.AddScoped<IUserEventRecorder, UserEventRecorder>();
 builder.Services.AddScoped<IHouseholdRepository, HouseholdRepository>();
 builder.Services.AddScoped<IHouseholdMembershipRepository, HouseholdMembershipRepository>();
 builder.Services.AddScoped<IHouseholdInvitationSender, LoggingHouseholdInvitationSender>();
@@ -113,6 +118,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseMiddleware<ClientRequestContextMiddleware>();
 app.UseAuthentication();
 app.UseMiddleware<AuthenticatedUserMiddleware>();
 app.UseAuthorization();

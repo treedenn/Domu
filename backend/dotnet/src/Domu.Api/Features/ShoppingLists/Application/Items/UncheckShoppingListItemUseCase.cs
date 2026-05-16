@@ -1,3 +1,4 @@
+using Domu.Api.Features.Events.Application;
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.ShoppingLists.Application.Items.Contracts;
 using Domu.Api.Features.ShoppingLists.Application.Items.Ports;
@@ -8,9 +9,12 @@ namespace Domu.Api.Features.ShoppingLists.Application.Items;
 public sealed class UncheckShoppingListItemUseCase(
     IShoppingListRepository shoppingListRepository,
     IShoppingListItemRepository shoppingListItemRepository,
-    IHouseholdAccessService householdAccessService)
+    IHouseholdAccessService householdAccessService,
+    IUserEventRecorder? userEventRecorder = null)
     : IUncheckShoppingListItemUseCase
 {
+    private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
+
     public async Task<ShoppingListItemView> ExecuteAsync(
         ShoppingListItemCommand command,
         CancellationToken cancellationToken)
@@ -27,6 +31,14 @@ public sealed class UncheckShoppingListItemUseCase(
 
         item.Uncheck(DateTimeOffset.UtcNow);
         await shoppingListItemRepository.UpdateAsync(item, cancellationToken);
+        await _userEventRecorder.RecordAsync(
+            command.UserId,
+            UserEventActions.ShoppingListItemUnchecked,
+            UserEventTargetTypes.ShoppingListItem,
+            item.Id,
+            command.HouseholdId,
+            EventMetadata.From(("shoppingListId", command.ShoppingListId)),
+            cancellationToken);
         await shoppingListItemRepository.SaveChangesAsync(cancellationToken);
 
         return ShoppingListItemView.FromDomain(item);

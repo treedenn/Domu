@@ -1,3 +1,4 @@
+using Domu.Api.Features.Events.Application;
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.ShoppingLists.Application.ShoppingLists.Contracts;
 using Domu.Api.Features.ShoppingLists.Application.ShoppingLists.Ports;
@@ -7,9 +8,12 @@ namespace Domu.Api.Features.ShoppingLists.Application.ShoppingLists;
 
 public sealed class GetOrCreateDefaultShoppingListUseCase(
     IShoppingListRepository shoppingListRepository,
-    IHouseholdAccessService householdAccessService)
+    IHouseholdAccessService householdAccessService,
+    IUserEventRecorder? userEventRecorder = null)
     : IGetOrCreateDefaultShoppingListUseCase
 {
+    private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
+
     public async Task<ShoppingListView> ExecuteAsync(
         GetOrCreateDefaultShoppingListQuery query,
         CancellationToken cancellationToken)
@@ -33,6 +37,14 @@ public sealed class GetOrCreateDefaultShoppingListUseCase(
             now);
 
         await shoppingListRepository.AddAsync(shoppingList, cancellationToken);
+        await _userEventRecorder.RecordAsync(
+            query.UserId,
+            UserEventActions.ShoppingListCreated,
+            UserEventTargetTypes.ShoppingList,
+            shoppingList.Id,
+            query.HouseholdId,
+            EventMetadata.From(("name", shoppingList.Name), ("isDefault", shoppingList.IsDefault)),
+            cancellationToken);
         await shoppingListRepository.SaveChangesAsync(cancellationToken);
 
         return ShoppingListView.FromDomain(shoppingList);

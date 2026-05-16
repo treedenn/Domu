@@ -1,3 +1,4 @@
+using Domu.Api.Features.Events.Application;
 using Domu.Api.Features.Spaces.Application.Spaces.Contracts;
 using Domu.Api.Features.Spaces.Application.Spaces.Ports;
 
@@ -5,9 +6,12 @@ namespace Domu.Api.Features.Spaces.Application.Spaces;
 
 public sealed class MoveSpaceUseCase(
     ISpaceRepository spaceRepository,
-    ISpaceAccessService spaceAccessService)
+    ISpaceAccessService spaceAccessService,
+    IUserEventRecorder? userEventRecorder = null)
     : IMoveSpaceUseCase
 {
+    private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
+
     public async Task<SpaceView> ExecuteAsync(MoveSpaceCommand command, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -29,6 +33,14 @@ public sealed class MoveSpaceUseCase(
         space.MoveTo(command.ParentId);
 
         await spaceRepository.UpdateAsync(space, cancellationToken);
+        await _userEventRecorder.RecordAsync(
+            command.UserId,
+            UserEventActions.SpaceMoved,
+            UserEventTargetTypes.Space,
+            space.Id,
+            command.HouseholdId,
+            EventMetadata.From(("parentId", space.ParentId)),
+            cancellationToken);
         await spaceRepository.SaveChangesAsync(cancellationToken);
 
         return SpaceView.FromDomain(space);
