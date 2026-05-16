@@ -1,15 +1,22 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import type { ComponentProps } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { ItemView } from '@/features/items/api';
 
 type SpaceItemListItemProps = {
+  addingToShoppingList?: boolean;
   item: ItemView;
+  onAddToShoppingList?: (item: ItemView) => void;
   onPress: (item: ItemView) => void;
 };
 
-export function SpaceItemListItem({ item, onPress }: SpaceItemListItemProps) {
+export function SpaceItemListItem({
+  addingToShoppingList = false,
+  item,
+  onAddToShoppingList,
+  onPress,
+}: SpaceItemListItemProps) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -32,7 +39,31 @@ export function SpaceItemListItem({ item, onPress }: SpaceItemListItemProps) {
         </View>
       </View>
 
-      <MaterialIcons color="#757870" name="chevron-right" size={24} />
+      <View style={styles.rowActions}>
+        {onAddToShoppingList ? (
+          <Pressable
+            accessibilityLabel={`Add ${item.name} to shopping list`}
+            accessibilityRole="button"
+            disabled={addingToShoppingList}
+            onPress={(event) => {
+              event.stopPropagation();
+              onAddToShoppingList(item);
+            }}
+            style={({ pressed }) => [
+              styles.shoppingListButton,
+              addingToShoppingList && styles.disabled,
+              pressed && styles.buttonPressed,
+            ]}>
+            {addingToShoppingList ? (
+              <ActivityIndicator color="#526049" size="small" />
+            ) : (
+              <MaterialIcons color="#526049" name="shopping-bag" size={18} />
+            )}
+          </Pressable>
+        ) : null}
+
+        <MaterialIcons color="#757870" name="chevron-right" size={24} />
+      </View>
     </Pressable>
   );
 }
@@ -117,5 +148,26 @@ const styles = StyleSheet.create({
     color: '#444841',
     fontSize: 12,
     fontWeight: '700',
+  },
+  rowActions: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 6,
+  },
+  shoppingListButton: {
+    alignItems: 'center',
+    backgroundColor: '#faf2ed',
+    borderColor: '#c5c8be',
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 38,
+    justifyContent: 'center',
+    width: 38,
+  },
+  disabled: {
+    opacity: 0.5,
+  },
+  buttonPressed: {
+    opacity: 0.78,
   },
 });

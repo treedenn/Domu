@@ -34,6 +34,10 @@ import {
   ItemIdentityForm,
   type ItemIdentityFormValue,
 } from '@/features/items/components/ItemIdentityForm';
+import {
+  createShoppingListItem,
+  getDefaultShoppingList,
+} from '@/features/shopping-lists/api';
 import { AppTopBar, type AppTopBarAction } from '@/ui/AppTopBar';
 
 type QuantitySummary = {
@@ -65,6 +69,7 @@ export default function ItemDetailsScreen() {
   const [deletingItem, setDeletingItem] = useState(false);
   const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
   const [updatingEntryId, setUpdatingEntryId] = useState<string | null>(null);
+  const [addingEntryToShoppingListId, setAddingEntryToShoppingListId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -395,6 +400,59 @@ export default function ItemDetailsScreen() {
     [resolvedHouseholdId, resolvedItemId, resolvedSpaceId],
   );
 
+  const addEntryToShoppingList = useCallback(
+    async (entry: ItemEntryView) => {
+      if (!accessToken || !resolvedHouseholdId || !resolvedItemId || !resolvedSpaceId || !item) {
+        setError('Open an item from a space before adding an entry to the shopping list.');
+        return;
+      }
+
+      const container = toShoppingListContainer(entry);
+      setAddingEntryToShoppingListId(entry.id);
+      setError(null);
+
+      try {
+        const shoppingList = await getDefaultShoppingList(resolvedHouseholdId, { accessToken });
+        await createShoppingListItem(
+          resolvedHouseholdId,
+          shoppingList.id,
+          {
+            containerQuantity: container.quantity,
+            containerUnit: container.unit,
+            itemId: resolvedItemId,
+            name: item.name,
+            note: null,
+            quantity: 1,
+            spaceId: resolvedSpaceId,
+          },
+          { accessToken },
+        );
+
+        Alert.alert(
+          'Added to shopping list',
+          `${item.name} was added as 1 x ${formatNumber(container.quantity)} ${container.unit}.`,
+        );
+      } catch (exception) {
+        if (isExpiredSessionError(exception)) {
+          await returnToSignIn();
+          return;
+        }
+
+        Alert.alert('Could not add entry', getUserFacingError(exception));
+      } finally {
+        setAddingEntryToShoppingListId(null);
+      }
+    },
+    [
+      accessToken,
+      item,
+      resolvedHouseholdId,
+      resolvedItemId,
+      resolvedSpaceId,
+      returnToSignIn,
+    ],
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
@@ -534,6 +592,9 @@ export default function ItemDetailsScreen() {
                     deleting={deletingEntryId === entry.id}
                     entry={entry}
                     index={index}
+                    onAddToShoppingList={
+                      addingEntryToShoppingListId === entry.id ? undefined : addEntryToShoppingList
+                    }
                     key={entry.id}
                     onDelete={confirmDeleteEntry}
                     onEdit={() => openEntryForm(entry.id)}
@@ -623,6 +684,37 @@ function toItemEntryRequest(entry: ItemEntryView): ItemEntryRequest {
     state: entry.state,
     unit: entry.unit,
   };
+}
+
+function toShoppingListContainer(entry: ItemEntryView) {
+  if (entry.unit === ItemUnit.Kilogram) {
+    return {
+      quantity: entry.initialQuantity * 1000,
+      unit: 'g',
+    };
+  }
+
+  return {
+    quantity: entry.initialQuantity,
+    unit: toShoppingListUnit(entry.unit),
+  };
+}
+
+function toShoppingListUnit(unit: ItemUnit) {
+  switch (unit) {
+    case ItemUnit.Milliliter:
+      return 'ml';
+    case ItemUnit.Liter:
+      return 'l';
+    case ItemUnit.Gram:
+      return 'g';
+    case ItemUnit.Kilogram:
+      return 'g';
+    case ItemUnit.Piece:
+    case ItemUnit.Unspecified:
+    default:
+      return 'pieces';
+  }
 }
 
 function buildItemDetails(entries: ItemEntryView[]) {

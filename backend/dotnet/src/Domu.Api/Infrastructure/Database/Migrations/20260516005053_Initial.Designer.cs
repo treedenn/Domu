@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Domu.Api.Infrastructure.Database.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260503121313_Initial")]
+    [Migration("20260516005053_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -163,6 +163,160 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                     b.ToTable("household_members", (string)null);
                 });
 
+            modelBuilder.Entity("Domu.Api.Features.ShoppingLists.Infrastructure.Items.ShoppingListItemEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AddedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("added_by_user_id");
+
+                    b.Property<bool>("Checked")
+                        .HasColumnType("boolean")
+                        .HasColumnName("checked");
+
+                    b.Property<DateTimeOffset?>("CheckedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("checked_at");
+
+                    b.Property<Guid?>("CheckedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("checked_by_user_id");
+
+                    b.Property<decimal?>("ContainerQuantity")
+                        .HasColumnType("numeric")
+                        .HasColumnName("container_quantity");
+
+                    b.Property<string>("ContainerUnit")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("container_unit");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("HouseholdId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("household_id");
+
+                    b.Property<Guid?>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("normalized_name");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("note");
+
+                    b.Property<decimal?>("Quantity")
+                        .HasColumnType("numeric")
+                        .HasColumnName("quantity");
+
+                    b.Property<Guid>("ShoppingListId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("shopping_list_id");
+
+                    b.Property<decimal>("SortOrder")
+                        .HasColumnType("numeric")
+                        .HasColumnName("sort_order");
+
+                    b.Property<Guid?>("SpaceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("space_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_shopping_list_items");
+
+                    b.HasIndex("HouseholdId")
+                        .HasDatabaseName("ix_shopping_list_items_household_id");
+
+                    b.HasIndex("ItemId")
+                        .HasDatabaseName("ix_shopping_list_items_item_id");
+
+                    b.HasIndex("ShoppingListId")
+                        .HasDatabaseName("ix_shopping_list_items_shopping_list_id");
+
+                    b.HasIndex("SpaceId")
+                        .HasDatabaseName("ix_shopping_list_items_space_id");
+
+                    b.HasIndex("ShoppingListId", "Checked")
+                        .HasDatabaseName("ix_shopping_list_items_shopping_list_id_checked");
+
+                    b.HasIndex("ShoppingListId", "SortOrder")
+                        .HasDatabaseName("ix_shopping_list_items_shopping_list_id_sort_order");
+
+                    b.ToTable("shopping_list_items", (string)null);
+                });
+
+            modelBuilder.Entity("Domu.Api.Features.ShoppingLists.Infrastructure.ShoppingLists.ShoppingListEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("archived_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<Guid>("HouseholdId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("household_id");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_default");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("name");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_shopping_lists");
+
+                    b.HasIndex("HouseholdId")
+                        .HasDatabaseName("ix_shopping_lists_household_id");
+
+                    b.HasIndex("HouseholdId", "IsDefault")
+                        .IsUnique()
+                        .HasDatabaseName("ix_shopping_lists_household_id_active_default")
+                        .HasFilter("is_default = true AND archived_at IS NULL");
+
+                    b.ToTable("shopping_lists", (string)null);
+                });
+
             modelBuilder.Entity("Domu.Api.Features.Spaces.Infrastructure.Items.ItemEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -208,21 +362,35 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("acquisition_date");
 
+                    b.Property<int>("ContainerType")
+                        .HasColumnType("integer")
+                        .HasColumnName("container_type");
+
+                    b.Property<decimal>("CurrentQuantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("current_quantity");
+
                     b.Property<DateTimeOffset?>("ExpirationDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expiration_date");
+
+                    b.Property<decimal>("InitialQuantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("initial_quantity");
 
                     b.Property<Guid>("ItemId")
                         .HasColumnType("uuid")
                         .HasColumnName("item_id");
 
-                    b.Property<int>("Quantity")
-                        .HasColumnType("integer")
-                        .HasColumnName("quantity");
-
                     b.Property<int>("State")
                         .HasColumnType("integer")
                         .HasColumnName("state");
+
+                    b.Property<int>("Unit")
+                        .HasColumnType("integer")
+                        .HasColumnName("unit");
 
                     b.HasKey("Id")
                         .HasName("pk_item_entries");
@@ -326,6 +494,45 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         .HasConstraintName("fk_household_members_users_user_id");
                 });
 
+            modelBuilder.Entity("Domu.Api.Features.ShoppingLists.Infrastructure.Items.ShoppingListItemEntity", b =>
+                {
+                    b.HasOne("Domu.Api.Features.Households.Infrastructure.Households.HouseholdEntity", null)
+                        .WithMany()
+                        .HasForeignKey("HouseholdId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_shopping_list_items_households_household_id");
+
+                    b.HasOne("Domu.Api.Features.Spaces.Infrastructure.Items.ItemEntity", null)
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_shopping_list_items_items_item_id");
+
+                    b.HasOne("Domu.Api.Features.ShoppingLists.Infrastructure.ShoppingLists.ShoppingListEntity", null)
+                        .WithMany("Items")
+                        .HasForeignKey("ShoppingListId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_shopping_list_items_shopping_lists_shopping_list_id");
+
+                    b.HasOne("Domu.Api.Features.Spaces.Infrastructure.Spaces.SpaceEntity", null)
+                        .WithMany()
+                        .HasForeignKey("SpaceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_shopping_list_items_spaces_space_id");
+                });
+
+            modelBuilder.Entity("Domu.Api.Features.ShoppingLists.Infrastructure.ShoppingLists.ShoppingListEntity", b =>
+                {
+                    b.HasOne("Domu.Api.Features.Households.Infrastructure.Households.HouseholdEntity", null)
+                        .WithMany()
+                        .HasForeignKey("HouseholdId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_shopping_lists_households_household_id");
+                });
+
             modelBuilder.Entity("Domu.Api.Features.Spaces.Infrastructure.Items.ItemEntryEntity", b =>
                 {
                     b.HasOne("Domu.Api.Features.Spaces.Infrastructure.Items.ItemEntity", null)
@@ -350,6 +557,11 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         .HasForeignKey("ParentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_spaces_spaces_parent_id");
+                });
+
+            modelBuilder.Entity("Domu.Api.Features.ShoppingLists.Infrastructure.ShoppingLists.ShoppingListEntity", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("Domu.Api.Features.Spaces.Infrastructure.Items.ItemEntity", b =>

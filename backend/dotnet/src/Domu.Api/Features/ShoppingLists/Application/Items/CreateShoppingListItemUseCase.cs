@@ -1,0 +1,56 @@
+using Domu.Api.Features.Households.Application.Households;
+using Domu.Api.Features.ShoppingLists.Application.Items.Contracts;
+using Domu.Api.Features.ShoppingLists.Application.Items.Ports;
+using Domu.Api.Features.ShoppingLists.Application.ShoppingLists.Ports;
+using Domu.Api.Features.ShoppingLists.Domain.Items;
+
+namespace Domu.Api.Features.ShoppingLists.Application.Items;
+
+public sealed class CreateShoppingListItemUseCase(
+    IShoppingListRepository shoppingListRepository,
+    IShoppingListItemRepository shoppingListItemRepository,
+    IHouseholdAccessService householdAccessService)
+    : ICreateShoppingListItemUseCase
+{
+    public async Task<ShoppingListItemView> ExecuteAsync(
+        CreateShoppingListItemCommand command,
+        CancellationToken cancellationToken)
+    {
+        await ShoppingListItemUseCaseGuards.EnsureCanAccessListAsync(
+            shoppingListRepository,
+            householdAccessService,
+            command.HouseholdId,
+            command.ShoppingListId,
+            command.UserId,
+            cancellationToken);
+
+        await ShoppingListItemUseCaseGuards.ValidateReferencesAsync(
+            shoppingListItemRepository,
+            command.HouseholdId,
+            command.SpaceId,
+            command.ItemId,
+            cancellationToken);
+
+        var now = DateTimeOffset.UtcNow;
+        var item = new ShoppingListItem(
+            Guid.CreateVersion7(),
+            command.HouseholdId,
+            command.ShoppingListId,
+            command.Name,
+            command.UserId,
+            now,
+            now,
+            await shoppingListItemRepository.GetNextSortOrderAsync(command.ShoppingListId, cancellationToken));
+
+        item.ChangeQuantity(command.Quantity, now);
+        item.ChangeContainer(command.ContainerQuantity, command.ContainerUnit, now);
+        item.ChangeNote(command.Note, now);
+        item.LinkSpace(command.SpaceId, now);
+        item.LinkItem(command.ItemId, now);
+
+        await shoppingListItemRepository.AddAsync(item, cancellationToken);
+        await shoppingListItemRepository.SaveChangesAsync(cancellationToken);
+
+        return ShoppingListItemView.FromDomain(item);
+    }
+}

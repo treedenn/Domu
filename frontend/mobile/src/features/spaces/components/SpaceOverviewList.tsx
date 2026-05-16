@@ -17,7 +17,9 @@ type SpaceOverviewListProps = {
   hasSelectedSpace: boolean;
   listHeader: ReactElement;
   loading: boolean;
+  addingItemToShoppingListId?: string | null;
   onAddItem: () => void;
+  onAddToShoppingList?: (item: ItemView) => void;
   onCreateSubSpace: () => void;
   onItemPress: (item: ItemView) => void;
   onRefresh: () => void;
@@ -33,7 +35,9 @@ export function SpaceOverviewList({
   hasSelectedSpace,
   listHeader,
   loading,
+  addingItemToShoppingListId,
   onAddItem,
+  onAddToShoppingList,
   onCreateSubSpace,
   onItemPress,
   onRefresh,
@@ -70,7 +74,12 @@ export function SpaceOverviewList({
         activeTab === 'subSpaces' ? (
           <SpaceListItem onPress={onSpacePress} space={item as SpaceView} />
         ) : hasSelectedSpace ? (
-          <SpaceItemListItem item={item as ItemView} onPress={onItemPress} />
+          <SpaceItemListItem
+            addingToShoppingList={addingItemToShoppingListId === item.id}
+            item={item as ItemView}
+            onAddToShoppingList={onAddToShoppingList}
+            onPress={onItemPress}
+          />
         ) : null
       }
     />

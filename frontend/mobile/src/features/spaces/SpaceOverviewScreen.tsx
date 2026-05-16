@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -18,6 +19,10 @@ import { ApiError } from '@/core/http/apiClient';
 import { useAuthSession } from '@/features/auth/authSession';
 import { getHousehold, type HouseholdView } from '@/features/households/api';
 import { getItems, type ItemView } from '@/features/items/api';
+import {
+  createShoppingListItem,
+  getDefaultShoppingList,
+} from '@/features/shopping-lists/api';
 import {
   createSpace,
   getSpace,
@@ -57,6 +62,7 @@ export default function SpaceOverviewScreen() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [addingItemToShoppingListId, setAddingItemToShoppingListId] = useState<string | null>(null);
   const [showCreateSpace, setShowCreateSpace] = useState(false);
   const [formResetKey, setFormResetKey] = useState(0);
   const spaces = useMemo(() => page?.spaces ?? [], [page?.spaces]);
@@ -264,6 +270,48 @@ export default function SpaceOverviewScreen() {
     [resolvedHouseholdId, resolvedParentId],
   );
 
+  const addItemToShoppingList = useCallback(
+    async (item: ItemView) => {
+      if (!accessToken || !resolvedHouseholdId || !resolvedParentId) {
+        setError('Open a space before adding an item to the shopping list.');
+        return;
+      }
+
+      setAddingItemToShoppingListId(item.id);
+      setError(null);
+
+      try {
+        const shoppingList = await getDefaultShoppingList(resolvedHouseholdId, { accessToken });
+        await createShoppingListItem(
+          resolvedHouseholdId,
+          shoppingList.id,
+          {
+            itemId: item.id,
+            name: item.name,
+            note: null,
+            quantity: null,
+            containerQuantity: null,
+            containerUnit: null,
+            spaceId: resolvedParentId,
+          },
+          { accessToken },
+        );
+
+        Alert.alert('Added to shopping list', `${item.name} was added to the shopping list.`);
+      } catch (exception) {
+        if (isExpiredSessionError(exception)) {
+          await returnToSignIn();
+          return;
+        }
+
+        Alert.alert('Could not add item', getUserFacingError(exception));
+      } finally {
+        setAddingItemToShoppingListId(null);
+      }
+    },
+    [accessToken, resolvedHouseholdId, resolvedParentId, returnToSignIn],
+  );
+
   const topBarActions = useMemo<AppTopBarAction[]>(
     () => [
       {
@@ -283,6 +331,7 @@ export default function SpaceOverviewScreen() {
         style={styles.screen}>
         <SpaceOverviewList
           activeTab={activeTab}
+          addingItemToShoppingListId={addingItemToShoppingListId}
           data={currentData}
           error={error}
           hasSelectedSpace={Boolean(resolvedParentId)}
@@ -395,6 +444,7 @@ export default function SpaceOverviewScreen() {
           }
           loading={loading}
           onAddItem={openAddItem}
+          onAddToShoppingList={addItemToShoppingList}
           onCreateSubSpace={() => setShowCreateSpace(true)}
           onItemPress={openItem}
           onRefresh={() => loadOverview({ refresh: true })}

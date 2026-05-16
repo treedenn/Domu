@@ -17,8 +17,15 @@ import { getHousehold, type HouseholdView } from '@/features/households/api';
 import { AddSpaceForm } from '@/features/households/components/AddSpaceForm';
 import { DashboardSummaryMetrics } from '@/features/households/components/DashboardSummaryMetrics';
 import { SpacesList } from '@/features/households/components/SpacesList';
+import {
+  getDefaultShoppingList,
+  getShoppingListItems,
+  type ShoppingListView,
+} from '@/features/shopping-lists/api';
 import { createSpace, getSpaces, type SpaceView } from '@/features/spaces/api';
 import { AppTopBar, type AppTopBarAction } from '@/ui/AppTopBar';
+
+const shoppingListRoute = '/households/[householdId]/shopping-list' as never;
 
 export default function HouseholdDashboardScreen() {
   const { householdId } = useLocalSearchParams<{ householdId?: string | string[] }>();
@@ -26,6 +33,9 @@ export default function HouseholdDashboardScreen() {
   const { accessToken, clearTokenResponse } = useAuthSession();
   const [household, setHousehold] = useState<HouseholdView | null>(null);
   const [spaces, setSpaces] = useState<SpaceView[]>([]);
+  const [shoppingList, setShoppingList] = useState<ShoppingListView | null>(null);
+  const [shoppingListActiveCount, setShoppingListActiveCount] = useState(0);
+  const [shoppingListCheckedCount, setShoppingListCheckedCount] = useState(0);
   const [totalSpaces, setTotalSpaces] = useState(0);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -50,6 +60,9 @@ export default function HouseholdDashboardScreen() {
         setError('Sign in and choose a household to view the dashboard.');
         setHousehold(null);
         setSpaces([]);
+        setShoppingList(null);
+        setShoppingListActiveCount(0);
+        setShoppingListCheckedCount(0);
         setTotalSpaces(0);
         return;
       }
@@ -63,7 +76,7 @@ export default function HouseholdDashboardScreen() {
       setError(null);
 
       try {
-        const [nextHousehold, spacesPage] = await Promise.all([
+        const [nextHousehold, spacesPage, shoppingListSummary] = await Promise.all([
           getHousehold(resolvedHouseholdId, { accessToken }),
           getSpaces(
             resolvedHouseholdId,
@@ -75,11 +88,15 @@ export default function HouseholdDashboardScreen() {
             },
             { accessToken },
           ),
+          loadShoppingListSummary(resolvedHouseholdId, accessToken),
         ]);
 
         setHousehold(nextHousehold);
         setSpaces(spacesPage.spaces);
         setTotalSpaces(spacesPage.totalCount);
+        setShoppingList(shoppingListSummary.shoppingList);
+        setShoppingListActiveCount(shoppingListSummary.activeCount);
+        setShoppingListCheckedCount(shoppingListSummary.checkedCount);
       } catch (exception) {
         if (isExpiredSessionError(exception)) {
           await returnToSignIn();
@@ -163,6 +180,17 @@ export default function HouseholdDashboardScreen() {
     [resolvedHouseholdId],
   );
 
+  const openShoppingList = useCallback(() => {
+    if (!resolvedHouseholdId) {
+      return;
+    }
+
+    router.push({
+      pathname: shoppingListRoute,
+      params: { householdId: resolvedHouseholdId },
+    });
+  }, [resolvedHouseholdId]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <SpacesList
@@ -184,6 +212,14 @@ export default function HouseholdDashboardScreen() {
             </View>
 
             <DashboardSummaryMetrics itemCount={itemCount} totalSpaces={totalSpaces} />
+
+            <ShoppingListDashboardCard
+              activeCount={shoppingListActiveCount}
+              checkedCount={shoppingListCheckedCount}
+              disabled={!resolvedHouseholdId}
+              name={shoppingList?.name ?? 'Shopping List'}
+              onOpen={openShoppingList}
+            />
 
             {error && (
               <View style={styles.errorPanel}>
@@ -243,6 +279,62 @@ export default function HouseholdDashboardScreen() {
         spaces={spaces}
       />
     </SafeAreaView>
+  );
+}
+
+async function loadShoppingListSummary(householdId: string, accessToken: string) {
+  const shoppingList = await getDefaultShoppingList(householdId, { accessToken });
+  const items = await getShoppingListItems(householdId, shoppingList.id, { accessToken });
+
+  return {
+    activeCount: items.filter((item) => !item.checked).length,
+    checkedCount: items.filter((item) => item.checked).length,
+    shoppingList,
+  };
+}
+
+function ShoppingListDashboardCard({
+  activeCount,
+  checkedCount,
+  disabled,
+  name,
+  onOpen,
+}: {
+  activeCount: number;
+  checkedCount: number;
+  disabled: boolean;
+  name: string;
+  onOpen: () => void;
+}) {
+  return (
+    <View style={styles.shoppingListCard}>
+      <View style={styles.shoppingListIcon}>
+        <MaterialIcons color="#526049" name="shopping-bag" size={24} />
+      </View>
+
+      <View style={styles.shoppingListCopy}>
+        <Text numberOfLines={1} style={styles.shoppingListTitle}>
+          {name}
+        </Text>
+        <Text style={styles.shoppingListMeta}>
+          {formatCount(activeCount, 'item')} to buy - {formatCount(checkedCount, 'checked')}
+        </Text>
+      </View>
+
+      <Pressable
+        accessibilityLabel="Open shopping list"
+        accessibilityRole="button"
+        disabled={disabled}
+        onPress={onOpen}
+        style={({ pressed }) => [
+          styles.shoppingListButton,
+          disabled && styles.disabled,
+          pressed && styles.pressed,
+        ]}>
+        <Text style={styles.shoppingListButtonText}>Open</Text>
+        <MaterialIcons color="#ffffff" name="chevron-right" size={18} />
+      </Pressable>
+    </View>
   );
 }
 
@@ -339,6 +431,56 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 0,
   },
+  shoppingListCard: {
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderColor: '#e8e1dc',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 12,
+    padding: 14,
+  },
+  shoppingListIcon: {
+    alignItems: 'center',
+    backgroundColor: '#eef1ea',
+    borderRadius: 8,
+    height: 48,
+    justifyContent: 'center',
+    width: 48,
+  },
+  shoppingListCopy: {
+    flex: 1,
+    gap: 4,
+    minWidth: 0,
+  },
+  shoppingListTitle: {
+    color: '#1e1b18',
+    fontSize: 17,
+    fontWeight: '800',
+    letterSpacing: 0,
+  },
+  shoppingListMeta: {
+    color: '#444841',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  shoppingListButton: {
+    alignItems: 'center',
+    backgroundColor: '#526049',
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 2,
+    justifyContent: 'center',
+    minHeight: 42,
+    paddingHorizontal: 12,
+  },
+  shoppingListButtonText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0,
+  },
   errorPanel: {
     alignItems: 'flex-start',
     backgroundColor: '#ffdbd0',
@@ -373,5 +515,8 @@ const styles = StyleSheet.create({
     color: '#444841',
     fontSize: 14,
     fontWeight: '600',
+  },
+  disabled: {
+    opacity: 0.5,
   },
 });

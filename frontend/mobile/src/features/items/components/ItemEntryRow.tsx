@@ -22,6 +22,7 @@ type ItemEntryRowProps = {
   index: number;
   onDelete: (entry: ItemEntryView) => void;
   onEdit: () => void;
+  onAddToShoppingList?: (entry: ItemEntryView) => void;
   onOpen: (entry: ItemEntryView) => void;
   onSetCurrentQuantity: (entry: ItemEntryView, currentQuantity: number) => void;
   updating: boolean;
@@ -41,6 +42,7 @@ export function ItemEntryRow({
   index,
   onDelete,
   onEdit,
+  onAddToShoppingList,
   onOpen,
   onSetCurrentQuantity,
   updating,
@@ -94,6 +96,20 @@ export function ItemEntryRow({
               ]}>
               <MaterialIcons color="#526049" name="edit" size={18} />
             </Pressable>
+            {onAddToShoppingList ? (
+              <Pressable
+                accessibilityLabel="Add entry to shopping list"
+                accessibilityRole="button"
+                disabled={busy}
+                onPress={() => onAddToShoppingList(entry)}
+                style={({ pressed }) => [
+                  styles.entryEditButton,
+                  pressed && styles.pressed,
+                  busy && styles.disabledButton,
+                ]}>
+                <MaterialIcons color="#526049" name="shopping-bag" size={18} />
+              </Pressable>
+            ) : null}
             <Pressable
               accessibilityLabel="Delete entry"
               accessibilityRole="button"

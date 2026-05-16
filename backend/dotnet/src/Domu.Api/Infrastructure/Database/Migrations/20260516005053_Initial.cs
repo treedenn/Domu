@@ -56,6 +56,30 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "shopping_lists",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    household_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    name = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: false),
+                    is_default = table.Column<bool>(type: "boolean", nullable: false),
+                    created_by_user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    archived_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_shopping_lists", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_shopping_lists_households_household_id",
+                        column: x => x.household_id,
+                        principalTable: "households",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "spaces",
                 columns: table => new
                 {
@@ -88,7 +112,10 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     item_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    quantity = table.Column<int>(type: "integer", nullable: false),
+                    initial_quantity = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
+                    current_quantity = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
+                    unit = table.Column<int>(type: "integer", nullable: false),
+                    container_type = table.Column<int>(type: "integer", nullable: false),
                     state = table.Column<int>(type: "integer", nullable: false),
                     acquisition_date = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     expiration_date = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
@@ -163,6 +190,58 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "shopping_list_items",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    household_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    shopping_list_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    name = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: false),
+                    normalized_name = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: false),
+                    quantity = table.Column<decimal>(type: "numeric", nullable: true),
+                    container_quantity = table.Column<decimal>(type: "numeric", nullable: true),
+                    container_unit = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: true),
+                    note = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    @checked = table.Column<bool>(name: "checked", type: "boolean", nullable: false),
+                    checked_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    checked_by_user_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    space_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    item_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    added_by_user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    sort_order = table.Column<decimal>(type: "numeric", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_shopping_list_items", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_shopping_list_items_households_household_id",
+                        column: x => x.household_id,
+                        principalTable: "households",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_shopping_list_items_items_item_id",
+                        column: x => x.item_id,
+                        principalTable: "items",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_shopping_list_items_shopping_lists_shopping_list_id",
+                        column: x => x.shopping_list_id,
+                        principalTable: "shopping_lists",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_shopping_list_items_spaces_space_id",
+                        column: x => x.space_id,
+                        principalTable: "spaces",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "ix_household_invitations_household_id_email_status",
                 table: "household_invitations",
@@ -206,6 +285,48 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                 columns: new[] { "space_id", "name" });
 
             migrationBuilder.CreateIndex(
+                name: "ix_shopping_list_items_household_id",
+                table: "shopping_list_items",
+                column: "household_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_shopping_list_items_item_id",
+                table: "shopping_list_items",
+                column: "item_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_shopping_list_items_shopping_list_id",
+                table: "shopping_list_items",
+                column: "shopping_list_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_shopping_list_items_shopping_list_id_checked",
+                table: "shopping_list_items",
+                columns: new[] { "shopping_list_id", "checked" });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_shopping_list_items_shopping_list_id_sort_order",
+                table: "shopping_list_items",
+                columns: new[] { "shopping_list_id", "sort_order" });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_shopping_list_items_space_id",
+                table: "shopping_list_items",
+                column: "space_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_shopping_lists_household_id",
+                table: "shopping_lists",
+                column: "household_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_shopping_lists_household_id_active_default",
+                table: "shopping_lists",
+                columns: new[] { "household_id", "is_default" },
+                unique: true,
+                filter: "is_default = true AND archived_at IS NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_spaces_household_id_parent_id_name",
                 table: "spaces",
                 columns: new[] { "household_id", "parent_id", "name" });
@@ -235,13 +356,19 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                 name: "item_entries");
 
             migrationBuilder.DropTable(
-                name: "spaces");
+                name: "shopping_list_items");
 
             migrationBuilder.DropTable(
                 name: "users");
 
             migrationBuilder.DropTable(
                 name: "items");
+
+            migrationBuilder.DropTable(
+                name: "shopping_lists");
+
+            migrationBuilder.DropTable(
+                name: "spaces");
 
             migrationBuilder.DropTable(
                 name: "households");
