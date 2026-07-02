@@ -1,6 +1,8 @@
 using Domu.Api.Features.Events.Application;
 using Domu.Api.Features.Households.Application.Households;
+using Domu.Api.Features.ShoppingLists.Application.Items.Commands;
 using Domu.Api.Features.ShoppingLists.Application.Items.Ports;
+using Domu.Api.Features.ShoppingLists.Application.ShoppingLists;
 using Domu.Api.Features.ShoppingLists.Application.ShoppingLists.Ports;
 
 namespace Domu.Api.Features.ShoppingLists.Application.Items;
@@ -15,7 +17,7 @@ public sealed class ClearCheckedShoppingListItemsUseCase(
 
     public async Task ExecuteAsync(ClearCheckedShoppingListItemsCommand command, CancellationToken cancellationToken)
     {
-        await ShoppingListItemUseCaseGuards.EnsureCanAccessListAsync(
+        await ShoppingListPermissionPolicy.EnsureCanAccessListAsync(
             shoppingListRepository,
             householdAccessService,
             command.HouseholdId,

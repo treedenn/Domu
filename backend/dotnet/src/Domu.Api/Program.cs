@@ -68,7 +68,11 @@ builder.Services.AddScoped<IInviteHouseholdMemberUseCase, InviteHouseholdMemberU
 builder.Services.AddScoped<IAcceptHouseholdInvitationUseCase, AcceptHouseholdInvitationUseCase>();
 builder.Services.AddScoped<IShoppingListRepository, ShoppingListRepository>();
 builder.Services.AddScoped<IShoppingListItemRepository, ShoppingListItemRepository>();
-builder.Services.AddScoped<GetOrCreateDefaultShoppingListUseCase>();
+builder.Services.AddScoped<GetShoppingListsUseCase>();
+builder.Services.AddScoped<GetShoppingListUseCase>();
+builder.Services.AddScoped<CreateShoppingListUseCase>();
+builder.Services.AddScoped<UpdateShoppingListUseCase>();
+builder.Services.AddScoped<DeleteShoppingListUseCase>();
 builder.Services.AddScoped<GetShoppingListItemsUseCase>();
 builder.Services.AddScoped<CreateShoppingListItemUseCase>();
 builder.Services.AddScoped<UpdateShoppingListItemUseCase>();

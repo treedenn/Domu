@@ -1,5 +1,7 @@
 using Domu.Api.Features.ShoppingLists.Application.Items;
+using Domu.Api.Features.ShoppingLists.Application.Items.Commands;
 using Domu.Api.Features.ShoppingLists.Application.Items.Contracts;
+using Domu.Api.Features.ShoppingLists.Application.Items.Queries;
 using Domu.Api.Features.Users.Interface.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -167,7 +169,7 @@ public sealed class ShoppingListItemsController(
         try
         {
             await deleteShoppingListItemUseCase.ExecuteAsync(
-                new ShoppingListItemCommand(userAccessor.User.Id, householdId, shoppingListId, itemId),
+                new DeleteShoppingListItemCommand(userAccessor.User.Id, householdId, shoppingListId, itemId),
                 cancellationToken);
 
             return NoContent();

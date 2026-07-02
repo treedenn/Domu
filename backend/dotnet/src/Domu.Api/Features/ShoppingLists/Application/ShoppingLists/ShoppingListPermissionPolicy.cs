@@ -2,12 +2,25 @@ using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.ShoppingLists.Application.Items.Ports;
 using Domu.Api.Features.ShoppingLists.Application.ShoppingLists.Ports;
 using Domu.Api.Features.ShoppingLists.Domain.Items;
+using Domu.Api.Features.ShoppingLists.Domain.ShoppingLists;
 
-namespace Domu.Api.Features.ShoppingLists.Application.Items;
+namespace Domu.Api.Features.ShoppingLists.Application.ShoppingLists;
 
-internal static class ShoppingListItemUseCaseGuards
+internal static class ShoppingListPermissionPolicy
 {
     public static async Task EnsureCanAccessListAsync(
+        IShoppingListRepository shoppingListRepository,
+        IHouseholdAccessService householdAccessService,
+        Guid householdId,
+        Guid shoppingListId,
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        await GetAccessibleListAsync(
+            shoppingListRepository, householdAccessService, householdId, shoppingListId, userId, cancellationToken);
+    }
+
+    public static async Task<ShoppingList> GetAccessibleListAsync(
         IShoppingListRepository shoppingListRepository,
         IHouseholdAccessService householdAccessService,
         Guid householdId,
@@ -22,6 +35,8 @@ internal static class ShoppingListItemUseCaseGuards
 
         if (shoppingList.HouseholdId != householdId || shoppingList.ArchivedAt is not null)
             throw new KeyNotFoundException($"Shopping list '{shoppingListId}' was not found.");
+
+        return shoppingList;
     }
 
     public static async Task<ShoppingListItem> GetAccessibleItemAsync(

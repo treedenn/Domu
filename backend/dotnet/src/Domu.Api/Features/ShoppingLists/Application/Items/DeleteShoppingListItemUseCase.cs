@@ -1,6 +1,8 @@
 using Domu.Api.Features.Events.Application;
 using Domu.Api.Features.Households.Application.Households;
+using Domu.Api.Features.ShoppingLists.Application.Items.Commands;
 using Domu.Api.Features.ShoppingLists.Application.Items.Ports;
+using Domu.Api.Features.ShoppingLists.Application.ShoppingLists;
 using Domu.Api.Features.ShoppingLists.Application.ShoppingLists.Ports;
 
 namespace Domu.Api.Features.ShoppingLists.Application.Items;
@@ -13,9 +15,9 @@ public sealed class DeleteShoppingListItemUseCase(
 {
     private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
 
-    public async Task ExecuteAsync(ShoppingListItemCommand command, CancellationToken cancellationToken)
+    public async Task ExecuteAsync(DeleteShoppingListItemCommand command, CancellationToken cancellationToken)
     {
-        var item = await ShoppingListItemUseCaseGuards.GetAccessibleItemAsync(
+        var item = await ShoppingListPermissionPolicy.GetAccessibleItemAsync(
             shoppingListRepository,
             shoppingListItemRepository,
             householdAccessService,

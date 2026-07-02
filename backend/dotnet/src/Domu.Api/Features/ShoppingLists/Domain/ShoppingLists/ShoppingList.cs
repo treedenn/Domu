@@ -12,7 +12,6 @@ public sealed class ShoppingList
         Guid id,
         Guid householdId,
         string name,
-        bool isDefault,
         Guid createdByUserId,
         DateTimeOffset createdAt,
         DateTimeOffset updatedAt,
@@ -27,7 +26,6 @@ public sealed class ShoppingList
         CreatedByUserId = createdByUserId == Guid.Empty
             ? throw new ArgumentException("Created by user id cannot be empty.", nameof(createdByUserId))
             : createdByUserId;
-        IsDefault = isDefault;
         CreatedAt = createdAt;
         UpdatedAt = updatedAt;
         ArchivedAt = archivedAt;
@@ -37,13 +35,12 @@ public sealed class ShoppingList
     public Guid Id { get; }
     public Guid HouseholdId { get; }
     public string Name => _name;
-    public bool IsDefault { get; }
     public Guid CreatedByUserId { get; }
     public DateTimeOffset CreatedAt { get; }
     public DateTimeOffset UpdatedAt { get; private set; }
-    public DateTimeOffset? ArchivedAt { get; }
+    public DateTimeOffset? ArchivedAt { get; private set; }
 
-    private void Rename(string name, DateTimeOffset updatedAt)
+    public void Rename(string name, DateTimeOffset updatedAt)
     {
         var cleanedName = ShoppingListText.CleanName(name);
         if (cleanedName.Length > NameMaxLength)
@@ -53,5 +50,11 @@ public sealed class ShoppingList
 
         _name = cleanedName;
         UpdatedAt = updatedAt;
+    }
+
+    public void Archive(DateTimeOffset archivedAt)
+    {
+        ArchivedAt = archivedAt;
+        UpdatedAt = archivedAt;
     }
 }

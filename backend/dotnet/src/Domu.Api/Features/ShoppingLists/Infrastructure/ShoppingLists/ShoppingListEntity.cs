@@ -43,7 +43,7 @@ public sealed class ShoppingListEntity
 
     public ShoppingList ToDomain()
     {
-        return new ShoppingList(Id, HouseholdId, Name, IsDefault, CreatedByUserId, CreatedAt, UpdatedAt, ArchivedAt);
+        return new ShoppingList(Id, HouseholdId, Name, CreatedByUserId, CreatedAt, UpdatedAt, ArchivedAt);
     }
 
     public static ShoppingListEntity FromDomain(ShoppingList shoppingList)
@@ -54,7 +54,7 @@ public sealed class ShoppingListEntity
             shoppingList.Id,
             shoppingList.HouseholdId,
             shoppingList.Name,
-            shoppingList.IsDefault,
+            isDefault: false,
             shoppingList.CreatedByUserId,
             shoppingList.CreatedAt,
             shoppingList.UpdatedAt,

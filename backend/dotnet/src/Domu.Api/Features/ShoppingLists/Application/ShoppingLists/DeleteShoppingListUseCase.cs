@@ -1,0 +1,27 @@
+using Domu.Api.Features.Events.Application;
+using Domu.Api.Features.Households.Application.Households;
+using Domu.Api.Features.ShoppingLists.Application.ShoppingLists.Commands;
+using Domu.Api.Features.ShoppingLists.Application.ShoppingLists.Ports;
+
+namespace Domu.Api.Features.ShoppingLists.Application.ShoppingLists;
+
+public sealed class DeleteShoppingListUseCase(
+    IShoppingListRepository shoppingListRepository,
+    IHouseholdAccessService householdAccessService,
+    IUserEventRecorder? userEventRecorder = null)
+{
+    private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
+
+    public async Task ExecuteAsync(DeleteShoppingListCommand command, CancellationToken cancellationToken)
+    {
+        var list = await ShoppingListPermissionPolicy.GetAccessibleListAsync(
+            shoppingListRepository, householdAccessService, command.HouseholdId, command.ShoppingListId, command.UserId, cancellationToken);
+        list.Archive(DateTimeOffset.UtcNow);
+
+        await shoppingListRepository.UpdateAsync(list, cancellationToken);
+        await _userEventRecorder.RecordAsync(
+            command.UserId, UserEventActions.ShoppingListDeleted, UserEventTargetTypes.ShoppingList,
+            list.Id, command.HouseholdId, EventMetadata.From(("name", list.Name)), cancellationToken);
+        await shoppingListRepository.SaveChangesAsync(cancellationToken);
+    }
+}

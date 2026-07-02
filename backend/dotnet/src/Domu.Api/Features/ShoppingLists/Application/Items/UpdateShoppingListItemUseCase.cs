@@ -1,7 +1,9 @@
 using Domu.Api.Features.Events.Application;
 using Domu.Api.Features.Households.Application.Households;
+using Domu.Api.Features.ShoppingLists.Application.Items.Commands;
 using Domu.Api.Features.ShoppingLists.Application.Items.Contracts;
 using Domu.Api.Features.ShoppingLists.Application.Items.Ports;
+using Domu.Api.Features.ShoppingLists.Application.ShoppingLists;
 using Domu.Api.Features.ShoppingLists.Application.ShoppingLists.Ports;
 
 namespace Domu.Api.Features.ShoppingLists.Application.Items;
@@ -18,7 +20,7 @@ public sealed class UpdateShoppingListItemUseCase(
         UpdateShoppingListItemCommand command,
         CancellationToken cancellationToken)
     {
-        await ShoppingListItemUseCaseGuards.EnsureCanAccessListAsync(
+        await ShoppingListPermissionPolicy.EnsureCanAccessListAsync(
             shoppingListRepository,
             householdAccessService,
             command.HouseholdId,
@@ -26,14 +28,14 @@ public sealed class UpdateShoppingListItemUseCase(
             command.UserId,
             cancellationToken);
 
-        await ShoppingListItemUseCaseGuards.ValidateReferencesAsync(
+        await ShoppingListPermissionPolicy.ValidateReferencesAsync(
             shoppingListItemRepository,
             command.HouseholdId,
             command.SpaceId,
             command.ItemIdLink,
             cancellationToken);
 
-        var item = await ShoppingListItemUseCaseGuards.GetListItemAsync(
+        var item = await ShoppingListPermissionPolicy.GetListItemAsync(
             shoppingListItemRepository,
             command.ShoppingListId,
             command.ItemId,

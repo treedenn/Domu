@@ -16,6 +16,8 @@ public static class UserEventActions
     public const string ItemEntriesReplaced = "item.entries_replaced";
     public const string ItemDeleted = "item.deleted";
     public const string ShoppingListCreated = "shopping_list.created";
+    public const string ShoppingListUpdated = "shopping_list.updated";
+    public const string ShoppingListDeleted = "shopping_list.deleted";
     public const string ShoppingListItemCreated = "shopping_list_item.created";
     public const string ShoppingListItemUpdated = "shopping_list_item.updated";
     public const string ShoppingListItemChecked = "shopping_list_item.checked";

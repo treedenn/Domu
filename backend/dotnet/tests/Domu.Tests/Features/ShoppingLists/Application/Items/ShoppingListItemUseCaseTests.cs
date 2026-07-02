@@ -1,5 +1,6 @@
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.ShoppingLists.Application.Items;
+using Domu.Api.Features.ShoppingLists.Application.Items.Commands;
 using Domu.Api.Features.ShoppingLists.Application.Items.Ports;
 using Domu.Api.Features.ShoppingLists.Application.ShoppingLists.Ports;
 using Domu.Api.Features.ShoppingLists.Domain.Items;
@@ -14,7 +15,7 @@ public sealed class ShoppingListItemUseCaseTests
     {
         var repository = new FakeShoppingListRepository();
         var householdId = Guid.NewGuid();
-        var shoppingList = repository.AddDefaultList(householdId);
+        var shoppingList = repository.AddList(householdId);
         var useCase = new CreateShoppingListItemUseCase(repository, repository, new FakeHouseholdAccessService());
 
         var action = () => useCase.ExecuteAsync(
@@ -42,7 +43,7 @@ public sealed class ShoppingListItemUseCaseTests
         var householdId = Guid.NewGuid();
         var spaceId = repository.AddHouseholdSpace(householdId);
         var itemId = repository.AddHouseholdItem(householdId);
-        var shoppingList = repository.AddDefaultList(householdId);
+        var shoppingList = repository.AddList(householdId);
         var useCase = new CreateShoppingListItemUseCase(repository, repository, new FakeHouseholdAccessService());
 
         var result = await useCase.ExecuteAsync(
@@ -76,8 +77,8 @@ public sealed class ShoppingListItemUseCaseTests
     {
         var repository = new FakeShoppingListRepository();
         var householdId = Guid.NewGuid();
-        var routeList = repository.AddDefaultList(householdId);
-        var otherList = repository.AddDefaultList(Guid.NewGuid());
+        var routeList = repository.AddList(householdId);
+        var otherList = repository.AddList(Guid.NewGuid());
         var item = repository.AddItem(householdId, otherList.Id, "Milk");
         var useCase = new SetShoppingListItemCheckedStateUseCase(repository, repository, new FakeHouseholdAccessService());
 
@@ -114,14 +115,13 @@ public sealed class ShoppingListItemUseCaseTests
         public int AddItemCalls { get; private set; }
         public int SaveChangesCalls { get; private set; }
 
-        public ShoppingList AddDefaultList(Guid householdId)
+        public ShoppingList AddList(Guid householdId)
         {
             var now = DateTimeOffset.UtcNow;
             var shoppingList = new ShoppingList(
                 Guid.NewGuid(),
                 householdId,
                 "Shopping list",
-                true,
                 Guid.NewGuid(),
                 now,
                 now);
@@ -159,12 +159,14 @@ public sealed class ShoppingListItemUseCaseTests
             return itemId;
         }
 
-        public Task<ShoppingList?> GetActiveDefaultByHouseholdAsync(
+        public Task<IReadOnlyList<ShoppingList>> GetActiveByHouseholdAsync(
             Guid householdId,
             CancellationToken cancellationToken)
         {
-            return Task.FromResult(Lists.SingleOrDefault(list =>
-                list.HouseholdId == householdId && list.IsDefault && list.ArchivedAt is null));
+            IReadOnlyList<ShoppingList> lists = Lists
+                .Where(list => list.HouseholdId == householdId && list.ArchivedAt is null)
+                .ToList();
+            return Task.FromResult(lists);
         }
 
         public Task<ShoppingList?> GetByIdAsync(Guid shoppingListId, CancellationToken cancellationToken)
@@ -175,6 +177,11 @@ public sealed class ShoppingListItemUseCaseTests
         public Task AddAsync(ShoppingList shoppingList, CancellationToken cancellationToken)
         {
             Lists.Add(shoppingList);
+            return Task.CompletedTask;
+        }
+
+        public Task UpdateAsync(ShoppingList shoppingList, CancellationToken cancellationToken)
+        {
             return Task.CompletedTask;
         }
 

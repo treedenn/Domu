@@ -7,19 +7,17 @@ namespace Domu.Api.Features.ShoppingLists.Infrastructure.ShoppingLists;
 
 public sealed class ShoppingListRepository(AppDbContext dbContext) : IShoppingListRepository
 {
-    public async Task<ShoppingList?> GetActiveDefaultByHouseholdAsync(
+    public async Task<IReadOnlyList<ShoppingList>> GetActiveByHouseholdAsync(
         Guid householdId,
         CancellationToken cancellationToken)
     {
-        var entity = await dbContext.ShoppingLists
+        var entities = await dbContext.ShoppingLists
             .AsNoTracking()
-            .SingleOrDefaultAsync(
-                shoppingList => shoppingList.HouseholdId == householdId
-                                && shoppingList.IsDefault
-                                && shoppingList.ArchivedAt == null,
-                cancellationToken);
+            .Where(shoppingList => shoppingList.HouseholdId == householdId && shoppingList.ArchivedAt == null)
+            .OrderBy(shoppingList => shoppingList.Name)
+            .ToListAsync(cancellationToken);
 
-        return entity?.ToDomain();
+        return entities.Select(entity => entity.ToDomain()).ToList();
     }
 
     public async Task<ShoppingList?> GetByIdAsync(Guid shoppingListId, CancellationToken cancellationToken)
@@ -34,6 +32,15 @@ public sealed class ShoppingListRepository(AppDbContext dbContext) : IShoppingLi
     public async Task AddAsync(ShoppingList shoppingList, CancellationToken cancellationToken)
     {
         await dbContext.ShoppingLists.AddAsync(ShoppingListEntity.FromDomain(shoppingList), cancellationToken);
+    }
+
+    public async Task UpdateAsync(ShoppingList shoppingList, CancellationToken cancellationToken)
+    {
+        var entity = await dbContext.ShoppingLists
+                         .SingleOrDefaultAsync(existing => existing.Id == shoppingList.Id, cancellationToken)
+                     ?? throw new KeyNotFoundException($"Shopping list '{shoppingList.Id}' was not found.");
+
+        dbContext.Entry(entity).CurrentValues.SetValues(ShoppingListEntity.FromDomain(shoppingList));
     }
 
     public Task SaveChangesAsync(CancellationToken cancellationToken)
