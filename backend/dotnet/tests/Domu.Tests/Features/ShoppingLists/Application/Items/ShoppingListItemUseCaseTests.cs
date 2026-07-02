@@ -79,10 +79,15 @@ public sealed class ShoppingListItemUseCaseTests
         var routeList = repository.AddDefaultList(householdId);
         var otherList = repository.AddDefaultList(Guid.NewGuid());
         var item = repository.AddItem(householdId, otherList.Id, "Milk");
-        var useCase = new CheckShoppingListItemUseCase(repository, repository, new FakeHouseholdAccessService());
+        var useCase = new SetShoppingListItemCheckedStateUseCase(repository, repository, new FakeHouseholdAccessService());
 
         var action = () => useCase.ExecuteAsync(
-            new ShoppingListItemCommand(Guid.NewGuid(), householdId, routeList.Id, item.Id),
+            new SetShoppingListItemCheckedStateCommand(
+                Guid.NewGuid(),
+                householdId,
+                routeList.Id,
+                item.Id,
+                true),
             CancellationToken.None);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(action);

@@ -12,7 +12,7 @@ namespace Domu.Api.Features.ShoppingLists.Interface.ShoppingLists;
 [Tags("Shopping Lists")]
 public sealed class ShoppingListsController(
     IUserAccessor userAccessor,
-    IGetOrCreateDefaultShoppingListUseCase getOrCreateDefaultShoppingListUseCase)
+    GetOrCreateDefaultShoppingListUseCase getOrCreateDefaultShoppingListUseCase)
     : ControllerBase
 {
     [HttpGet("default")]

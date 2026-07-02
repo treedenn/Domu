@@ -12,13 +12,12 @@ namespace Domu.Api.Features.ShoppingLists.Interface.Items;
 [Tags("Shopping List Items")]
 public sealed class ShoppingListItemsController(
     IUserAccessor userAccessor,
-    IGetShoppingListItemsUseCase getShoppingListItemsUseCase,
-    ICreateShoppingListItemUseCase createShoppingListItemUseCase,
-    IUpdateShoppingListItemUseCase updateShoppingListItemUseCase,
-    ICheckShoppingListItemUseCase checkShoppingListItemUseCase,
-    IUncheckShoppingListItemUseCase uncheckShoppingListItemUseCase,
-    IDeleteShoppingListItemUseCase deleteShoppingListItemUseCase,
-    IClearCheckedShoppingListItemsUseCase clearCheckedShoppingListItemsUseCase)
+    GetShoppingListItemsUseCase getShoppingListItemsUseCase,
+    CreateShoppingListItemUseCase createShoppingListItemUseCase,
+    UpdateShoppingListItemUseCase updateShoppingListItemUseCase,
+    SetShoppingListItemCheckedStateUseCase setShoppingListItemCheckedStateUseCase,
+    DeleteShoppingListItemUseCase deleteShoppingListItemUseCase,
+    ClearCheckedShoppingListItemsUseCase clearCheckedShoppingListItemsUseCase)
     : ControllerBase
 {
     [HttpGet]
@@ -132,10 +131,10 @@ public sealed class ShoppingListItemsController(
         CancellationToken cancellationToken)
     {
         return UpdateCheckedStateAsync(
-            checkShoppingListItemUseCase,
             householdId,
             shoppingListId,
             itemId,
+            true,
             cancellationToken);
     }
 
@@ -149,10 +148,10 @@ public sealed class ShoppingListItemsController(
         CancellationToken cancellationToken)
     {
         return UpdateCheckedStateAsync(
-            uncheckShoppingListItemUseCase,
             householdId,
             shoppingListId,
             itemId,
+            false,
             cancellationToken);
     }
 
@@ -202,21 +201,22 @@ public sealed class ShoppingListItemsController(
     }
 
     private async Task<ActionResult<ShoppingListItemView>> UpdateCheckedStateAsync(
-        object useCase,
         Guid householdId,
         Guid shoppingListId,
         Guid itemId,
+        bool isChecked,
         CancellationToken cancellationToken)
     {
         try
         {
-            var command = new ShoppingListItemCommand(userAccessor.User.Id, householdId, shoppingListId, itemId);
-            var item = useCase switch
-            {
-                ICheckShoppingListItemUseCase checkUseCase => await checkUseCase.ExecuteAsync(command, cancellationToken),
-                IUncheckShoppingListItemUseCase uncheckUseCase => await uncheckUseCase.ExecuteAsync(command, cancellationToken),
-                _ => throw new InvalidOperationException("Unsupported checked-state use case.")
-            };
+            var item = await setShoppingListItemCheckedStateUseCase.ExecuteAsync(
+                new SetShoppingListItemCheckedStateCommand(
+                    userAccessor.User.Id,
+                    householdId,
+                    shoppingListId,
+                    itemId,
+                    isChecked),
+                cancellationToken);
 
             return Ok(item);
         }

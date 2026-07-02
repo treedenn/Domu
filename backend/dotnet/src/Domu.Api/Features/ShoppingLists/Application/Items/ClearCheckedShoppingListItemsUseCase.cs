@@ -10,7 +10,6 @@ public sealed class ClearCheckedShoppingListItemsUseCase(
     IShoppingListItemRepository shoppingListItemRepository,
     IHouseholdAccessService householdAccessService,
     IUserEventRecorder? userEventRecorder = null)
-    : IClearCheckedShoppingListItemsUseCase
 {
     private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
 

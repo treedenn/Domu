@@ -10,7 +10,6 @@ public sealed class DeleteShoppingListItemUseCase(
     IShoppingListItemRepository shoppingListItemRepository,
     IHouseholdAccessService householdAccessService,
     IUserEventRecorder? userEventRecorder = null)
-    : IDeleteShoppingListItemUseCase
 {
     private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
 

@@ -12,7 +12,6 @@ public sealed class CreateShoppingListItemUseCase(
     IShoppingListItemRepository shoppingListItemRepository,
     IHouseholdAccessService householdAccessService,
     IUserEventRecorder? userEventRecorder = null)
-    : ICreateShoppingListItemUseCase
 {
     private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
 

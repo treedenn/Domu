@@ -11,7 +11,6 @@ public sealed class UpdateShoppingListItemUseCase(
     IShoppingListItemRepository shoppingListItemRepository,
     IHouseholdAccessService householdAccessService,
     IUserEventRecorder? userEventRecorder = null)
-    : IUpdateShoppingListItemUseCase
 {
     private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
 

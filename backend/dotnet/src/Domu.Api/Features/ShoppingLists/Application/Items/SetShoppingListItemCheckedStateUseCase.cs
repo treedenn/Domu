@@ -6,17 +6,16 @@ using Domu.Api.Features.ShoppingLists.Application.ShoppingLists.Ports;
 
 namespace Domu.Api.Features.ShoppingLists.Application.Items;
 
-public sealed class CheckShoppingListItemUseCase(
+public sealed class SetShoppingListItemCheckedStateUseCase(
     IShoppingListRepository shoppingListRepository,
     IShoppingListItemRepository shoppingListItemRepository,
     IHouseholdAccessService householdAccessService,
     IUserEventRecorder? userEventRecorder = null)
-    : ICheckShoppingListItemUseCase
 {
     private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
 
     public async Task<ShoppingListItemView> ExecuteAsync(
-        ShoppingListItemCommand command,
+        SetShoppingListItemCheckedStateCommand command,
         CancellationToken cancellationToken)
     {
         var item = await ShoppingListItemUseCaseGuards.GetAccessibleItemAsync(
@@ -29,11 +28,20 @@ public sealed class CheckShoppingListItemUseCase(
             command.UserId,
             cancellationToken);
 
-        item.Check(command.UserId, DateTimeOffset.UtcNow);
+        var now = DateTimeOffset.UtcNow;
+        var eventAction = command.IsChecked
+            ? UserEventActions.ShoppingListItemChecked
+            : UserEventActions.ShoppingListItemUnchecked;
+
+        if (command.IsChecked)
+            item.Check(command.UserId, now);
+        else
+            item.Uncheck(now);
+
         await shoppingListItemRepository.UpdateAsync(item, cancellationToken);
         await _userEventRecorder.RecordAsync(
             command.UserId,
-            UserEventActions.ShoppingListItemChecked,
+            eventAction,
             UserEventTargetTypes.ShoppingListItem,
             item.Id,
             command.HouseholdId,

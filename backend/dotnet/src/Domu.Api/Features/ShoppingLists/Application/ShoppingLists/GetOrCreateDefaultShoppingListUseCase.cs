@@ -10,7 +10,6 @@ public sealed class GetOrCreateDefaultShoppingListUseCase(
     IShoppingListRepository shoppingListRepository,
     IHouseholdAccessService householdAccessService,
     IUserEventRecorder? userEventRecorder = null)
-    : IGetOrCreateDefaultShoppingListUseCase
 {
     private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
 

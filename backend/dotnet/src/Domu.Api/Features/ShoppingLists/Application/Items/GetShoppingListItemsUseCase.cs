@@ -9,7 +9,6 @@ public sealed class GetShoppingListItemsUseCase(
     IShoppingListRepository shoppingListRepository,
     IShoppingListItemRepository shoppingListItemRepository,
     IHouseholdAccessService householdAccessService)
-    : IGetShoppingListItemsUseCase
 {
     public async Task<IReadOnlyList<ShoppingListItemView>> ExecuteAsync(
         GetShoppingListItemsQuery query,
