@@ -12,6 +12,7 @@ public sealed class HouseholdInvitationEntity
         Guid id,
         Guid householdId,
         string email,
+        string displayName,
         Guid invitedByUserId,
         HouseholdMemberRole role,
         string token,
@@ -29,6 +30,7 @@ public sealed class HouseholdInvitationEntity
         Email = string.IsNullOrWhiteSpace(email)
             ? throw new ArgumentException("Email cannot be empty.", nameof(email))
             : email;
+        DisplayName = HouseholdMember.ValidateDisplayName(displayName);
         InvitedByUserId = invitedByUserId == Guid.Empty
             ? throw new ArgumentException("Invited-by user id cannot be empty.", nameof(invitedByUserId))
             : invitedByUserId;
@@ -45,6 +47,7 @@ public sealed class HouseholdInvitationEntity
     public Guid Id { get; private set; }
     public Guid HouseholdId { get; private set; }
     public string Email { get; private set; } = null!;
+    public string DisplayName { get; private set; } = null!;
     public Guid InvitedByUserId { get; private set; }
     public HouseholdMemberRole Role { get; private set; }
     public string Token { get; private set; } = null!;
@@ -59,6 +62,7 @@ public sealed class HouseholdInvitationEntity
             Id,
             HouseholdId,
             Email,
+            DisplayName,
             InvitedByUserId,
             Role,
             Token,
@@ -76,6 +80,7 @@ public sealed class HouseholdInvitationEntity
             invitation.Id,
             invitation.HouseholdId,
             invitation.Email,
+            invitation.DisplayName,
             invitation.InvitedByUserId,
             invitation.Role,
             invitation.Token,

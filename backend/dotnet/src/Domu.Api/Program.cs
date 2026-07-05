@@ -63,6 +63,7 @@ builder.Services.AddScoped<IGetHouseholdsUseCase, GetHouseholdsUseCase>();
 builder.Services.AddScoped<IUpdateHouseholdUseCase, UpdateHouseholdUseCase>();
 builder.Services.AddScoped<IDeleteHouseholdUseCase, DeleteHouseholdUseCase>();
 builder.Services.AddScoped<IGetHouseholdMembersUseCase, GetHouseholdMembersUseCase>();
+builder.Services.AddScoped<ICreateHouseholdMemberUseCase, CreateHouseholdMemberUseCase>();
 builder.Services.AddScoped<IGetHouseholdInvitationsUseCase, GetHouseholdInvitationsUseCase>();
 builder.Services.AddScoped<IInviteHouseholdMemberUseCase, InviteHouseholdMemberUseCase>();
 builder.Services.AddScoped<IAcceptHouseholdInvitationUseCase, AcceptHouseholdInvitationUseCase>();

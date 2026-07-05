@@ -18,12 +18,13 @@ public sealed class InviteHouseholdMemberUseCaseTests
         var useCase = new InviteHouseholdMemberUseCase(householdRepository, membershipRepository, sender);
 
         var result = await useCase.ExecuteAsync(
-            new InviteHouseholdMemberCommand(household.Id, ownerId, " Person@Example.COM ", HouseholdMemberRole.Admin),
+            new InviteHouseholdMemberCommand(household.Id, ownerId, " Person@Example.COM ", "Alex", HouseholdMemberRole.Admin),
             CancellationToken.None);
 
         Assert.Equal(household.Id, result.HouseholdId);
         Assert.Equal("person@example.com", result.Email);
         Assert.Equal(HouseholdMemberRole.Admin, result.Role);
+        Assert.Equal("Alex", result.DisplayName);
         Assert.Equal(HouseholdInvitationStatus.Pending, result.Status);
         Assert.Single(membershipRepository.Invitations);
         Assert.Single(sender.SentInvitations);
@@ -39,7 +40,7 @@ public sealed class InviteHouseholdMemberUseCaseTests
             new FakeHouseholdInvitationSender());
 
         var action = () => useCase.ExecuteAsync(
-            new InviteHouseholdMemberCommand(household.Id, Guid.NewGuid(), "person@example.com", HouseholdMemberRole.Member),
+            new InviteHouseholdMemberCommand(household.Id, Guid.NewGuid(), "person@example.com", "Alex", HouseholdMemberRole.Member),
             CancellationToken.None);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(action);

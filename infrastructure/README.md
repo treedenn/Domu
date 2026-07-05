@@ -66,6 +66,10 @@ The login UI is mounted at:
 {ZITADEL_PUBLIC_SCHEME}://{ZITADEL_DOMAIN}:{ZITADEL_EXTERNALPORT}/ui/v2/login/
 ```
 
+The default login crendentials are:
+- Username: zitadel-admin@zitadel.localhost
+- Password: Password1!
+
 The root route for the Zitadel domain is rewritten to the login UI.
 
 ## Callback and Logout URLs

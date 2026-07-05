@@ -14,6 +14,7 @@ public sealed class AcceptHouseholdInvitationUseCaseTests
             Guid.NewGuid(),
             Guid.NewGuid(),
             "person@example.com",
+            "Alex",
             Guid.NewGuid(),
             HouseholdMemberRole.Admin,
             "token",
@@ -29,6 +30,7 @@ public sealed class AcceptHouseholdInvitationUseCaseTests
 
         Assert.Equal(invitation.HouseholdId, result.HouseholdId);
         Assert.Equal(userId, result.UserId);
+        Assert.Equal("Alex", result.DisplayName);
         Assert.Equal(HouseholdMemberRole.Admin, result.Role);
         Assert.Equal(HouseholdInvitationStatus.Accepted, repository.Invitations.Single().Status);
         Assert.Single(repository.Members);
@@ -44,6 +46,7 @@ public sealed class AcceptHouseholdInvitationUseCaseTests
                 Guid.NewGuid(),
                 Guid.NewGuid(),
                 "person@example.com",
+                "Alex",
                 Guid.NewGuid(),
                 HouseholdMemberRole.Member,
                 "token",

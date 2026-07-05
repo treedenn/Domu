@@ -2,9 +2,8 @@ using Domu.Api.Features.Households.Domain.Members;
 
 namespace Domu.Api.Features.Households.Application.Members;
 
-public sealed record InviteHouseholdMemberCommand(
+public sealed record CreateHouseholdMemberCommand(
     Guid HouseholdId,
-    Guid InvitedByUserId,
-    string Email,
+    Guid CreatedByUserId,
     string DisplayName,
     HouseholdMemberRole Role);

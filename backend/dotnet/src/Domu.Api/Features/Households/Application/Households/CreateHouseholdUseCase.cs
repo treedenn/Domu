@@ -24,6 +24,7 @@ public sealed class CreateHouseholdUseCase(
             Guid.CreateVersion7(),
             household.Id,
             command.OwnerId,
+            command.OwnerDisplayName,
             HouseholdMemberRole.Owner,
             DateTimeOffset.UtcNow);
 

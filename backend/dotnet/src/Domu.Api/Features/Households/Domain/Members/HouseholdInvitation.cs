@@ -15,6 +15,7 @@ public sealed class HouseholdInvitation
         Guid id,
         Guid householdId,
         string email,
+        string displayName,
         Guid invitedByUserId,
         HouseholdMemberRole role,
         string token,
@@ -38,6 +39,7 @@ public sealed class HouseholdInvitation
             throw new ArgumentException("Invitations cannot grant owner role.", nameof(role));
         Role = role;
         Email = NormalizeEmail(email);
+        DisplayName = HouseholdMember.ValidateDisplayName(displayName);
         Token = ValidateToken(token);
         CreatedAt = createdAt;
         ExpiresAt = expiresAt > createdAt
@@ -49,6 +51,7 @@ public sealed class HouseholdInvitation
         Guid id,
         Guid householdId,
         string email,
+        string displayName,
         Guid invitedByUserId,
         HouseholdMemberRole role,
         string token,
@@ -56,7 +59,7 @@ public sealed class HouseholdInvitation
         DateTimeOffset createdAt,
         DateTimeOffset expiresAt,
         DateTimeOffset? acceptedAt)
-        : this(id, householdId, email, invitedByUserId, role, token, createdAt, expiresAt)
+        : this(id, householdId, email, displayName, invitedByUserId, role, token, createdAt, expiresAt)
     {
         if (!Enum.IsDefined(status))
             throw new ArgumentException("Invitation status is invalid.", nameof(status));
@@ -73,6 +76,7 @@ public sealed class HouseholdInvitation
 
     public Guid Id { get; }
     public Guid HouseholdId { get; }
+    public string DisplayName { get; }
     public Guid InvitedByUserId { get; }
     public HouseholdMemberRole Role { get; }
     public HouseholdInvitationStatus Status { get; private set; } = HouseholdInvitationStatus.Pending;

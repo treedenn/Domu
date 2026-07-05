@@ -15,7 +15,7 @@ public sealed class CreateHouseholdUseCaseTests
         var ownerId = Guid.NewGuid();
 
         var result = await useCase.ExecuteAsync(
-            new CreateHouseholdCommand(ownerId, "Home"),
+            new CreateHouseholdCommand(ownerId, "Home", "Alex"),
             CancellationToken.None);
 
         Assert.Equal(ownerId, result.OwnerId);
@@ -24,6 +24,7 @@ public sealed class CreateHouseholdUseCaseTests
         Assert.Equal(HouseholdSubscriptionStatus.Active, result.SubscriptionStatus);
         Assert.Equal(result.Id, repository.StoredHouseholds.Single().Id);
         Assert.Equal(result.Id, membershipRepository.Members.Single().HouseholdId);
+        Assert.Equal("Alex", membershipRepository.Members.Single().DisplayName);
         Assert.Equal(1, repository.AddCalls);
         Assert.Equal(1, repository.SaveChangesCalls);
     }

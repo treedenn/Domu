@@ -20,6 +20,7 @@ public sealed class HouseholdsController(
     IUpdateHouseholdUseCase updateHouseholdUseCase,
     IDeleteHouseholdUseCase deleteHouseholdUseCase,
     IGetHouseholdMembersUseCase getHouseholdMembersUseCase,
+    ICreateHouseholdMemberUseCase createHouseholdMemberUseCase,
     IGetHouseholdInvitationsUseCase getHouseholdInvitationsUseCase,
     IInviteHouseholdMemberUseCase inviteHouseholdMemberUseCase,
     IAcceptHouseholdInvitationUseCase acceptHouseholdInvitationUseCase)
@@ -57,6 +58,37 @@ public sealed class HouseholdsController(
         }
     }
 
+    [HttpPost("{householdId:guid}/members")]
+    [ProducesResponseType(typeof(HouseholdMemberView), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<HouseholdMemberView>> CreateMember(
+        Guid householdId,
+        CreateHouseholdMemberRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var member = await createHouseholdMemberUseCase.ExecuteAsync(
+                new CreateHouseholdMemberCommand(
+                    householdId,
+                    userAccessor.User.Id,
+                    request.DisplayName,
+                    request.Role),
+                cancellationToken);
+
+            return Created($"/api/v1/households/{householdId}/members/{member.Id}", member);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(new ProblemDetails { Title = "Invalid household member.", Detail = exception.Message });
+        }
+    }
+
     [HttpGet("{householdId:guid}/invitations")]
     [ProducesResponseType(typeof(IReadOnlyList<HouseholdInvitationView>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -90,7 +122,7 @@ public sealed class HouseholdsController(
         try
         {
             var invitation = await inviteHouseholdMemberUseCase.ExecuteAsync(
-                new InviteHouseholdMemberCommand(householdId, userAccessor.User.Id, request.Email, request.Role),
+                new InviteHouseholdMemberCommand(householdId, userAccessor.User.Id, request.Email, request.DisplayName, request.Role),
                 cancellationToken);
 
             return Created($"/api/v1/households/{householdId}/invitations/{invitation.Id}", invitation);
@@ -166,7 +198,7 @@ public sealed class HouseholdsController(
         try
         {
             var household = await createHouseholdUseCase.ExecuteAsync(
-                new CreateHouseholdCommand(userAccessor.User.Id, request.Name),
+                new CreateHouseholdCommand(userAccessor.User.Id, request.Name, request.OwnerDisplayName),
                 cancellationToken);
 
             return CreatedAtAction(nameof(GetHousehold), new { householdId = household.Id }, household);

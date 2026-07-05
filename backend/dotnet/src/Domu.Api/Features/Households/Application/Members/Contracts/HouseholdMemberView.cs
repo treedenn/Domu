@@ -5,7 +5,8 @@ namespace Domu.Api.Features.Households.Application.Members.Contracts;
 public sealed record HouseholdMemberView(
     Guid Id,
     Guid HouseholdId,
-    Guid UserId,
+    Guid? UserId,
+    string DisplayName,
     HouseholdMemberRole Role,
     DateTimeOffset JoinedAt)
 {
@@ -15,6 +16,7 @@ public sealed record HouseholdMemberView(
             member.Id,
             member.HouseholdId,
             member.UserId,
+            member.DisplayName,
             member.Role,
             member.JoinedAt);
     }

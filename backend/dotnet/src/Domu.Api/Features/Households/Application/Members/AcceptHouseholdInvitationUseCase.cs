@@ -32,6 +32,7 @@ public sealed class AcceptHouseholdInvitationUseCase(
                 Guid.CreateVersion7(),
                 invitation.HouseholdId,
                 command.UserId,
+                invitation.DisplayName,
                 invitation.Role,
                 now);
 

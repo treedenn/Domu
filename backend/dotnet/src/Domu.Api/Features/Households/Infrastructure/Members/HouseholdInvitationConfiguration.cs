@@ -21,6 +21,10 @@ public sealed class HouseholdInvitationConfiguration : IEntityTypeConfiguration<
             .HasMaxLength(HouseholdInvitation.EmailMaxLength)
             .IsRequired();
 
+        builder.Property(invitation => invitation.DisplayName)
+            .HasMaxLength(HouseholdMember.DisplayNameMaxLength)
+            .IsRequired();
+
         builder.Property(invitation => invitation.Token)
             .HasMaxLength(HouseholdInvitation.TokenMaxLength)
             .IsRequired();

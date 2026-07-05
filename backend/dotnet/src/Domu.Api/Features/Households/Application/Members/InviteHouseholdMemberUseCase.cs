@@ -45,6 +45,7 @@ public sealed class InviteHouseholdMemberUseCase(
             Guid.CreateVersion7(),
             command.HouseholdId,
             email,
+            command.DisplayName,
             command.InvitedByUserId,
             command.Role,
             GenerateToken(),

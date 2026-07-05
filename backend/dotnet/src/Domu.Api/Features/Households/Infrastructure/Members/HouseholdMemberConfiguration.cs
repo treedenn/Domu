@@ -1,3 +1,4 @@
+using Domu.Api.Features.Households.Domain.Members;
 using Domu.Api.Features.Households.Infrastructure.Households;
 using Domu.Api.Features.Users.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,13 @@ public sealed class HouseholdMemberConfiguration : IEntityTypeConfiguration<Hous
             .HasConversion<int>()
             .IsRequired();
 
+        builder.Property(member => member.UserId)
+            .IsRequired(false);
+
+        builder.Property(member => member.DisplayName)
+            .HasMaxLength(HouseholdMember.DisplayNameMaxLength)
+            .IsRequired();
+
         builder.HasIndex(member => new { member.HouseholdId, member.UserId })
             .IsUnique();
 
@@ -31,6 +39,6 @@ public sealed class HouseholdMemberConfiguration : IEntityTypeConfiguration<Hous
         builder.HasOne<UserEntity>()
             .WithMany()
             .HasForeignKey(member => member.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

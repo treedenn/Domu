@@ -20,6 +20,7 @@ public sealed class GetHouseholdInvitationsUseCaseTests
                 Guid.NewGuid(),
                 household.Id,
                 "person@example.com",
+                "Alex",
                 ownerId,
                 HouseholdMemberRole.Member,
                 "token",
