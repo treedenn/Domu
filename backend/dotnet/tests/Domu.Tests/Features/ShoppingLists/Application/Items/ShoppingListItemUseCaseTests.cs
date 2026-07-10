@@ -96,12 +96,22 @@ public sealed class ShoppingListItemUseCaseTests
 
     private sealed class FakeHouseholdAccessService : IHouseholdAccessService
     {
+        private readonly Guid _memberId = Guid.NewGuid();
+
         public Task EnsureCanAccessHouseholdAsync(
             Guid householdId,
             Guid userId,
             CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
+        }
+
+        public Task<Guid> GetRequiredMemberIdAsync(
+            Guid householdId,
+            Guid userId,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(_memberId);
         }
     }
 

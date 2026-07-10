@@ -1,4 +1,5 @@
 using Domu.Api.Features.Households.Infrastructure.Households;
+using Domu.Api.Features.Households.Infrastructure.Members;
 using Domu.Api.Features.Spaces.Infrastructure.Items;
 using Domu.Api.Features.Spaces.Infrastructure.Spaces;
 using Microsoft.EntityFrameworkCore;
@@ -46,10 +47,22 @@ public sealed class ShoppingListItemConfiguration : IEntityTypeConfiguration<Sho
             .HasForeignKey(item => item.ItemId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne<HouseholdMemberEntity>()
+            .WithMany()
+            .HasForeignKey(item => item.AddedByMemberId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<HouseholdMemberEntity>()
+            .WithMany()
+            .HasForeignKey(item => item.CheckedByMemberId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasIndex(item => item.HouseholdId);
         builder.HasIndex(item => item.ShoppingListId);
         builder.HasIndex(item => new { item.ShoppingListId, item.Checked });
         builder.HasIndex(item => new { item.ShoppingListId, item.SortOrder });
+        builder.HasIndex(item => item.AddedByMemberId);
+        builder.HasIndex(item => item.CheckedByMemberId);
         builder.HasIndex(item => item.SpaceId);
         builder.HasIndex(item => item.ItemId);
     }

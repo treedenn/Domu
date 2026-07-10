@@ -16,7 +16,7 @@ public sealed class HouseholdInvitation
         Guid householdId,
         string email,
         string displayName,
-        Guid invitedByUserId,
+        Guid invitedByMemberId,
         HouseholdMemberRole role,
         string token,
         DateTimeOffset createdAt,
@@ -28,9 +28,9 @@ public sealed class HouseholdInvitation
         HouseholdId = householdId == Guid.Empty
             ? throw new ArgumentException("Household id cannot be empty.", nameof(householdId))
             : householdId;
-        InvitedByUserId = invitedByUserId == Guid.Empty
-            ? throw new ArgumentException("Invited-by user id cannot be empty.", nameof(invitedByUserId))
-            : invitedByUserId;
+        InvitedByMemberId = invitedByMemberId == Guid.Empty
+            ? throw new ArgumentException("Invited-by member id cannot be empty.", nameof(invitedByMemberId))
+            : invitedByMemberId;
         if (!Enum.IsDefined(role))
             throw new ArgumentException("Invitation role is invalid.", nameof(role));
         if (role == HouseholdMemberRole.Unspecified)
@@ -52,14 +52,14 @@ public sealed class HouseholdInvitation
         Guid householdId,
         string email,
         string displayName,
-        Guid invitedByUserId,
+        Guid invitedByMemberId,
         HouseholdMemberRole role,
         string token,
         HouseholdInvitationStatus status,
         DateTimeOffset createdAt,
         DateTimeOffset expiresAt,
         DateTimeOffset? acceptedAt)
-        : this(id, householdId, email, displayName, invitedByUserId, role, token, createdAt, expiresAt)
+        : this(id, householdId, email, displayName, invitedByMemberId, role, token, createdAt, expiresAt)
     {
         if (!Enum.IsDefined(status))
             throw new ArgumentException("Invitation status is invalid.", nameof(status));
@@ -77,7 +77,7 @@ public sealed class HouseholdInvitation
     public Guid Id { get; }
     public Guid HouseholdId { get; }
     public string DisplayName { get; }
-    public Guid InvitedByUserId { get; }
+    public Guid InvitedByMemberId { get; }
     public HouseholdMemberRole Role { get; }
     public HouseholdInvitationStatus Status { get; private set; } = HouseholdInvitationStatus.Pending;
     public DateTimeOffset CreatedAt { get; }

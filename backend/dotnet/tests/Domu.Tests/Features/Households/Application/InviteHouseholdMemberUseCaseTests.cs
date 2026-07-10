@@ -14,6 +14,14 @@ public sealed class InviteHouseholdMemberUseCaseTests
         var household = new Household(Guid.NewGuid(), ownerId, "Home");
         var householdRepository = new FakeHouseholdRepository(household);
         var membershipRepository = new FakeHouseholdMembershipRepository();
+        var ownerMember = new HouseholdMember(
+            Guid.NewGuid(),
+            household.Id,
+            ownerId,
+            "Owner",
+            HouseholdMemberRole.Owner,
+            DateTimeOffset.UtcNow);
+        await membershipRepository.AddMemberAsync(ownerMember, CancellationToken.None);
         var sender = new FakeHouseholdInvitationSender();
         var useCase = new InviteHouseholdMemberUseCase(householdRepository, membershipRepository, sender);
 
@@ -25,6 +33,7 @@ public sealed class InviteHouseholdMemberUseCaseTests
         Assert.Equal("person@example.com", result.Email);
         Assert.Equal(HouseholdMemberRole.Admin, result.Role);
         Assert.Equal("Alex", result.DisplayName);
+        Assert.Equal(ownerMember.Id, result.InvitedByMemberId);
         Assert.Equal(HouseholdInvitationStatus.Pending, result.Status);
         Assert.Single(membershipRepository.Invitations);
         Assert.Single(sender.SentInvitations);

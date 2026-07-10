@@ -63,6 +63,17 @@ public sealed class GetHouseholdInsightsUseCaseTests
 
             return Task.CompletedTask;
         }
+
+        public Task<Guid> GetRequiredMemberIdAsync(
+            Guid householdId,
+            Guid userId,
+            CancellationToken cancellationToken)
+        {
+            if (DenyAccess)
+                throw new KeyNotFoundException();
+
+            return Task.FromResult(Guid.NewGuid());
+        }
     }
 
     private sealed class FakeUserEventQueryService : IUserEventQueryService

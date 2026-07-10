@@ -1,6 +1,5 @@
 using Domu.Api.Features.Households.Domain.Members;
 using Domu.Api.Features.Households.Infrastructure.Households;
-using Domu.Api.Features.Users.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -40,6 +39,8 @@ public sealed class HouseholdInvitationConfiguration : IEntityTypeConfiguration<
         builder.HasIndex(invitation => invitation.Token)
             .IsUnique();
 
+        builder.HasIndex(invitation => invitation.InvitedByMemberId);
+
         builder.HasIndex(invitation => new { invitation.HouseholdId, invitation.Email, invitation.Status });
 
         builder.HasOne<HouseholdEntity>()
@@ -47,9 +48,9 @@ public sealed class HouseholdInvitationConfiguration : IEntityTypeConfiguration<
             .HasForeignKey(invitation => invitation.HouseholdId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne<UserEntity>()
+        builder.HasOne<HouseholdMemberEntity>()
             .WithMany()
-            .HasForeignKey(invitation => invitation.InvitedByUserId)
+            .HasForeignKey(invitation => invitation.InvitedByMemberId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -158,6 +158,12 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("display_name");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(320)
@@ -212,6 +218,12 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("display_name");
+
                     b.Property<Guid>("HouseholdId")
                         .HasColumnType("uuid")
                         .HasColumnName("household_id");
@@ -224,7 +236,7 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("role");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
@@ -567,8 +579,7 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                     b.HasOne("Domu.Api.Features.Users.Infrastructure.UserEntity", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
+                        .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("fk_household_members_users_user_id");
                 });
 

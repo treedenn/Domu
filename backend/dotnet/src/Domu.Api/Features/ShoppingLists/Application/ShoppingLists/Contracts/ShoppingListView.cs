@@ -6,7 +6,7 @@ public sealed record ShoppingListView(
     Guid Id,
     Guid HouseholdId,
     string Name,
-    Guid CreatedByUserId,
+    Guid CreatedByMemberId,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
     DateTimeOffset? ArchivedAt)
@@ -19,7 +19,7 @@ public sealed record ShoppingListView(
             shoppingList.Id,
             shoppingList.HouseholdId,
             shoppingList.Name,
-            shoppingList.CreatedByUserId,
+            shoppingList.CreatedByMemberId,
             shoppingList.CreatedAt,
             shoppingList.UpdatedAt,
             shoppingList.ArchivedAt);

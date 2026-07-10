@@ -24,7 +24,7 @@ public sealed class ShoppingListItem
         Guid householdId,
         Guid shoppingListId,
         string name,
-        Guid addedByUserId,
+        Guid addedByMemberId,
         DateTimeOffset createdAt,
         DateTimeOffset updatedAt,
         decimal sortOrder)
@@ -38,9 +38,9 @@ public sealed class ShoppingListItem
         ShoppingListId = shoppingListId == Guid.Empty
             ? throw new ArgumentException("Shopping list id cannot be empty.", nameof(shoppingListId))
             : shoppingListId;
-        AddedByUserId = addedByUserId == Guid.Empty
-            ? throw new ArgumentException("Added by user id cannot be empty.", nameof(addedByUserId))
-            : addedByUserId;
+        AddedByMemberId = addedByMemberId == Guid.Empty
+            ? throw new ArgumentException("Added by member id cannot be empty.", nameof(addedByMemberId))
+            : addedByMemberId;
         CreatedAt = createdAt;
         UpdatedAt = updatedAt;
         SortOrder = sortOrder;
@@ -58,10 +58,10 @@ public sealed class ShoppingListItem
     public string? Note => _note;
     public bool Checked { get; private set; }
     public DateTimeOffset? CheckedAt { get; private set; }
-    public Guid? CheckedByUserId { get; private set; }
+    public Guid? CheckedByMemberId { get; private set; }
     public Guid? SpaceId { get; private set; }
     public Guid? ItemId { get; private set; }
-    public Guid AddedByUserId { get; }
+    public Guid AddedByMemberId { get; }
     public DateTimeOffset CreatedAt { get; }
     public DateTimeOffset UpdatedAt { get; private set; }
     public decimal SortOrder { get; private set; }
@@ -142,14 +142,14 @@ public sealed class ShoppingListItem
         UpdatedAt = updatedAt;
     }
 
-    public void Check(Guid userId, DateTimeOffset checkedAt)
+    public void Check(Guid memberId, DateTimeOffset checkedAt)
     {
-        if (userId == Guid.Empty)
-            throw new ArgumentException("Checked by user id cannot be empty.", nameof(userId));
+        if (memberId == Guid.Empty)
+            throw new ArgumentException("Checked by member id cannot be empty.", nameof(memberId));
 
         Checked = true;
         CheckedAt = checkedAt;
-        CheckedByUserId = userId;
+        CheckedByMemberId = memberId;
         UpdatedAt = checkedAt;
     }
 
@@ -157,7 +157,7 @@ public sealed class ShoppingListItem
     {
         Checked = false;
         CheckedAt = null;
-        CheckedByUserId = null;
+        CheckedByMemberId = null;
         UpdatedAt = updatedAt;
     }
 }

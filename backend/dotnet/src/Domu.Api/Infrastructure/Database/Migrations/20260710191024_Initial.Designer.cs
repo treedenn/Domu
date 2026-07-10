@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Domu.Api.Infrastructure.Database.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260516005053_Initial")]
+    [Migration("20260710191024_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -24,6 +24,87 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Domu.Api.Features.Events.Infrastructure.UserEventEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("action");
+
+                    b.Property<Guid>("ActorUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("actor_user_id");
+
+                    b.Property<string>("ClientApp")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("client_app");
+
+                    b.Property<int?>("ClientBuild")
+                        .HasColumnType("integer")
+                        .HasColumnName("client_build");
+
+                    b.Property<string>("ClientPlatform")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("client_platform");
+
+                    b.Property<string>("ClientVersion")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("client_version");
+
+                    b.Property<Guid?>("HouseholdId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("household_id");
+
+                    b.Property<string>("MetadataJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("metadata_json");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<string>("RequestId")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("request_id");
+
+                    b.Property<Guid?>("TargetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("target_id");
+
+                    b.Property<string>("TargetType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("target_type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_user_events");
+
+                    b.HasIndex("OccurredAt")
+                        .HasDatabaseName("ix_user_events_occurred_at");
+
+                    b.HasIndex("ActorUserId", "OccurredAt")
+                        .HasDatabaseName("ix_user_events_actor_user_id_occurred_at");
+
+                    b.HasIndex("HouseholdId", "OccurredAt")
+                        .HasDatabaseName("ix_user_events_household_id_occurred_at");
+
+                    b.HasIndex("TargetType", "TargetId")
+                        .HasDatabaseName("ix_user_events_target_type_target_id");
+
+                    b.ToTable("user_events", (string)null);
+                });
 
             modelBuilder.Entity("Domu.Api.Features.Households.Infrastructure.Households.HouseholdEntity", b =>
                 {
@@ -80,6 +161,12 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("display_name");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(320)
@@ -134,6 +221,12 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("display_name");
+
                     b.Property<Guid>("HouseholdId")
                         .HasColumnType("uuid")
                         .HasColumnName("household_id");
@@ -146,7 +239,7 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("role");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
@@ -489,8 +582,7 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                     b.HasOne("Domu.Api.Features.Users.Infrastructure.UserEntity", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
+                        .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("fk_household_members_users_user_id");
                 });
 

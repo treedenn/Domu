@@ -15,14 +15,15 @@ public sealed class ShoppingListUseCaseTests
         var repository = new FakeShoppingListRepository();
         var householdId = Guid.NewGuid();
         var userId = Guid.NewGuid();
-        var useCase = new CreateShoppingListUseCase(repository, new FakeHouseholdAccessService());
+        var memberId = Guid.NewGuid();
+        var useCase = new CreateShoppingListUseCase(repository, new FakeHouseholdAccessService(memberId));
 
         var result = await useCase.ExecuteAsync(
             new CreateShoppingListCommand(userId, householdId, "  Weekly   groceries "), CancellationToken.None);
 
         Assert.Equal("Weekly groceries", result.Name);
         Assert.Equal(householdId, result.HouseholdId);
-        Assert.Equal(userId, result.CreatedByUserId);
+        Assert.Equal(memberId, result.CreatedByMemberId);
         Assert.Single(repository.Lists);
         Assert.Equal(1, repository.SaveChangesCalls);
     }
@@ -75,10 +76,13 @@ public sealed class ShoppingListUseCaseTests
         Assert.Equal(1, repository.UpdateCalls);
     }
 
-    private sealed class FakeHouseholdAccessService : IHouseholdAccessService
+    private sealed class FakeHouseholdAccessService(Guid? memberId = null) : IHouseholdAccessService
     {
         public Task EnsureCanAccessHouseholdAsync(Guid householdId, Guid userId, CancellationToken cancellationToken)
             => Task.CompletedTask;
+
+        public Task<Guid> GetRequiredMemberIdAsync(Guid householdId, Guid userId, CancellationToken cancellationToken)
+            => Task.FromResult(memberId ?? Guid.NewGuid());
     }
 
     private sealed class FakeShoppingListRepository : IShoppingListRepository

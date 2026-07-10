@@ -44,6 +44,29 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "user_events",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    occurred_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    actor_user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    household_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    action = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    target_type = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    target_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    metadata_json = table.Column<string>(type: "jsonb", nullable: false),
+                    request_id = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
+                    client_app = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
+                    client_platform = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
+                    client_version = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
+                    client_build = table.Column<int>(type: "integer", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_user_events", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "users",
                 columns: table => new
                 {
@@ -138,6 +161,7 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     household_id = table.Column<Guid>(type: "uuid", nullable: false),
                     email = table.Column<string>(type: "character varying(320)", maxLength: 320, nullable: false),
+                    display_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     invited_by_user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     role = table.Column<int>(type: "integer", nullable: false),
                     token = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
@@ -169,7 +193,8 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     household_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    user_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    display_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     role = table.Column<int>(type: "integer", nullable: false),
                     joined_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
@@ -187,7 +212,7 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         column: x => x.user_id,
                         principalTable: "users",
                         principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -337,6 +362,26 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                 column: "parent_id");
 
             migrationBuilder.CreateIndex(
+                name: "ix_user_events_actor_user_id_occurred_at",
+                table: "user_events",
+                columns: new[] { "actor_user_id", "occurred_at" });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_user_events_household_id_occurred_at",
+                table: "user_events",
+                columns: new[] { "household_id", "occurred_at" });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_user_events_occurred_at",
+                table: "user_events",
+                column: "occurred_at");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_user_events_target_type_target_id",
+                table: "user_events",
+                columns: new[] { "target_type", "target_id" });
+
+            migrationBuilder.CreateIndex(
                 name: "ix_users_external_identifier",
                 table: "users",
                 column: "external_identifier",
@@ -357,6 +402,9 @@ namespace Domu.Api.Infrastructure.Database.Migrations
 
             migrationBuilder.DropTable(
                 name: "shopping_list_items");
+
+            migrationBuilder.DropTable(
+                name: "user_events");
 
             migrationBuilder.DropTable(
                 name: "users");

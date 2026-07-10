@@ -1,0 +1,85 @@
+solution := "Domu.sln"
+api := "src/Domu.Api/Domu.Api.csproj"
+tests := "tests/Domu.Tests/Domu.Tests.csproj"
+environment := "Development"
+
+# Show available commands when running `just`
+default:
+    @just --list
+
+# Restore NuGet packages
+restore:
+    dotnet restore {{solution}}
+
+# Build the entire solution
+build:
+    dotnet build {{solution}}
+
+# Build without restoring packages
+build-fast:
+    dotnet build {{solution}} --no-restore
+
+# Clean build output
+clean:
+    dotnet clean {{solution}}
+
+# Run the API
+run:
+    dotnet run --project {{api}}
+
+# Run the API with hot reload
+watch:
+    dotnet watch --project {{api}} run
+
+# Run all tests
+test:
+    dotnet test {{tests}}
+
+# Run tests without rebuilding
+test-fast:
+    dotnet test {{tests}} --no-build
+
+# Run tests matching a filter:
+# just test-filter "FullyQualifiedName~UserService"
+test-filter filter:
+    dotnet test {{tests}} --filter "{{filter}}"
+
+# Drop the development database after confirmation
+db-drop:
+    dotnet ef database drop \
+        --project {{api}} \
+        --startup-project {{api}}
+
+# Drop the development database without confirmation
+db-drop-force:
+    dotnet ef database drop --force \
+        --project {{api}} \
+        --startup-project {{api}}
+
+# Apply all pending migrations
+db-update:
+    dotnet ef database update \
+        --project {{api}} \
+        --startup-project {{api}}
+
+# Drop and recreate the database
+db-reset: db-drop-force db-update
+
+# Add a migration:
+# just migration-add AddCustomers
+migration-add name:
+    dotnet ef migrations add "{{name}}" \
+        --project {{api}} \
+        --startup-project {{api}}
+
+# Remove the most recently added migration
+migration-remove:
+    dotnet ef migrations remove \
+        --project {{api}} \
+        --startup-project {{api}}
+
+# List migrations
+migration-list:
+    dotnet ef migrations list \
+        --project {{api}} \
+        --startup-project {{api}}

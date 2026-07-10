@@ -12,7 +12,7 @@ public sealed class ShoppingList
         Guid id,
         Guid householdId,
         string name,
-        Guid createdByUserId,
+        Guid createdByMemberId,
         DateTimeOffset createdAt,
         DateTimeOffset updatedAt,
         DateTimeOffset? archivedAt = null)
@@ -23,9 +23,9 @@ public sealed class ShoppingList
         HouseholdId = householdId == Guid.Empty
             ? throw new ArgumentException("Household id cannot be empty.", nameof(householdId))
             : householdId;
-        CreatedByUserId = createdByUserId == Guid.Empty
-            ? throw new ArgumentException("Created by user id cannot be empty.", nameof(createdByUserId))
-            : createdByUserId;
+        CreatedByMemberId = createdByMemberId == Guid.Empty
+            ? throw new ArgumentException("Created by member id cannot be empty.", nameof(createdByMemberId))
+            : createdByMemberId;
         CreatedAt = createdAt;
         UpdatedAt = updatedAt;
         ArchivedAt = archivedAt;
@@ -35,7 +35,7 @@ public sealed class ShoppingList
     public Guid Id { get; }
     public Guid HouseholdId { get; }
     public string Name => _name;
-    public Guid CreatedByUserId { get; }
+    public Guid CreatedByMemberId { get; }
     public DateTimeOffset CreatedAt { get; }
     public DateTimeOffset UpdatedAt { get; private set; }
     public DateTimeOffset? ArchivedAt { get; private set; }

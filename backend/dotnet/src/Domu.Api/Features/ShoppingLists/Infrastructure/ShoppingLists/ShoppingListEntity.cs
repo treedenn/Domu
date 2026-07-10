@@ -16,7 +16,7 @@ public sealed class ShoppingListEntity
         Guid householdId,
         string name,
         bool isDefault,
-        Guid createdByUserId,
+        Guid createdByMemberId,
         DateTimeOffset createdAt,
         DateTimeOffset updatedAt,
         DateTimeOffset? archivedAt)
@@ -25,7 +25,7 @@ public sealed class ShoppingListEntity
         HouseholdId = householdId;
         Name = name;
         IsDefault = isDefault;
-        CreatedByUserId = createdByUserId;
+        CreatedByMemberId = createdByMemberId;
         CreatedAt = createdAt;
         UpdatedAt = updatedAt;
         ArchivedAt = archivedAt;
@@ -35,7 +35,7 @@ public sealed class ShoppingListEntity
     public Guid HouseholdId { get; private set; }
     public string Name { get; private set; } = null!;
     public bool IsDefault { get; private set; }
-    public Guid CreatedByUserId { get; private set; }
+    public Guid CreatedByMemberId { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
     public DateTimeOffset? ArchivedAt { get; private set; }
@@ -43,7 +43,7 @@ public sealed class ShoppingListEntity
 
     public ShoppingList ToDomain()
     {
-        return new ShoppingList(Id, HouseholdId, Name, CreatedByUserId, CreatedAt, UpdatedAt, ArchivedAt);
+        return new ShoppingList(Id, HouseholdId, Name, CreatedByMemberId, CreatedAt, UpdatedAt, ArchivedAt);
     }
 
     public static ShoppingListEntity FromDomain(ShoppingList shoppingList)
@@ -55,7 +55,7 @@ public sealed class ShoppingListEntity
             shoppingList.HouseholdId,
             shoppingList.Name,
             isDefault: false,
-            shoppingList.CreatedByUserId,
+            shoppingList.CreatedByMemberId,
             shoppingList.CreatedAt,
             shoppingList.UpdatedAt,
             shoppingList.ArchivedAt);

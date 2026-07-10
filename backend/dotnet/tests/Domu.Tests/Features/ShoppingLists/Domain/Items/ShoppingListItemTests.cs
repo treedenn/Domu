@@ -43,13 +43,13 @@ public sealed class ShoppingListItemTests
     public void Check_SetsCheckedMetadata()
     {
         var item = CreateItem("Milk");
-        var userId = Guid.NewGuid();
+        var memberId = Guid.NewGuid();
         var checkedAt = DateTimeOffset.UtcNow;
 
-        item.Check(userId, checkedAt);
+        item.Check(memberId, checkedAt);
 
         Assert.True(item.Checked);
-        Assert.Equal(userId, item.CheckedByUserId);
+        Assert.Equal(memberId, item.CheckedByMemberId);
         Assert.Equal(checkedAt, item.CheckedAt);
     }
 
@@ -62,7 +62,7 @@ public sealed class ShoppingListItemTests
         item.Uncheck(DateTimeOffset.UtcNow);
 
         Assert.False(item.Checked);
-        Assert.Null(item.CheckedByUserId);
+        Assert.Null(item.CheckedByMemberId);
         Assert.Null(item.CheckedAt);
     }
 

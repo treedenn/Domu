@@ -36,9 +36,17 @@ public sealed class SetShoppingListItemCheckedStateUseCase(
             : UserEventActions.ShoppingListItemUnchecked;
 
         if (command.IsChecked)
-            item.Check(command.UserId, now);
+        {
+            var memberId = await householdAccessService.GetRequiredMemberIdAsync(
+                command.HouseholdId,
+                command.UserId,
+                cancellationToken);
+            item.Check(memberId, now);
+        }
         else
+        {
             item.Uncheck(now);
+        }
 
         await shoppingListItemRepository.UpdateAsync(item, cancellationToken);
         await _userEventRecorder.RecordAsync(

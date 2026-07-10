@@ -20,10 +20,10 @@ public sealed class ShoppingListItemEntity
         string? note,
         bool @checked,
         DateTimeOffset? checkedAt,
-        Guid? checkedByUserId,
+        Guid? checkedByMemberId,
         Guid? spaceId,
         Guid? itemId,
-        Guid addedByUserId,
+        Guid addedByMemberId,
         DateTimeOffset createdAt,
         DateTimeOffset updatedAt,
         decimal sortOrder)
@@ -39,10 +39,10 @@ public sealed class ShoppingListItemEntity
         Note = note;
         Checked = @checked;
         CheckedAt = checkedAt;
-        CheckedByUserId = checkedByUserId;
+        CheckedByMemberId = checkedByMemberId;
         SpaceId = spaceId;
         ItemId = itemId;
-        AddedByUserId = addedByUserId;
+        AddedByMemberId = addedByMemberId;
         CreatedAt = createdAt;
         UpdatedAt = updatedAt;
         SortOrder = sortOrder;
@@ -59,10 +59,10 @@ public sealed class ShoppingListItemEntity
     public string? Note { get; private set; }
     public bool Checked { get; private set; }
     public DateTimeOffset? CheckedAt { get; private set; }
-    public Guid? CheckedByUserId { get; private set; }
+    public Guid? CheckedByMemberId { get; private set; }
     public Guid? SpaceId { get; private set; }
     public Guid? ItemId { get; private set; }
-    public Guid AddedByUserId { get; private set; }
+    public Guid AddedByMemberId { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
     public decimal SortOrder { get; private set; }
@@ -74,7 +74,7 @@ public sealed class ShoppingListItemEntity
             HouseholdId,
             ShoppingListId,
             Name,
-            AddedByUserId,
+            AddedByMemberId,
             CreatedAt,
             UpdatedAt,
             SortOrder);
@@ -86,7 +86,7 @@ public sealed class ShoppingListItemEntity
         item.LinkItem(ItemId, UpdatedAt);
 
         if (Checked)
-            item.Check(CheckedByUserId ?? AddedByUserId, CheckedAt ?? UpdatedAt);
+            item.Check(CheckedByMemberId ?? AddedByMemberId, CheckedAt ?? UpdatedAt);
 
         return item;
     }
@@ -107,10 +107,10 @@ public sealed class ShoppingListItemEntity
             item.Note,
             item.Checked,
             item.CheckedAt,
-            item.CheckedByUserId,
+            item.CheckedByMemberId,
             item.SpaceId,
             item.ItemId,
-            item.AddedByUserId,
+            item.AddedByMemberId,
             item.CreatedAt,
             item.UpdatedAt,
             item.SortOrder);
@@ -132,10 +132,10 @@ public sealed class ShoppingListItemEntity
         Note = item.Note;
         Checked = item.Checked;
         CheckedAt = item.CheckedAt;
-        CheckedByUserId = item.CheckedByUserId;
+        CheckedByMemberId = item.CheckedByMemberId;
         SpaceId = item.SpaceId;
         ItemId = item.ItemId;
-        AddedByUserId = item.AddedByUserId;
+        AddedByMemberId = item.AddedByMemberId;
         CreatedAt = item.CreatedAt;
         UpdatedAt = item.UpdatedAt;
         SortOrder = item.SortOrder;

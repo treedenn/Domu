@@ -1,4 +1,5 @@
 using Domu.Api.Features.Households.Infrastructure.Households;
+using Domu.Api.Features.Households.Infrastructure.Members;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -22,7 +23,7 @@ public sealed class ShoppingListConfiguration : IEntityTypeConfiguration<Shoppin
         builder.Property(shoppingList => shoppingList.HouseholdId)
             .IsRequired();
 
-        builder.Property(shoppingList => shoppingList.CreatedByUserId)
+        builder.Property(shoppingList => shoppingList.CreatedByMemberId)
             .IsRequired();
 
         builder.Property(shoppingList => shoppingList.CreatedAt)
@@ -41,10 +42,16 @@ public sealed class ShoppingListConfiguration : IEntityTypeConfiguration<Shoppin
             .HasForeignKey(shoppingList => shoppingList.HouseholdId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne<HouseholdMemberEntity>()
+            .WithMany()
+            .HasForeignKey(shoppingList => shoppingList.CreatedByMemberId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.Navigation(shoppingList => shoppingList.Items)
             .UsePropertyAccessMode(PropertyAccessMode.Field);
 
         builder.HasIndex(shoppingList => shoppingList.HouseholdId);
+        builder.HasIndex(shoppingList => shoppingList.CreatedByMemberId);
 
         builder.HasIndex(shoppingList => new { shoppingList.HouseholdId, shoppingList.IsDefault });
 

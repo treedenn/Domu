@@ -13,7 +13,7 @@ public sealed class HouseholdInvitationEntity
         Guid householdId,
         string email,
         string displayName,
-        Guid invitedByUserId,
+        Guid invitedByMemberId,
         HouseholdMemberRole role,
         string token,
         HouseholdInvitationStatus status,
@@ -31,9 +31,9 @@ public sealed class HouseholdInvitationEntity
             ? throw new ArgumentException("Email cannot be empty.", nameof(email))
             : email;
         DisplayName = HouseholdMember.ValidateDisplayName(displayName);
-        InvitedByUserId = invitedByUserId == Guid.Empty
-            ? throw new ArgumentException("Invited-by user id cannot be empty.", nameof(invitedByUserId))
-            : invitedByUserId;
+        InvitedByMemberId = invitedByMemberId == Guid.Empty
+            ? throw new ArgumentException("Invited-by member id cannot be empty.", nameof(invitedByMemberId))
+            : invitedByMemberId;
         Role = role;
         Token = string.IsNullOrWhiteSpace(token)
             ? throw new ArgumentException("Token cannot be empty.", nameof(token))
@@ -48,7 +48,7 @@ public sealed class HouseholdInvitationEntity
     public Guid HouseholdId { get; private set; }
     public string Email { get; private set; } = null!;
     public string DisplayName { get; private set; } = null!;
-    public Guid InvitedByUserId { get; private set; }
+    public Guid InvitedByMemberId { get; private set; }
     public HouseholdMemberRole Role { get; private set; }
     public string Token { get; private set; } = null!;
     public HouseholdInvitationStatus Status { get; private set; }
@@ -63,7 +63,7 @@ public sealed class HouseholdInvitationEntity
             HouseholdId,
             Email,
             DisplayName,
-            InvitedByUserId,
+            InvitedByMemberId,
             Role,
             Token,
             Status,
@@ -81,7 +81,7 @@ public sealed class HouseholdInvitationEntity
             invitation.HouseholdId,
             invitation.Email,
             invitation.DisplayName,
-            invitation.InvitedByUserId,
+            invitation.InvitedByMemberId,
             invitation.Role,
             invitation.Token,
             invitation.Status,

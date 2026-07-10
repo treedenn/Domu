@@ -2,8 +2,8 @@
 
 The Shopping Lists feature lets members of a household manage named shopping
 lists and the items within them. Lists are household-shared resources;
-`CreatedByUserId` records who created a list but does not make it private to that
-user.
+`CreatedByMemberId` records who created a list but does not make it private to that
+member.
 
 ## Structure
 

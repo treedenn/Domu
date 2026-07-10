@@ -28,6 +28,10 @@ public sealed class CreateShoppingListItemUseCase(
             command.ShoppingListId,
             command.UserId,
             cancellationToken);
+        var memberId = await householdAccessService.GetRequiredMemberIdAsync(
+            command.HouseholdId,
+            command.UserId,
+            cancellationToken);
 
         await ShoppingListPermissionPolicy.ValidateReferencesAsync(
             shoppingListItemRepository,
@@ -42,7 +46,7 @@ public sealed class CreateShoppingListItemUseCase(
             command.HouseholdId,
             command.ShoppingListId,
             command.Name,
-            command.UserId,
+            memberId,
             now,
             now,
             await shoppingListItemRepository.GetNextSortOrderAsync(command.ShoppingListId, cancellationToken));
