@@ -22,6 +22,15 @@ internal sealed class FakeHouseholdMembershipRepository : IHouseholdMembershipRe
             member.HouseholdId == householdId && member.UserId == userId));
     }
 
+    public Task<HouseholdMember?> GetMemberByIdAsync(
+        Guid householdId,
+        Guid memberId,
+        CancellationToken cancellationToken)
+    {
+        return Task.FromResult(_members.SingleOrDefault(member =>
+            member.HouseholdId == householdId && member.Id == memberId));
+    }
+
     public Task<IReadOnlyList<HouseholdMember>> GetMembersAsync(Guid householdId, CancellationToken cancellationToken)
     {
         return Task.FromResult<IReadOnlyList<HouseholdMember>>(
@@ -31,6 +40,15 @@ internal sealed class FakeHouseholdMembershipRepository : IHouseholdMembershipRe
     public Task AddMemberAsync(HouseholdMember member, CancellationToken cancellationToken)
     {
         _members.Add(member);
+        return Task.CompletedTask;
+    }
+
+    public Task UpdateMemberAsync(HouseholdMember member, CancellationToken cancellationToken)
+    {
+        var index = _members.FindIndex(existingMember => existingMember.Id == member.Id);
+        if (index >= 0)
+            _members[index] = member;
+
         return Task.CompletedTask;
     }
 

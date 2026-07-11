@@ -14,16 +14,17 @@ namespace Domu.Api.Features.Households.Interface;
 [Tags("Households")]
 public sealed class HouseholdsController(
     IUserAccessor userAccessor,
-    ICreateHouseholdUseCase createHouseholdUseCase,
-    IGetHouseholdUseCase getHouseholdUseCase,
-    IGetHouseholdsUseCase getHouseholdsUseCase,
-    IUpdateHouseholdUseCase updateHouseholdUseCase,
-    IDeleteHouseholdUseCase deleteHouseholdUseCase,
-    IGetHouseholdMembersUseCase getHouseholdMembersUseCase,
-    ICreateHouseholdMemberUseCase createHouseholdMemberUseCase,
-    IGetHouseholdInvitationsUseCase getHouseholdInvitationsUseCase,
-    IInviteHouseholdMemberUseCase inviteHouseholdMemberUseCase,
-    IAcceptHouseholdInvitationUseCase acceptHouseholdInvitationUseCase)
+    CreateHouseholdUseCase createHouseholdUseCase,
+    GetHouseholdUseCase getHouseholdUseCase,
+    GetHouseholdsUseCase getHouseholdsUseCase,
+    UpdateHouseholdUseCase updateHouseholdUseCase,
+    DeleteHouseholdUseCase deleteHouseholdUseCase,
+    GetHouseholdMembersUseCase getHouseholdMembersUseCase,
+    CreateHouseholdMemberUseCase createHouseholdMemberUseCase,
+    UpdateHouseholdMemberUseCase updateHouseholdMemberUseCase,
+    GetHouseholdInvitationsUseCase getHouseholdInvitationsUseCase,
+    InviteHouseholdMemberUseCase inviteHouseholdMemberUseCase,
+    AcceptHouseholdInvitationUseCase acceptHouseholdInvitationUseCase)
     : ControllerBase
 {
     [HttpGet]
@@ -78,6 +79,40 @@ public sealed class HouseholdsController(
                 cancellationToken);
 
             return Created($"/api/v1/households/{householdId}/members/{member.Id}", member);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(new ProblemDetails { Title = "Invalid household member.", Detail = exception.Message });
+        }
+    }
+
+    [HttpPut("{householdId:guid}/members/{memberId:guid}")]
+    [ProducesResponseType(typeof(HouseholdMemberView), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<HouseholdMemberView>> UpdateMember(
+        Guid householdId,
+        Guid memberId,
+        UpdateHouseholdMemberRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var member = await updateHouseholdMemberUseCase.ExecuteAsync(
+                new UpdateHouseholdMemberCommand(
+                    householdId,
+                    memberId,
+                    userAccessor.User.Id,
+                    request.DisplayName,
+                    request.Role,
+                    request.Archived),
+                cancellationToken);
+
+            return Ok(member);
         }
         catch (KeyNotFoundException)
         {

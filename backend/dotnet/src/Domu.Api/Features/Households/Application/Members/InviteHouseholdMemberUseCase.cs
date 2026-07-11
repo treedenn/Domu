@@ -12,7 +12,6 @@ public sealed class InviteHouseholdMemberUseCase(
     IHouseholdMembershipRepository membershipRepository,
     IHouseholdInvitationSender invitationSender,
     IUserEventRecorder? userEventRecorder = null)
-    : IInviteHouseholdMemberUseCase
 {
     private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
 

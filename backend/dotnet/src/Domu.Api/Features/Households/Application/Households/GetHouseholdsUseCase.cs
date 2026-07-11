@@ -3,7 +3,7 @@ using Domu.Api.Features.Households.Application.Households.Ports;
 
 namespace Domu.Api.Features.Households.Application.Households;
 
-public sealed class GetHouseholdsUseCase(IHouseholdRepository householdRepository) : IGetHouseholdsUseCase
+public sealed class GetHouseholdsUseCase(IHouseholdRepository householdRepository)
 {
     public async Task<IReadOnlyList<HouseholdView>> ExecuteAsync(
         GetHouseholdsQuery query,

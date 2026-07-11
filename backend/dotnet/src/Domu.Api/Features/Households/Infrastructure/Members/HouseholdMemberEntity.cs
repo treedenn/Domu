@@ -14,7 +14,8 @@ public sealed class HouseholdMemberEntity
         Guid? userId,
         string displayName,
         HouseholdMemberRole role,
-        DateTimeOffset joinedAt)
+        DateTimeOffset joinedAt,
+        bool archived)
     {
         Id = id == Guid.Empty
             ? throw new ArgumentException("Household member id cannot be empty.", nameof(id))
@@ -28,6 +29,7 @@ public sealed class HouseholdMemberEntity
         DisplayName = HouseholdMember.ValidateDisplayName(displayName);
         Role = role;
         JoinedAt = joinedAt;
+        Archived = archived;
     }
 
     public Guid Id { get; private set; }
@@ -36,10 +38,11 @@ public sealed class HouseholdMemberEntity
     public string DisplayName { get; private set; } = null!;
     public HouseholdMemberRole Role { get; private set; }
     public DateTimeOffset JoinedAt { get; private set; }
+    public bool Archived { get; private set; }
 
     public HouseholdMember ToDomain()
     {
-        return new HouseholdMember(Id, HouseholdId, UserId, DisplayName, Role, JoinedAt);
+        return new HouseholdMember(Id, HouseholdId, UserId, DisplayName, Role, JoinedAt, Archived);
     }
 
     public static HouseholdMemberEntity FromDomain(HouseholdMember member)
@@ -52,6 +55,7 @@ public sealed class HouseholdMemberEntity
             member.UserId,
             member.DisplayName,
             member.Role,
-            member.JoinedAt);
+            member.JoinedAt,
+            member.Archived);
     }
 }

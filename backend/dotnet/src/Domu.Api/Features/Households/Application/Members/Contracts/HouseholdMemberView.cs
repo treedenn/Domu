@@ -8,7 +8,8 @@ public sealed record HouseholdMemberView(
     Guid? UserId,
     string DisplayName,
     HouseholdMemberRole Role,
-    DateTimeOffset JoinedAt)
+    DateTimeOffset JoinedAt,
+    bool Archived)
 {
     public static HouseholdMemberView FromDomain(HouseholdMember member)
     {
@@ -18,6 +19,7 @@ public sealed record HouseholdMemberView(
             member.UserId,
             member.DisplayName,
             member.Role,
-            member.JoinedAt);
+            member.JoinedAt,
+            member.Archived);
     }
 }

@@ -28,6 +28,9 @@ public sealed class HouseholdMemberConfiguration : IEntityTypeConfiguration<Hous
             .HasMaxLength(HouseholdMember.DisplayNameMaxLength)
             .IsRequired();
 
+        builder.Property(member => member.Archived)
+            .IsRequired();
+
         builder.HasIndex(member => new { member.HouseholdId, member.UserId })
             .IsUnique();
 

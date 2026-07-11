@@ -8,7 +8,6 @@ namespace Domu.Api.Features.Households.Application.Members;
 public sealed class AcceptHouseholdInvitationUseCase(
     IHouseholdMembershipRepository membershipRepository,
     IUserEventRecorder? userEventRecorder = null)
-    : IAcceptHouseholdInvitationUseCase
 {
     private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
 

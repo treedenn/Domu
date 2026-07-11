@@ -99,6 +99,7 @@ required and limited to 100 characters.
 | --- | --- | --- | --- |
 | `GET` | `/households/{householdId}/members` | `GetHouseholdMembersUseCase` | Members of an accessible household |
 | `POST` | `/households/{householdId}/members` | `CreateHouseholdMemberUseCase` | Creates an accountless member |
+| `PUT` | `/households/{householdId}/members/{memberId}` | `UpdateHouseholdMemberUseCase` | Updates a member |
 | `GET` | `/households/{householdId}/invitations` | `GetHouseholdInvitationsUseCase` | Pending invitations |
 | `POST` | `/households/{householdId}/invitations` | `InviteHouseholdMemberUseCase` | Creates or resends an invitation |
 | `POST` | `/households/invitations/{token}/accept` | `AcceptHouseholdInvitationUseCase` | Accepts an invitation and creates a linked member |

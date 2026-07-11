@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.Households.Application.Households.Ports;
 using Domu.Api.Features.Households.Application.Members;
@@ -57,16 +59,17 @@ builder.Services.AddScoped<IHouseholdRepository, HouseholdRepository>();
 builder.Services.AddScoped<IHouseholdMembershipRepository, HouseholdMembershipRepository>();
 builder.Services.AddScoped<IHouseholdInvitationSender, LoggingHouseholdInvitationSender>();
 builder.Services.AddScoped<IHouseholdAccessService, HouseholdAccessService>();
-builder.Services.AddScoped<ICreateHouseholdUseCase, CreateHouseholdUseCase>();
-builder.Services.AddScoped<IGetHouseholdUseCase, GetHouseholdUseCase>();
-builder.Services.AddScoped<IGetHouseholdsUseCase, GetHouseholdsUseCase>();
-builder.Services.AddScoped<IUpdateHouseholdUseCase, UpdateHouseholdUseCase>();
-builder.Services.AddScoped<IDeleteHouseholdUseCase, DeleteHouseholdUseCase>();
-builder.Services.AddScoped<IGetHouseholdMembersUseCase, GetHouseholdMembersUseCase>();
-builder.Services.AddScoped<ICreateHouseholdMemberUseCase, CreateHouseholdMemberUseCase>();
-builder.Services.AddScoped<IGetHouseholdInvitationsUseCase, GetHouseholdInvitationsUseCase>();
-builder.Services.AddScoped<IInviteHouseholdMemberUseCase, InviteHouseholdMemberUseCase>();
-builder.Services.AddScoped<IAcceptHouseholdInvitationUseCase, AcceptHouseholdInvitationUseCase>();
+builder.Services.AddScoped<CreateHouseholdUseCase>();
+builder.Services.AddScoped<GetHouseholdUseCase>();
+builder.Services.AddScoped<GetHouseholdsUseCase>();
+builder.Services.AddScoped<UpdateHouseholdUseCase>();
+builder.Services.AddScoped<DeleteHouseholdUseCase>();
+builder.Services.AddScoped<GetHouseholdMembersUseCase>();
+builder.Services.AddScoped<CreateHouseholdMemberUseCase>();
+builder.Services.AddScoped<UpdateHouseholdMemberUseCase>();
+builder.Services.AddScoped<GetHouseholdInvitationsUseCase>();
+builder.Services.AddScoped<InviteHouseholdMemberUseCase>();
+builder.Services.AddScoped<AcceptHouseholdInvitationUseCase>();
 builder.Services.AddScoped<IShoppingListRepository, ShoppingListRepository>();
 builder.Services.AddScoped<IShoppingListItemRepository, ShoppingListItemRepository>();
 builder.Services.AddScoped<GetShoppingListsUseCase>();
@@ -100,7 +103,13 @@ builder.Services.AddScoped<ISearchSpacesAndItemsUseCase, SearchSpacesAndItemsUse
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IEnsureUserUseCase, EnsureUserUseCase>();
 builder.Services.AddScoped<IUserAccessor, UserAccessor>();
-builder.Services.AddControllers();
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false));
+    });
 builder.Services.AddAuthorization();
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

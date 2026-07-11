@@ -11,7 +11,6 @@ public sealed class CreateHouseholdUseCase(
     IHouseholdRepository householdRepository,
     IHouseholdMembershipRepository membershipRepository,
     IUserEventRecorder? userEventRecorder = null)
-    : ICreateHouseholdUseCase
 {
     private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
 

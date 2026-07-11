@@ -6,7 +6,6 @@ namespace Domu.Api.Features.Households.Application.Households;
 public sealed class DeleteHouseholdUseCase(
     IHouseholdRepository householdRepository,
     IUserEventRecorder? userEventRecorder = null)
-    : IDeleteHouseholdUseCase
 {
     private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
 

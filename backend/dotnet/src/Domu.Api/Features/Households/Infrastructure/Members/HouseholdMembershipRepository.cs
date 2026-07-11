@@ -25,6 +25,20 @@ public sealed class HouseholdMembershipRepository(AppDbContext dbContext) : IHou
         return member?.ToDomain();
     }
 
+    public async Task<HouseholdMember?> GetMemberByIdAsync(
+        Guid householdId,
+        Guid memberId,
+        CancellationToken cancellationToken)
+    {
+        var member = await dbContext.HouseholdMembers
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                member => member.HouseholdId == householdId && member.Id == memberId,
+                cancellationToken);
+
+        return member?.ToDomain();
+    }
+
     public async Task<IReadOnlyList<HouseholdMember>> GetMembersAsync(
         Guid householdId,
         CancellationToken cancellationToken)
@@ -42,6 +56,15 @@ public sealed class HouseholdMembershipRepository(AppDbContext dbContext) : IHou
     public async Task AddMemberAsync(HouseholdMember member, CancellationToken cancellationToken)
     {
         await dbContext.HouseholdMembers.AddAsync(HouseholdMemberEntity.FromDomain(member), cancellationToken);
+    }
+
+    public async Task UpdateMemberAsync(HouseholdMember member, CancellationToken cancellationToken)
+    {
+        var entity = await dbContext.HouseholdMembers
+                         .SingleOrDefaultAsync(existing => existing.Id == member.Id, cancellationToken)
+                     ?? throw new KeyNotFoundException($"Household member '{member.Id}' was not found.");
+
+        dbContext.Entry(entity).CurrentValues.SetValues(HouseholdMemberEntity.FromDomain(member));
     }
 
     public async Task<IReadOnlyList<HouseholdInvitation>> GetPendingInvitationsAsync(

@@ -7,7 +7,6 @@ namespace Domu.Api.Features.Households.Application.Households;
 public sealed class GetHouseholdUseCase(
     IHouseholdRepository householdRepository,
     IHouseholdMembershipRepository membershipRepository)
-    : IGetHouseholdUseCase
 {
     public async Task<HouseholdView> ExecuteAsync(GetHouseholdQuery query, CancellationToken cancellationToken)
     {

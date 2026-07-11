@@ -7,4 +7,5 @@ public sealed record CreateHouseholdMemberRequest(
     [Required]
     [MaxLength(HouseholdMember.DisplayNameMaxLength)]
     string DisplayName,
+    [DisallowUnspecifiedHouseholdMemberRole]
     HouseholdMemberRole Role = HouseholdMemberRole.Member);

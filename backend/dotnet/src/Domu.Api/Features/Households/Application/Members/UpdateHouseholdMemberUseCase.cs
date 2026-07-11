@@ -5,12 +5,12 @@ using Domu.Api.Features.Households.Domain.Members;
 
 namespace Domu.Api.Features.Households.Application.Members;
 
-public sealed class CreateHouseholdMemberUseCase(
+public sealed class UpdateHouseholdMemberUseCase(
     IHouseholdRepository householdRepository,
     IHouseholdMembershipRepository membershipRepository)
 {
     public async Task<HouseholdMemberView> ExecuteAsync(
-        CreateHouseholdMemberCommand command,
+        UpdateHouseholdMemberCommand command,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -18,20 +18,25 @@ public sealed class CreateHouseholdMemberUseCase(
         var household = await householdRepository.GetByIdAsync(command.HouseholdId, cancellationToken)
                         ?? throw new KeyNotFoundException($"Household '{command.HouseholdId}' was not found.");
 
-        if (household.OwnerId != command.CreatedByUserId)
+        if (household.OwnerId != command.UpdatedByUserId)
             throw new KeyNotFoundException($"Household '{command.HouseholdId}' was not found.");
         if (command.Role is HouseholdMemberRole.Owner or HouseholdMemberRole.Unspecified)
-            throw new ArgumentException("Accountless members must have the admin or member role.", nameof(command));
+            throw new ArgumentException("Household members must have the admin or member role.", nameof(command));
 
-        var member = new HouseholdMember(
-            Guid.CreateVersion7(),
+        var member = await membershipRepository.GetMemberByIdAsync(
             command.HouseholdId,
-            null,
-            command.DisplayName,
-            command.Role,
-            DateTimeOffset.UtcNow);
+            command.MemberId,
+            cancellationToken)
+            ?? throw new KeyNotFoundException($"Household member '{command.MemberId}' was not found.");
 
-        await membershipRepository.AddMemberAsync(member, cancellationToken);
+        if (member.Role == HouseholdMemberRole.Owner)
+            throw new ArgumentException("The household owner member cannot be updated through this endpoint.", nameof(command));
+
+        member.Rename(command.DisplayName);
+        member.ChangeRole(command.Role);
+        member.SetArchived(command.Archived);
+
+        await membershipRepository.UpdateMemberAsync(member, cancellationToken);
         await membershipRepository.SaveChangesAsync(cancellationToken);
 
         return HouseholdMemberView.FromDomain(member);
