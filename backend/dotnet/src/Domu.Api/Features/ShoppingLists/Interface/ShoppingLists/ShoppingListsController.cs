@@ -98,7 +98,7 @@ public sealed class ShoppingListsController(
         try
         {
             var list = await updateShoppingListUseCase.ExecuteAsync(
-                new UpdateShoppingListCommand(userAccessor.User.Id, householdId, shoppingListId, request.Name),
+                new UpdateShoppingListCommand(userAccessor.User.Id, householdId, shoppingListId, request.Name, request.Archived),
                 cancellationToken);
             return Ok(list);
         }

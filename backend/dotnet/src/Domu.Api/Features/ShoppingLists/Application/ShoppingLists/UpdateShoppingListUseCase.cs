@@ -18,6 +18,14 @@ public sealed class UpdateShoppingListUseCase(
         var list = await ShoppingListPermissionPolicy.GetAccessibleListAsync(
             shoppingListRepository, householdAccessService, command.HouseholdId, command.ShoppingListId, command.UserId, cancellationToken);
         list.Rename(command.Name, DateTimeOffset.UtcNow);
+        if (command.Archived)
+        {
+            list.Archive(DateTimeOffset.UtcNow);
+        }
+        else
+        {
+            list.Unarchive();
+        }
 
         await shoppingListRepository.UpdateAsync(list, cancellationToken);
         await _userEventRecorder.RecordAsync(
