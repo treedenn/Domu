@@ -14,7 +14,6 @@ public static class HouseholdMembershipRepositoryExtensions
         var member = await repository.GetMemberAsync(household.Id, userId, cancellationToken);
         return member is not null
                && !member.Archived
-               && member.Role == HouseholdMemberRole.Owner
-               && household.OwnerMemberId == member.Id;
+               && member.Role == HouseholdMemberRole.Owner;
     }
 }

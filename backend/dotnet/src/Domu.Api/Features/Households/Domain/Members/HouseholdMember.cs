@@ -23,7 +23,10 @@ public sealed class HouseholdMember
             ? throw new ArgumentException("User id cannot be empty.", nameof(userId))
             : userId;
         Rename(displayName);
-        ChangeRole(role);
+        ValidateRole(role);
+        Role = role;
+        if (role == HouseholdMemberRole.Owner && archived)
+            throw new ArgumentException("The household owner cannot be archived.", nameof(archived));
         JoinedAt = joinedAt;
         Archived = archived;
     }
@@ -44,16 +47,20 @@ public sealed class HouseholdMember
 
     public void ChangeRole(HouseholdMemberRole role)
     {
-        if (!Enum.IsDefined(role))
-            throw new ArgumentException("Household member role is invalid.", nameof(role));
-        if (role == HouseholdMemberRole.Unspecified)
-            throw new ArgumentException("Household member role must be specified.", nameof(role));
+        ValidateRole(role);
+        if (Role == HouseholdMemberRole.Owner && role != HouseholdMemberRole.Owner)
+            throw new InvalidOperationException("The household owner cannot be assigned another role.");
+        if (Role != HouseholdMemberRole.Owner && role == HouseholdMemberRole.Owner)
+            throw new InvalidOperationException("A household member cannot be promoted to owner.");
 
         Role = role;
     }
 
     public void SetArchived(bool archived)
     {
+        if (Role == HouseholdMemberRole.Owner && archived)
+            throw new InvalidOperationException("The household owner cannot be archived.");
+
         Archived = archived;
     }
 
@@ -68,5 +75,13 @@ public sealed class HouseholdMember
                 nameof(displayName));
 
         return normalized;
+    }
+
+    private static void ValidateRole(HouseholdMemberRole role)
+    {
+        if (!Enum.IsDefined(role))
+            throw new ArgumentException("Household member role is invalid.", nameof(role));
+        if (role == HouseholdMemberRole.Unspecified)
+            throw new ArgumentException("Household member role must be specified.", nameof(role));
     }
 }

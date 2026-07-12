@@ -19,7 +19,7 @@ public sealed class CreateHouseholdUseCase(
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        var household = new Household(Guid.CreateVersion7(), null, command.Name);
+        var household = new Household(Guid.CreateVersion7(), command.Name);
         var ownerMember = new HouseholdMember(
             Guid.CreateVersion7(),
             household.Id,
@@ -30,8 +30,6 @@ public sealed class CreateHouseholdUseCase(
 
         await householdRepository.AddAsync(household, cancellationToken);
         await membershipRepository.AddMemberAsync(ownerMember, cancellationToken);
-        household.AssignOwner(ownerMember.Id);
-        await householdRepository.UpdateAsync(household, cancellationToken);
         await _userEventRecorder.RecordAsync(
             ownerMember.Id,
             HouseholdEventActions.HouseholdCreated,

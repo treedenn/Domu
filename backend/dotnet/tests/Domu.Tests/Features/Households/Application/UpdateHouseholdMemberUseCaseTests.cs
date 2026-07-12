@@ -13,7 +13,7 @@ public sealed class UpdateHouseholdMemberUseCaseTests
     {
         var ownerMemberId = Guid.NewGuid();
         var ownerUserId = Guid.NewGuid();
-        var household = new Household(Guid.NewGuid(), ownerMemberId, "Home");
+        var household = new Household(Guid.NewGuid(), "Home");
         var member = new HouseholdMember(
             Guid.NewGuid(),
             household.Id,
@@ -52,7 +52,7 @@ public sealed class UpdateHouseholdMemberUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WhenRequesterIsNotOwner_Throws()
     {
-        var household = new Household(Guid.NewGuid(), Guid.NewGuid(), "Home");
+        var household = new Household(Guid.NewGuid(), "Home");
         var member = new HouseholdMember(
             Guid.NewGuid(),
             household.Id,
@@ -84,7 +84,7 @@ public sealed class UpdateHouseholdMemberUseCaseTests
     {
         var ownerMemberId = Guid.NewGuid();
         var ownerUserId = Guid.NewGuid();
-        var household = new Household(Guid.NewGuid(), ownerMemberId, "Home");
+        var household = new Household(Guid.NewGuid(), "Home");
         var member = new HouseholdMember(
             ownerMemberId,
             household.Id,

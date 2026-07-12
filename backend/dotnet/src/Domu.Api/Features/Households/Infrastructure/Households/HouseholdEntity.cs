@@ -10,7 +10,6 @@ public sealed class HouseholdEntity
 
     public HouseholdEntity(
         Guid id,
-        Guid? ownerMemberId,
         string name,
         HouseholdSubscriptionPlan subscriptionPlan,
         HouseholdSubscriptionStatus subscriptionStatus,
@@ -20,9 +19,6 @@ public sealed class HouseholdEntity
         Id = id == Guid.Empty
             ? throw new ArgumentException("Household id cannot be empty.", nameof(id))
             : id;
-        OwnerMemberId = ownerMemberId == Guid.Empty
-            ? throw new ArgumentException("Owner id cannot be empty.", nameof(ownerMemberId))
-            : ownerMemberId;
         Name = string.IsNullOrWhiteSpace(name)
             ? throw new ArgumentException("Household name cannot be empty.", nameof(name))
             : name;
@@ -33,7 +29,6 @@ public sealed class HouseholdEntity
     }
 
     public Guid Id { get; }
-    public Guid? OwnerMemberId { get; private set; }
     public string Name { get; private set; } = null!;
     public HouseholdSubscriptionPlan SubscriptionPlan { get; private set; }
     public HouseholdSubscriptionStatus SubscriptionStatus { get; private set; }
@@ -44,7 +39,6 @@ public sealed class HouseholdEntity
     {
         return new Household(
             Id,
-            OwnerMemberId,
             Name,
             SubscriptionPlan,
             SubscriptionStatus,
@@ -58,7 +52,6 @@ public sealed class HouseholdEntity
 
         return new HouseholdEntity(
             household.Id,
-            household.OwnerMemberId,
             household.Name,
             household.SubscriptionPlan,
             household.SubscriptionStatus,
@@ -73,7 +66,6 @@ public sealed class HouseholdEntity
             throw new ArgumentException("Cannot update household entity from a different household.",
                 nameof(household));
 
-        OwnerMemberId = household.OwnerMemberId;
         Name = household.Name;
         SubscriptionPlan = household.SubscriptionPlan;
         SubscriptionStatus = household.SubscriptionStatus;

@@ -13,7 +13,7 @@ public sealed class GetHouseholdUseCaseTests
     {
         var ownerMemberId = Guid.NewGuid();
         var ownerUserId = Guid.NewGuid();
-        var household = new Household(Guid.NewGuid(), ownerMemberId, "Home");
+        var household = new Household(Guid.NewGuid(), "Home");
         var repository = new FakeHouseholdRepository(household);
         var memberships = new FakeHouseholdMembershipRepository();
         await memberships.AddMemberAsync(
@@ -26,14 +26,13 @@ public sealed class GetHouseholdUseCaseTests
             CancellationToken.None);
 
         Assert.Equal(household.Id, result.Id);
-        Assert.Equal(ownerMemberId, result.OwnerMemberId);
         Assert.Equal("Home", result.Name);
     }
 
     [Fact]
     public async Task ExecuteAsync_WhenHouseholdBelongsToAnotherOwner_Throws()
     {
-        var household = new Household(Guid.NewGuid(), Guid.NewGuid(), "Home");
+        var household = new Household(Guid.NewGuid(), "Home");
         var repository = new FakeHouseholdRepository(household);
         var useCase = new GetHouseholdUseCase(repository, new FakeHouseholdMembershipRepository());
 
@@ -56,7 +55,7 @@ public sealed class GetHouseholdUseCaseTests
         public Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId,
             CancellationToken cancellationToken)
         {
-            return GetByOwnerIdAsync(userId, cancellationToken);
+            return Task.FromResult<IReadOnlyList<Household>>(_storedHouseholds);
         }
 
         public Task AddAsync(Household household, CancellationToken cancellationToken)
@@ -81,10 +80,5 @@ public sealed class GetHouseholdUseCaseTests
             return Task.CompletedTask;
         }
 
-        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerMemberId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<IReadOnlyList<Household>>(
-                _storedHouseholds.Where(household => household.OwnerMemberId == ownerMemberId).ToArray());
-        }
     }
 }

@@ -8,20 +8,18 @@ namespace Domu.Tests.Features.Households.Application;
 public sealed class GetHouseholdsUseCaseTests
 {
     [Fact]
-    public async Task ExecuteAsync_ReturnsOnlyHouseholdsForOwner()
+    public async Task ExecuteAsync_ReturnsOnlyAccessibleHouseholds()
     {
-        var ownerMemberId = Guid.NewGuid();
-        var otherOwnerId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
         var repository = new FakeHouseholdRepository(
-            new Household(Guid.NewGuid(), ownerMemberId, "Home"),
-            new Household(Guid.NewGuid(), otherOwnerId, "Other"));
+            new Household(Guid.NewGuid(), "Home"),
+            new Household(Guid.NewGuid(), "Other"));
         var useCase = new GetHouseholdsUseCase(repository);
 
         var result = await useCase.ExecuteAsync(
-            new GetHouseholdsQuery(new DomuActor(ownerMemberId, DomuActorType.Zitadel)), CancellationToken.None);
+            new GetHouseholdsQuery(new DomuActor(userId, DomuActorType.Zitadel)), CancellationToken.None);
 
         var household = Assert.Single(result);
-        Assert.Equal(ownerMemberId, household.OwnerMemberId);
         Assert.Equal("Home", household.Name);
     }
 
@@ -37,7 +35,7 @@ public sealed class GetHouseholdsUseCaseTests
         public Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId,
             CancellationToken cancellationToken)
         {
-            return GetByOwnerIdAsync(userId, cancellationToken);
+            return Task.FromResult<IReadOnlyList<Household>>(_storedHouseholds.Take(1).ToArray());
         }
 
         public Task AddAsync(Household household, CancellationToken cancellationToken)
@@ -62,10 +60,5 @@ public sealed class GetHouseholdsUseCaseTests
             return Task.CompletedTask;
         }
 
-        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerMemberId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<IReadOnlyList<Household>>(
-                _storedHouseholds.Where(household => household.OwnerMemberId == ownerMemberId).ToArray());
-        }
     }
 }

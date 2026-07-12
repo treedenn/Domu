@@ -7,25 +7,16 @@ public sealed class HouseholdUnitTest
     [Fact]
     public void Constructor_WithEmptyId_Throws()
     {
-        var action = () => new Household(Guid.Empty, Guid.NewGuid(), "Home");
+        var action = () => new Household(Guid.Empty, "Home");
 
         var exception = Assert.Throws<ArgumentException>(action);
         Assert.Contains("Household id cannot be empty.", exception.Message);
     }
 
     [Fact]
-    public void Constructor_WithEmptyOwnerId_Throws()
-    {
-        var action = () => new Household(Guid.NewGuid(), Guid.Empty, "Home");
-
-        var exception = Assert.Throws<ArgumentException>(action);
-        Assert.Contains("Owner member id cannot be empty.", exception.Message);
-    }
-
-    [Fact]
     public void Constructor_WithWhitespaceName_Throws()
     {
-        var action = () => new Household(Guid.NewGuid(), Guid.NewGuid(), " ");
+        var action = () => new Household(Guid.NewGuid(), " ");
 
         var exception = Assert.Throws<ArgumentException>(action);
         Assert.Contains("Household name cannot be null or whitespace.", exception.Message);
@@ -34,7 +25,7 @@ public sealed class HouseholdUnitTest
     [Fact]
     public void Rename_WithTooLongName_Throws()
     {
-        var household = new Household(Guid.NewGuid(), Guid.NewGuid(), "Home");
+        var household = new Household(Guid.NewGuid(), "Home");
         var tooLongName = new string('A', Household.NameMaxLength + 1);
 
         var action = () => household.Rename(tooLongName);
@@ -47,7 +38,7 @@ public sealed class HouseholdUnitTest
     [Fact]
     public void Rename_WithValidName_UpdatesName()
     {
-        var household = new Household(Guid.NewGuid(), Guid.NewGuid(), "Home");
+        var household = new Household(Guid.NewGuid(), "Home");
 
         household.Rename("Apartment");
 
@@ -57,7 +48,7 @@ public sealed class HouseholdUnitTest
     [Fact]
     public void Constructor_DefaultsToFreeActiveSubscription()
     {
-        var household = new Household(Guid.NewGuid(), Guid.NewGuid(), "Home");
+        var household = new Household(Guid.NewGuid(), "Home");
 
         Assert.Equal(HouseholdSubscriptionPlan.Free, household.SubscriptionPlan);
         Assert.Equal(HouseholdSubscriptionStatus.Active, household.SubscriptionStatus);
@@ -68,7 +59,7 @@ public sealed class HouseholdUnitTest
     [Fact]
     public void ActivatePremiumSubscription_WithFuturePeriodEnd_EnablesPremiumAccess()
     {
-        var household = new Household(Guid.NewGuid(), Guid.NewGuid(), "Home");
+        var household = new Household(Guid.NewGuid(), "Home");
         var activatedAt = DateTimeOffset.UtcNow;
         var periodEnd = activatedAt.AddMonths(1);
 
@@ -83,7 +74,7 @@ public sealed class HouseholdUnitTest
     [Fact]
     public void ScheduleSubscriptionCancellation_KeepsPremiumAccessUntilPeriodEnd()
     {
-        var household = new Household(Guid.NewGuid(), Guid.NewGuid(), "Home");
+        var household = new Household(Guid.NewGuid(), "Home");
         var activatedAt = DateTimeOffset.UtcNow;
         var periodEnd = activatedAt.AddMonths(1);
         var cancelledAt = activatedAt.AddDays(10);
@@ -100,7 +91,7 @@ public sealed class HouseholdUnitTest
     [Fact]
     public void ExpireSubscription_AfterPeriodEnd_DowngradesToFree()
     {
-        var household = new Household(Guid.NewGuid(), Guid.NewGuid(), "Home");
+        var household = new Household(Guid.NewGuid(), "Home");
         var activatedAt = DateTimeOffset.UtcNow;
         var periodEnd = activatedAt.AddMonths(1);
 

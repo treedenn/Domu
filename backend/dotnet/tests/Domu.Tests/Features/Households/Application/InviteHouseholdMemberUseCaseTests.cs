@@ -12,7 +12,7 @@ public sealed class InviteHouseholdMemberUseCaseTests
     public async Task ExecuteAsync_CreatesPendingInvitationAndSendsIt()
     {
         var ownerMemberId = Guid.NewGuid();
-        var household = new Household(Guid.NewGuid(), ownerMemberId, "Home");
+        var household = new Household(Guid.NewGuid(), "Home");
         var householdRepository = new FakeHouseholdRepository(household);
         var membershipRepository = new FakeHouseholdMembershipRepository();
         var ownerMember = new HouseholdMember(
@@ -44,7 +44,7 @@ public sealed class InviteHouseholdMemberUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WhenRequesterIsNotOwner_Throws()
     {
-        var household = new Household(Guid.NewGuid(), Guid.NewGuid(), "Home");
+        var household = new Household(Guid.NewGuid(), "Home");
         var useCase = new InviteHouseholdMemberUseCase(
             new FakeHouseholdRepository(household),
             new FakeHouseholdMembershipRepository(),
@@ -70,7 +70,7 @@ public sealed class InviteHouseholdMemberUseCaseTests
         public Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId,
             CancellationToken cancellationToken)
         {
-            return GetByOwnerIdAsync(userId, cancellationToken);
+            return Task.FromResult<IReadOnlyList<Household>>(_households);
         }
 
         public Task AddAsync(Household household, CancellationToken cancellationToken)
@@ -95,10 +95,5 @@ public sealed class InviteHouseholdMemberUseCaseTests
             return Task.CompletedTask;
         }
 
-        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerMemberId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<IReadOnlyList<Household>>(
-                _households.Where(household => household.OwnerMemberId == ownerMemberId).ToArray());
-        }
     }
 }

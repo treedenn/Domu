@@ -20,7 +20,6 @@ public sealed class CreateHouseholdUseCaseTests
             new CreateHouseholdCommand(new DomuActor(ownerMemberId, DomuActorType.Zitadel), "Home", "Alex"),
             CancellationToken.None);
 
-        Assert.NotEqual(ownerMemberId, result.OwnerMemberId);
         Assert.Equal("Home", result.Name);
         Assert.Equal(HouseholdSubscriptionPlan.Free, result.SubscriptionPlan);
         Assert.Equal(HouseholdSubscriptionStatus.Active, result.SubscriptionStatus);
@@ -28,7 +27,7 @@ public sealed class CreateHouseholdUseCaseTests
         Assert.Equal(result.Id, membershipRepository.Members.Single().HouseholdId);
         Assert.Equal("Alex", membershipRepository.Members.Single().DisplayName);
         Assert.Equal(ownerMemberId, membershipRepository.Members.Single().UserId);
-        Assert.Equal(result.OwnerMemberId, membershipRepository.Members.Single().Id);
+        Assert.NotEqual(ownerMemberId, membershipRepository.Members.Single().Id);
         Assert.Equal(HouseholdMemberRole.Owner, membershipRepository.Members.Single().Role);
         Assert.Equal(1, repository.AddCalls);
         Assert.Equal(1, repository.SaveChangesCalls);
@@ -48,7 +47,7 @@ public sealed class CreateHouseholdUseCaseTests
         public Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId,
             CancellationToken cancellationToken)
         {
-            return GetByOwnerIdAsync(userId, cancellationToken);
+            return Task.FromResult<IReadOnlyList<Household>>(StoredHouseholds);
         }
 
         public Task AddAsync(Household household, CancellationToken cancellationToken)
@@ -75,10 +74,5 @@ public sealed class CreateHouseholdUseCaseTests
             return Task.CompletedTask;
         }
 
-        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerMemberId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<IReadOnlyList<Household>>(
-                StoredHouseholds.Where(household => household.OwnerMemberId == ownerMemberId).ToArray());
-        }
     }
 }

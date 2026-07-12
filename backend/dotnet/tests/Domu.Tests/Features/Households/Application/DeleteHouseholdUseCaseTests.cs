@@ -13,7 +13,7 @@ public sealed class DeleteHouseholdUseCaseTests
     {
         var ownerMemberId = Guid.NewGuid();
         var ownerUserId = Guid.NewGuid();
-        var household = new Household(Guid.NewGuid(), ownerMemberId, "Home");
+        var household = new Household(Guid.NewGuid(), "Home");
         var repository = new FakeHouseholdRepository(household);
         var memberships = new FakeHouseholdMembershipRepository();
         await memberships.AddMemberAsync(
@@ -33,7 +33,7 @@ public sealed class DeleteHouseholdUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WhenHouseholdBelongsToAnotherOwner_Throws()
     {
-        var household = new Household(Guid.NewGuid(), Guid.NewGuid(), "Home");
+        var household = new Household(Guid.NewGuid(), "Home");
         var repository = new FakeHouseholdRepository(household);
         var useCase = new DeleteHouseholdUseCase(repository, new FakeHouseholdMembershipRepository());
 
@@ -60,7 +60,7 @@ public sealed class DeleteHouseholdUseCaseTests
         public Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId,
             CancellationToken cancellationToken)
         {
-            return GetByOwnerIdAsync(userId, cancellationToken);
+            return Task.FromResult<IReadOnlyList<Household>>(StoredHouseholds);
         }
 
         public Task AddAsync(Household household, CancellationToken cancellationToken)
@@ -87,10 +87,5 @@ public sealed class DeleteHouseholdUseCaseTests
             return Task.CompletedTask;
         }
 
-        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerMemberId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<IReadOnlyList<Household>>(
-                StoredHouseholds.Where(household => household.OwnerMemberId == ownerMemberId).ToArray());
-        }
     }
 }
