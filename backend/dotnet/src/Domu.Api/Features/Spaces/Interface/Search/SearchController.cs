@@ -1,6 +1,6 @@
+using Domu.Api.Features.Auth.Application;
 using Domu.Api.Features.Spaces.Application.Search;
 using Domu.Api.Features.Spaces.Application.Search.Contracts;
-using Domu.Api.Features.Users.Interface.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,7 +11,7 @@ namespace Domu.Api.Features.Spaces.Interface.Search;
 [Route("households/{householdId:guid}/search")]
 [Tags("Search")]
 public sealed class SearchController(
-    IUserAccessor userAccessor,
+    IActorAccessor actorAccessor,
     ISearchSpacesAndItemsUseCase searchSpacesAndItemsUseCase)
     : ControllerBase
 {
@@ -29,7 +29,7 @@ public sealed class SearchController(
         try
         {
             var results = await searchSpacesAndItemsUseCase.ExecuteAsync(
-                new SearchSpacesAndItemsQuery(userAccessor.User.Id, householdId, text, expiringWithinDays, limit),
+                new SearchSpacesAndItemsQuery(actorAccessor.DomuActor.ActorId, householdId, text, expiringWithinDays, limit),
                 cancellationToken);
 
             return Ok(results);

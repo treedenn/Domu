@@ -1,3 +1,4 @@
+using Domu.Api.Features.Auth.Domain;
 using Domu.Api.Features.Households.Application.Members;
 using Domu.Api.Features.Households.Domain.Members;
 
@@ -25,7 +26,7 @@ public sealed class AcceptHouseholdInvitationUseCaseTests
         var useCase = new AcceptHouseholdInvitationUseCase(repository);
 
         var result = await useCase.ExecuteAsync(
-            new AcceptHouseholdInvitationCommand("token", userId),
+            new AcceptHouseholdInvitationCommand(new DomuActor(userId, DomuActorType.Zitadel), "token"),
             CancellationToken.None);
 
         Assert.Equal(invitation.HouseholdId, result.HouseholdId);
@@ -56,7 +57,9 @@ public sealed class AcceptHouseholdInvitationUseCaseTests
         var useCase = new AcceptHouseholdInvitationUseCase(repository);
 
         var action = () => useCase.ExecuteAsync(
-            new AcceptHouseholdInvitationCommand("token", Guid.NewGuid()),
+            new AcceptHouseholdInvitationCommand(
+                new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel),
+                "token"),
             CancellationToken.None);
 
         await Assert.ThrowsAsync<InvalidOperationException>(action);

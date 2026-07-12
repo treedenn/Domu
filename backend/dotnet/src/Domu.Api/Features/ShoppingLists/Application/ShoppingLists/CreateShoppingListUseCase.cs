@@ -17,9 +17,7 @@ public sealed class CreateShoppingListUseCase(
     public async Task<ShoppingListView> ExecuteAsync(CreateShoppingListCommand command, CancellationToken cancellationToken)
     {
         var memberId = await householdAccessService.GetRequiredMemberIdAsync(
-            command.HouseholdId,
-            command.UserId,
-            cancellationToken);
+            command.HouseholdId, command.UserId, cancellationToken);
 
         var now = DateTimeOffset.UtcNow;
         var shoppingList = new ShoppingList(

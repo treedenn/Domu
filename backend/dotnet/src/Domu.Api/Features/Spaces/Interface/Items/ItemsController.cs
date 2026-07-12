@@ -1,3 +1,4 @@
+using Domu.Api.Features.Auth.Application;
 using Domu.Api.Features.Spaces.Application.Items;
 using Domu.Api.Features.Spaces.Application.Items.Contracts;
 using Domu.Api.Features.Users.Interface.Auth;
@@ -11,7 +12,7 @@ namespace Domu.Api.Features.Spaces.Interface.Items;
 [Route("households/{householdId:guid}/spaces/{spaceId:guid}/items")]
 [Tags("Items")]
 public sealed class ItemsController(
-    IUserAccessor userAccessor,
+    IActorAccessor actorAccessor,
     ICreateItemUseCase createItemUseCase,
     IGetSpaceItemsUseCase getSpaceItemsUseCase,
     IUpdateItemUseCase updateItemUseCase,
@@ -30,7 +31,7 @@ public sealed class ItemsController(
         try
         {
             var items = await getSpaceItemsUseCase.ExecuteAsync(
-                new GetSpaceItemsQuery(userAccessor.User.Id, householdId, spaceId),
+                new GetSpaceItemsQuery(actorAccessor.DomuActor.ActorId, householdId, spaceId),
                 cancellationToken);
             return Ok(items);
         }
@@ -54,7 +55,7 @@ public sealed class ItemsController(
         {
             var item = await createItemUseCase.ExecuteAsync(
                 new CreateItemCommand(
-                    userAccessor.User.Id,
+                    actorAccessor.DomuActor,
                     householdId,
                     spaceId,
                     request.Name,
@@ -90,7 +91,7 @@ public sealed class ItemsController(
         {
             var item = await updateItemUseCase.ExecuteAsync(
                 new UpdateItemCommand(
-                    userAccessor.User.Id,
+                    actorAccessor.DomuActor.ActorId,
                     householdId,
                     spaceId,
                     itemId,
@@ -126,7 +127,7 @@ public sealed class ItemsController(
         {
             var item = await replaceItemEntriesUseCase.ExecuteAsync(
                 new ReplaceItemEntriesCommand(
-                    userAccessor.User.Id,
+                    actorAccessor.DomuActor.ActorId,
                     householdId,
                     spaceId,
                     itemId,
@@ -157,7 +158,7 @@ public sealed class ItemsController(
         try
         {
             await deleteItemUseCase.ExecuteAsync(
-                new DeleteItemCommand(userAccessor.User.Id, householdId, spaceId, itemId),
+                new DeleteItemCommand(actorAccessor.DomuActor.ActorId, householdId, spaceId, itemId),
                 cancellationToken);
             return NoContent();
         }

@@ -16,7 +16,10 @@ internal sealed class FakeHouseholdMembershipRepository : IHouseholdMembershipRe
         return Task.FromResult(_members.Any(member => member.HouseholdId == householdId && member.UserId == userId));
     }
 
-    public Task<HouseholdMember?> GetMemberAsync(Guid householdId, Guid userId, CancellationToken cancellationToken)
+    public Task<HouseholdMember?> GetMemberAsync(
+        Guid householdId,
+        Guid userId,
+        CancellationToken cancellationToken)
     {
         return Task.FromResult(_members.SingleOrDefault(member =>
             member.HouseholdId == householdId && member.UserId == userId));

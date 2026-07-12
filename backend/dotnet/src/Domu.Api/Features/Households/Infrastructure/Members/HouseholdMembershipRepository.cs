@@ -14,7 +14,10 @@ public sealed class HouseholdMembershipRepository(AppDbContext dbContext) : IHou
             .AnyAsync(member => member.HouseholdId == householdId && member.UserId == userId, cancellationToken);
     }
 
-    public async Task<HouseholdMember?> GetMemberAsync(Guid householdId, Guid userId, CancellationToken cancellationToken)
+    public async Task<HouseholdMember?> GetMemberAsync(
+        Guid householdId,
+        Guid userId,
+        CancellationToken cancellationToken)
     {
         var member = await dbContext.HouseholdMembers
             .AsNoTracking()

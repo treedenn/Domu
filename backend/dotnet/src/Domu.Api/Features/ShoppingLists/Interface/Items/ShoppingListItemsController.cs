@@ -1,3 +1,4 @@
+using Domu.Api.Features.Auth.Application;
 using Domu.Api.Features.ShoppingLists.Application.Items;
 using Domu.Api.Features.ShoppingLists.Application.Items.Commands;
 using Domu.Api.Features.ShoppingLists.Application.Items.Contracts;
@@ -13,7 +14,7 @@ namespace Domu.Api.Features.ShoppingLists.Interface.Items;
 [Route("households/{householdId:guid}/shopping-lists/{shoppingListId:guid}/items")]
 [Tags("Shopping List Items")]
 public sealed class ShoppingListItemsController(
-    IUserAccessor userAccessor,
+    IActorAccessor actorAccessor,
     GetShoppingListItemsUseCase getShoppingListItemsUseCase,
     CreateShoppingListItemUseCase createShoppingListItemUseCase,
     UpdateShoppingListItemUseCase updateShoppingListItemUseCase,
@@ -33,7 +34,7 @@ public sealed class ShoppingListItemsController(
         try
         {
             var items = await getShoppingListItemsUseCase.ExecuteAsync(
-                new GetShoppingListItemsQuery(userAccessor.User.Id, householdId, shoppingListId),
+                new GetShoppingListItemsQuery(actorAccessor.DomuActor.ActorId, householdId, shoppingListId),
                 cancellationToken);
 
             return Ok(items);
@@ -58,7 +59,7 @@ public sealed class ShoppingListItemsController(
         {
             var item = await createShoppingListItemUseCase.ExecuteAsync(
                 new CreateShoppingListItemCommand(
-                    userAccessor.User.Id,
+                    actorAccessor.DomuActor.ActorId,
                     householdId,
                     shoppingListId,
                     request.Name,
@@ -97,7 +98,7 @@ public sealed class ShoppingListItemsController(
         {
             var item = await updateShoppingListItemUseCase.ExecuteAsync(
                 new UpdateShoppingListItemCommand(
-                    userAccessor.User.Id,
+                    actorAccessor.DomuActor.ActorId,
                     householdId,
                     shoppingListId,
                     itemId,
@@ -169,7 +170,7 @@ public sealed class ShoppingListItemsController(
         try
         {
             await deleteShoppingListItemUseCase.ExecuteAsync(
-                new DeleteShoppingListItemCommand(userAccessor.User.Id, householdId, shoppingListId, itemId),
+                new DeleteShoppingListItemCommand(actorAccessor.DomuActor.ActorId, householdId, shoppingListId, itemId),
                 cancellationToken);
 
             return NoContent();
@@ -191,7 +192,7 @@ public sealed class ShoppingListItemsController(
         try
         {
             await clearCheckedShoppingListItemsUseCase.ExecuteAsync(
-                new ClearCheckedShoppingListItemsCommand(userAccessor.User.Id, householdId, shoppingListId),
+                new ClearCheckedShoppingListItemsCommand(actorAccessor.DomuActor.ActorId, householdId, shoppingListId),
                 cancellationToken);
 
             return NoContent();
@@ -213,7 +214,7 @@ public sealed class ShoppingListItemsController(
         {
             var item = await setShoppingListItemCheckedStateUseCase.ExecuteAsync(
                 new SetShoppingListItemCheckedStateCommand(
-                    userAccessor.User.Id,
+                    actorAccessor.DomuActor.ActorId,
                     householdId,
                     shoppingListId,
                     itemId,

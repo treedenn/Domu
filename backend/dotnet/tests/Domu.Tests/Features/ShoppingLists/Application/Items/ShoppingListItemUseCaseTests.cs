@@ -1,3 +1,4 @@
+using Domu.Api.Features.Auth.Domain;
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.ShoppingLists.Application.Items;
 using Domu.Api.Features.ShoppingLists.Application.Items.Commands;
@@ -99,11 +100,26 @@ public sealed class ShoppingListItemUseCaseTests
         private readonly Guid _memberId = Guid.NewGuid();
 
         public Task EnsureCanAccessHouseholdAsync(
+            DomuActor actor,
+            Guid householdId,
+            CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task EnsureCanAccessHouseholdAsync(
             Guid householdId,
             Guid userId,
             CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
+        }
+
+        public Task<Guid> GetRequiredMemberIdAsync(DomuActor actor,
+            Guid householdId,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(_memberId);
         }
 
         public Task<Guid> GetRequiredMemberIdAsync(

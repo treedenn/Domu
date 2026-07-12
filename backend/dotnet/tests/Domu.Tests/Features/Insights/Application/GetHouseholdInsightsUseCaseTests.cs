@@ -1,3 +1,4 @@
+using Domu.Api.Features.Auth.Domain;
 using Domu.Api.Features.Events.Application;
 using Domu.Api.Features.Events.Domain;
 using Domu.Api.Features.Households.Application.Households;
@@ -54,6 +55,17 @@ public sealed class GetHouseholdInsightsUseCaseTests
         public bool DenyAccess { get; set; }
 
         public Task EnsureCanAccessHouseholdAsync(
+            DomuActor actor,
+            Guid householdId,
+            CancellationToken cancellationToken)
+        {
+            if (DenyAccess)
+                throw new KeyNotFoundException();
+
+            return Task.CompletedTask;
+        }
+
+        public Task EnsureCanAccessHouseholdAsync(
             Guid householdId,
             Guid userId,
             CancellationToken cancellationToken)
@@ -62,6 +74,16 @@ public sealed class GetHouseholdInsightsUseCaseTests
                 throw new KeyNotFoundException();
 
             return Task.CompletedTask;
+        }
+
+        public Task<Guid> GetRequiredMemberIdAsync(DomuActor actor,
+            Guid householdId,
+            CancellationToken cancellationToken)
+        {
+            if (DenyAccess)
+                throw new KeyNotFoundException();
+
+            return Task.FromResult(Guid.NewGuid());
         }
 
         public Task<Guid> GetRequiredMemberIdAsync(

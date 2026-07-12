@@ -18,7 +18,7 @@ public sealed class UpdateHouseholdMemberUseCase(
         var household = await householdRepository.GetByIdAsync(command.HouseholdId, cancellationToken)
                         ?? throw new KeyNotFoundException($"Household '{command.HouseholdId}' was not found.");
 
-        if (household.OwnerId != command.UpdatedByUserId)
+        if (household.OwnerId != command.Actor.ActorId)
             throw new KeyNotFoundException($"Household '{command.HouseholdId}' was not found.");
         if (command.Role is HouseholdMemberRole.Owner or HouseholdMemberRole.Unspecified)
             throw new ArgumentException("Household members must have the admin or member role.", nameof(command));

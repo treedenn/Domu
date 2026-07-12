@@ -1,5 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Domu.Api.Features.Auth.Application;
+using Domu.Api.Features.Auth.Interface;
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.Households.Application.Households.Ports;
 using Domu.Api.Features.Households.Application.Members;
@@ -36,8 +38,8 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.Configure<ExternalAuthenticationOptions>(
-    builder.Configuration.GetSection(ExternalAuthenticationOptions.SectionName));
+builder.Services.Configure<JwtAuthenticationOptions>(
+    builder.Configuration.GetSection(JwtAuthenticationOptions.SectionName));
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(connectionString))
@@ -102,7 +104,8 @@ builder.Services.AddScoped<IGetSpacesPageUseCase, GetSpacesPageUseCase>();
 builder.Services.AddScoped<ISearchSpacesAndItemsUseCase, SearchSpacesAndItemsUseCase>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IEnsureUserUseCase, EnsureUserUseCase>();
-builder.Services.AddScoped<IUserAccessor, UserAccessor>();
+builder.Services.AddScoped<IActorAccessor, HttpContextActorAccessor>();
+builder.Services.AddScoped<IActorResolver, ZitadelActorResolver>();
 builder.Services
     .AddControllers()
     .AddJsonOptions(options =>
@@ -116,9 +119,9 @@ builder.Services
     .AddJwtBearer(options =>
     {
         var settings = builder.Configuration
-            .GetSection(ExternalAuthenticationOptions.SectionName)
-            .Get<ExternalAuthenticationOptions>()
-            ?? new ExternalAuthenticationOptions();
+            .GetSection(JwtAuthenticationOptions.SectionName)
+            .Get<JwtAuthenticationOptions>()
+            ?? new JwtAuthenticationOptions();
 
         if (!string.IsNullOrWhiteSpace(settings.Authority))
             options.Authority = settings.Authority;
@@ -141,7 +144,7 @@ app.UseHttpsRedirection();
 
 app.UseMiddleware<ClientRequestContextMiddleware>();
 app.UseAuthentication();
-app.UseMiddleware<AuthenticatedUserMiddleware>();
+app.UseMiddleware<AuthenticatedActorMiddleware>();
 app.UseAuthorization();
 
 app.MapGroup("/api/v1").MapControllers();

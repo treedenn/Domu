@@ -1,3 +1,4 @@
+using Domu.Api.Features.Auth.Domain;
 using Domu.Api.Features.Households.Application.Households.Ports;
 using Domu.Api.Features.Households.Application.Members;
 using Domu.Api.Features.Households.Domain.Households;
@@ -27,9 +28,9 @@ public sealed class UpdateHouseholdMemberUseCaseTests
 
         var result = await useCase.ExecuteAsync(
             new UpdateHouseholdMemberCommand(
+                new DomuActor(ownerId, DomuActorType.Zitadel),
                 household.Id,
                 member.Id,
-                ownerId,
                 " Sam ",
                 HouseholdMemberRole.Admin,
                 Archived: true),
@@ -63,9 +64,9 @@ public sealed class UpdateHouseholdMemberUseCaseTests
 
         var action = () => useCase.ExecuteAsync(
             new UpdateHouseholdMemberCommand(
+                new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel),
                 household.Id,
                 member.Id,
-                Guid.NewGuid(),
                 "Sam",
                 HouseholdMemberRole.Admin,
                 Archived: false),
@@ -94,9 +95,9 @@ public sealed class UpdateHouseholdMemberUseCaseTests
 
         var action = () => useCase.ExecuteAsync(
             new UpdateHouseholdMemberCommand(
+                new DomuActor(ownerId, DomuActorType.Zitadel),
                 household.Id,
                 member.Id,
-                ownerId,
                 "Owner",
                 HouseholdMemberRole.Admin,
                 Archived: false),

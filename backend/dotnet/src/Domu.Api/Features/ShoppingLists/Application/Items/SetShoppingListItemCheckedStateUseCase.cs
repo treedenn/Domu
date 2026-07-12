@@ -38,9 +38,7 @@ public sealed class SetShoppingListItemCheckedStateUseCase(
         if (command.IsChecked)
         {
             var memberId = await householdAccessService.GetRequiredMemberIdAsync(
-                command.HouseholdId,
-                command.UserId,
-                cancellationToken);
+                command.HouseholdId, command.UserId, cancellationToken);
             item.Check(memberId, now);
         }
         else

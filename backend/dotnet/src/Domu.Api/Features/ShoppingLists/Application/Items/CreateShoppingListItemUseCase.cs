@@ -29,9 +29,7 @@ public sealed class CreateShoppingListItemUseCase(
             command.UserId,
             cancellationToken);
         var memberId = await householdAccessService.GetRequiredMemberIdAsync(
-            command.HouseholdId,
-            command.UserId,
-            cancellationToken);
+            command.HouseholdId, command.UserId, cancellationToken);
 
         await ShoppingListPermissionPolicy.ValidateReferencesAsync(
             shoppingListItemRepository,

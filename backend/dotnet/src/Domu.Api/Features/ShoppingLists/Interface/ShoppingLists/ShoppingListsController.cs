@@ -1,3 +1,4 @@
+using Domu.Api.Features.Auth.Application;
 using Domu.Api.Features.ShoppingLists.Application.ShoppingLists;
 using Domu.Api.Features.ShoppingLists.Application.ShoppingLists.Commands;
 using Domu.Api.Features.ShoppingLists.Application.ShoppingLists.Contracts;
@@ -13,7 +14,7 @@ namespace Domu.Api.Features.ShoppingLists.Interface.ShoppingLists;
 [Route("households/{householdId:guid}/shopping-lists")]
 [Tags("Shopping Lists")]
 public sealed class ShoppingListsController(
-    IUserAccessor userAccessor,
+    IActorAccessor actorAccessor,
     GetShoppingListsUseCase getShoppingListsUseCase,
     GetShoppingListUseCase getShoppingListUseCase,
     CreateShoppingListUseCase createShoppingListUseCase,
@@ -31,7 +32,7 @@ public sealed class ShoppingListsController(
         try
         {
             var lists = await getShoppingListsUseCase.ExecuteAsync(
-                new GetShoppingListsQuery(userAccessor.User.Id, householdId), cancellationToken);
+                new GetShoppingListsQuery(actorAccessor.DomuActor.ActorId, householdId), cancellationToken);
             return Ok(lists);
         }
         catch (KeyNotFoundException)
@@ -51,7 +52,7 @@ public sealed class ShoppingListsController(
         try
         {
             var list = await getShoppingListUseCase.ExecuteAsync(
-                new GetShoppingListQuery(userAccessor.User.Id, householdId, shoppingListId), cancellationToken);
+                new GetShoppingListQuery(actorAccessor.DomuActor.ActorId, householdId, shoppingListId), cancellationToken);
             return Ok(list);
         }
         catch (KeyNotFoundException)
@@ -72,7 +73,7 @@ public sealed class ShoppingListsController(
         try
         {
             var list = await createShoppingListUseCase.ExecuteAsync(
-                new CreateShoppingListCommand(userAccessor.User.Id, householdId, request.Name), cancellationToken);
+                new CreateShoppingListCommand(actorAccessor.DomuActor.ActorId, householdId, request.Name), cancellationToken);
             return CreatedAtAction(nameof(GetList), new { householdId, shoppingListId = list.Id }, list);
         }
         catch (KeyNotFoundException)
@@ -98,7 +99,7 @@ public sealed class ShoppingListsController(
         try
         {
             var list = await updateShoppingListUseCase.ExecuteAsync(
-                new UpdateShoppingListCommand(userAccessor.User.Id, householdId, shoppingListId, request.Name, request.Archived),
+                new UpdateShoppingListCommand(actorAccessor.DomuActor.ActorId, householdId, shoppingListId, request.Name, request.Archived),
                 cancellationToken);
             return Ok(list);
         }
@@ -123,7 +124,7 @@ public sealed class ShoppingListsController(
         try
         {
             await deleteShoppingListUseCase.ExecuteAsync(
-                new DeleteShoppingListCommand(userAccessor.User.Id, householdId, shoppingListId), cancellationToken);
+                new DeleteShoppingListCommand(actorAccessor.DomuActor.ActorId, householdId, shoppingListId), cancellationToken);
             return NoContent();
         }
         catch (KeyNotFoundException)

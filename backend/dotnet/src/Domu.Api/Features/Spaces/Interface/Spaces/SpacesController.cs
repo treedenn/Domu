@@ -1,6 +1,6 @@
+using Domu.Api.Features.Auth.Application;
 using Domu.Api.Features.Spaces.Application.Spaces;
 using Domu.Api.Features.Spaces.Application.Spaces.Contracts;
-using Domu.Api.Features.Users.Interface.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,7 +11,7 @@ namespace Domu.Api.Features.Spaces.Interface.Spaces;
 [Route("households/{householdId:guid}/spaces")]
 [Tags("Spaces")]
 public sealed class SpacesController(
-    IUserAccessor userAccessor,
+    IActorAccessor actorAccessor,
     ICreateSpaceUseCase createSpaceUseCase,
     IGetSpaceUseCase getSpaceUseCase,
     IGetSpacesPageUseCase getSpacesPageUseCase,
@@ -38,7 +38,7 @@ public sealed class SpacesController(
         {
             var page = await getSpacesPageUseCase.ExecuteAsync(
                 new GetSpacesPageQuery(
-                    userAccessor.User.Id,
+                    actorAccessor.DomuActor.ActorId,
                     householdId,
                     parentId,
                     pageNumber,
@@ -70,7 +70,7 @@ public sealed class SpacesController(
         try
         {
             var space = await getSpaceUseCase.ExecuteAsync(
-                new GetSpaceQuery(userAccessor.User.Id, householdId, spaceId),
+                new GetSpaceQuery(actorAccessor.DomuActor.ActorId, householdId, spaceId),
                 cancellationToken);
 
             return Ok(space);
@@ -93,7 +93,7 @@ public sealed class SpacesController(
         try
         {
             var space = await createSpaceUseCase.ExecuteAsync(
-                new CreateSpaceCommand(userAccessor.User.Id, householdId, request.Name, request.Description, request.ParentId),
+                new CreateSpaceCommand(actorAccessor.DomuActor.ActorId, householdId, request.Name, request.Description, request.ParentId),
                 cancellationToken);
 
             return CreatedAtAction(nameof(GetSpace), new { householdId, spaceId = space.Id }, space);
@@ -121,7 +121,7 @@ public sealed class SpacesController(
         try
         {
             var space = await updateSpaceUseCase.ExecuteAsync(
-                new UpdateSpaceCommand(userAccessor.User.Id, householdId, spaceId, request.Name, request.Description),
+                new UpdateSpaceCommand(actorAccessor.DomuActor.ActorId, householdId, spaceId, request.Name, request.Description),
                 cancellationToken);
 
             return Ok(space);
@@ -149,7 +149,7 @@ public sealed class SpacesController(
         try
         {
             var space = await moveSpaceUseCase.ExecuteAsync(
-                new MoveSpaceCommand(userAccessor.User.Id, householdId, spaceId, request.ParentId),
+                new MoveSpaceCommand(actorAccessor.DomuActor.ActorId, householdId, spaceId, request.ParentId),
                 cancellationToken);
 
             return Ok(space);
@@ -172,7 +172,7 @@ public sealed class SpacesController(
         try
         {
             await deleteSpaceUseCase.ExecuteAsync(
-                new DeleteSpaceCommand(userAccessor.User.Id, householdId, spaceId),
+                new DeleteSpaceCommand(actorAccessor.DomuActor.ActorId, householdId, spaceId),
                 cancellationToken);
             return NoContent();
         }

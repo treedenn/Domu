@@ -1,3 +1,4 @@
+using Domu.Api.Features.Auth.Domain;
 using Domu.Api.Features.Events.Application;
 using Domu.Api.Features.Spaces.Application.Items;
 using Domu.Api.Features.Spaces.Application.Items.Contracts;
@@ -20,7 +21,7 @@ public sealed class CreateItemUseCaseTests
 
         var result = await useCase.ExecuteAsync(
             new CreateItemCommand(
-                userId,
+                new DomuActor(userId, DomuActorType.Zitadel),
                 householdId,
                 spaceId,
                 "Milk",
@@ -58,7 +59,7 @@ public sealed class CreateItemUseCaseTests
 
         var action = () => useCase.ExecuteAsync(
             new CreateItemCommand(
-                Guid.NewGuid(),
+                new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel),
                 Guid.NewGuid(),
                 Guid.NewGuid(),
                 "Milk",

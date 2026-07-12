@@ -20,7 +20,7 @@ public sealed class CreateItemUseCase(
         await spaceAccessService.EnsureCanAccessSpaceAsync(
             command.HouseholdId,
             command.SpaceId,
-            command.UserId,
+            command.Actor.ActorId,
             cancellationToken);
 
         var item = new Item(Guid.CreateVersion7(), command.Name, command.SpaceId);
@@ -30,7 +30,7 @@ public sealed class CreateItemUseCase(
 
         await itemRepository.AddAsync(item, cancellationToken);
         await _userEventRecorder.RecordAsync(
-            command.UserId,
+            command.Actor.ActorId,
             UserEventActions.ItemCreated,
             UserEventTargetTypes.Item,
             item.Id,

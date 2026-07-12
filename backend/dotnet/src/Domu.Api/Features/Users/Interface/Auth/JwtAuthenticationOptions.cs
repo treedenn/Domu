@@ -1,6 +1,6 @@
 namespace Domu.Api.Features.Users.Interface.Auth;
 
-public sealed class ExternalAuthenticationOptions
+public sealed class JwtAuthenticationOptions
 {
     public const string SectionName = "Authentication:External";
 
