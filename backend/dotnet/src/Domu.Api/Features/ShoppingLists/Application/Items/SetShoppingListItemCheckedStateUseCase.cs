@@ -25,11 +25,8 @@ public sealed class SetShoppingListItemCheckedStateUseCase(
             shoppingListRepository,
             shoppingListItemRepository,
             householdAccessService,
-            command.HouseholdId,
-            command.ShoppingListId,
-            command.ItemId,
             command.Actor,
-            cancellationToken);
+            command.HouseholdId, command.ShoppingListId, command.ItemId, cancellationToken);
 
         var now = DateTimeOffset.UtcNow;
         var eventAction = command.IsChecked

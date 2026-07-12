@@ -39,14 +39,13 @@ internal static class ShoppingListPermissionPolicy
         return shoppingList;
     }
 
-    public static async Task<ShoppingListItem> GetAccessibleItemAsync(
-        IShoppingListRepository shoppingListRepository,
+    public static async Task<ShoppingListItem> GetAccessibleItemAsync(IShoppingListRepository shoppingListRepository,
         IShoppingListItemRepository shoppingListItemRepository,
         IHouseholdAccessService householdAccessService,
+        DomuActor actor,
         Guid householdId,
         Guid shoppingListId,
         Guid itemId,
-        DomuActor actor,
         CancellationToken cancellationToken)
     {
         await EnsureCanAccessListAsync(

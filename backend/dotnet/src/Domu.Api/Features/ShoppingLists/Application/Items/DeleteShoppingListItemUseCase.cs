@@ -22,11 +22,8 @@ public sealed class DeleteShoppingListItemUseCase(
             shoppingListRepository,
             shoppingListItemRepository,
             householdAccessService,
-            command.HouseholdId,
-            command.ShoppingListId,
-            command.ItemId,
             command.Actor,
-            cancellationToken);
+            command.HouseholdId, command.ShoppingListId, command.ItemId, cancellationToken);
 
         await shoppingListItemRepository.DeleteAsync(command.ItemId, cancellationToken);
         await _userEventRecorder.RecordAsync(
