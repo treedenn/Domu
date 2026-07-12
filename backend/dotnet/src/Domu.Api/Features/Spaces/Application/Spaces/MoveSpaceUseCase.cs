@@ -10,7 +10,8 @@ public sealed class MoveSpaceUseCase(
     IHouseholdEventRecorder? userEventRecorder = null)
     : IMoveSpaceUseCase
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder =
+        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task<SpaceView> ExecuteAsync(MoveSpaceCommand command, CancellationToken cancellationToken)
     {

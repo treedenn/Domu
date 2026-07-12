@@ -19,9 +19,9 @@ public sealed class GetShoppingListItemsUseCase(
         await ShoppingListPermissionPolicy.EnsureCanAccessListAsync(
             shoppingListRepository,
             householdAccessService,
+            query.Actor,
             query.HouseholdId,
             query.ShoppingListId,
-            query.Actor,
             cancellationToken);
 
         var items = await shoppingListItemRepository.GetItemsAsync(query.ShoppingListId, cancellationToken);

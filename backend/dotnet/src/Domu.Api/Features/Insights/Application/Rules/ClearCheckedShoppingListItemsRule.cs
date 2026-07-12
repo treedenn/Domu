@@ -4,13 +4,13 @@ using Domu.Api.Features.Insights.Application.Contracts;
 namespace Domu.Api.Features.Insights.Application.Rules;
 
 /// <summary>
-/// Suggests clearing checked shopping-list items when enough completed entries have accumulated.
+///     Suggests clearing checked shopping-list items when enough completed entries have accumulated.
 /// </summary>
 /// <remarks>
-/// Purpose: keep active shopping lists focused on remaining work.
-/// Produces: <c>shopping_list.clear_checked</c> insights with a <c>shopping_list.clear_checked_items</c> action.
-/// Trigger: at least five <c>shopping_list_item.checked</c> events after the latest clear event for the list.
-/// Dedupe: one suggestion per shopping list using <c>shopping_list.clear_checked:list:{shoppingListId}</c>.
+///     Purpose: keep active shopping lists focused on remaining work.
+///     Produces: <c>shopping_list.clear_checked</c> insights with a <c>shopping_list.clear_checked_items</c> action.
+///     Trigger: at least five <c>shopping_list_item.checked</c> events after the latest clear event for the list.
+///     Dedupe: one suggestion per shopping list using <c>shopping_list.clear_checked:list:{shoppingListId}</c>.
 /// </remarks>
 public sealed class ClearCheckedShoppingListItemsRule : IInsightRule
 {
@@ -30,7 +30,8 @@ public sealed class ClearCheckedShoppingListItemsRule : IInsightRule
 
         var checkedByList = context.Events
             .Where(userEvent => userEvent.Action == HouseholdEventActions.ShoppingListItemChecked)
-            .Select(userEvent => (Event: userEvent, ShoppingListId: new EventMetadataReader(userEvent).GetGuid("shoppingListId")))
+            .Select(userEvent => (Event: userEvent,
+                ShoppingListId: new EventMetadataReader(userEvent).GetGuid("shoppingListId")))
             .Where(entry => entry.ShoppingListId is not null)
             .Where(entry => !clearedAtByList.TryGetValue(entry.ShoppingListId!.Value, out var clearedAt)
                             || entry.Event.OccurredAt > clearedAt)

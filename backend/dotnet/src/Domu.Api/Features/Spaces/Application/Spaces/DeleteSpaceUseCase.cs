@@ -9,7 +9,8 @@ public sealed class DeleteSpaceUseCase(
     IHouseholdEventRecorder? userEventRecorder = null)
     : IDeleteSpaceUseCase
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder =
+        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task ExecuteAsync(DeleteSpaceCommand command, CancellationToken cancellationToken)
     {

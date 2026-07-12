@@ -3,9 +3,6 @@ namespace Domu.Api.Features.Spaces.Domain.Items;
 // ItemEntry captures one concrete stock state for an item, such as expiration and opened/closed status.
 public sealed class ItemEntry
 {
-    private DateTimeOffset? _acquisitionDate;
-    private DateTimeOffset? _expirationDate;
-
     public ItemEntry(Guid id, Guid itemId)
     {
         Id = id == Guid.Empty
@@ -19,9 +16,9 @@ public sealed class ItemEntry
     public Guid Id { get; }
     public Guid ItemId { get; }
 
-    public DateTimeOffset? AcquisitionDate => _acquisitionDate;
+    public DateTimeOffset? AcquisitionDate { get; private set; }
 
-    public DateTimeOffset? ExpirationDate => _expirationDate;
+    public DateTimeOffset? ExpirationDate { get; private set; }
 
     public decimal InitialQuantity { get; private set; }
 
@@ -38,8 +35,8 @@ public sealed class ItemEntry
         if (acquisitionDate > expirationDate)
             throw new ArgumentException("Item entry acquisition date cannot be after expiration date.");
 
-        _acquisitionDate = acquisitionDate;
-        _expirationDate = expirationDate;
+        AcquisitionDate = acquisitionDate;
+        ExpirationDate = expirationDate;
     }
 
     public void SetQuantities(decimal initialQuantity, decimal currentQuantity)

@@ -26,7 +26,7 @@ public sealed class SpaceEntity
         ParentId = parentId;
     }
 
-    public Guid Id { get; private set; }
+    public Guid Id { get; }
     public Guid HouseholdId { get; private set; }
     public string Name { get; private set; } = null!;
     public string? Description { get; private set; }

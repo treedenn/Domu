@@ -31,14 +31,14 @@ public sealed class ShoppingListEntity
         ArchivedAt = archivedAt;
     }
 
-    public Guid Id { get; private set; }
-    public Guid HouseholdId { get; private set; }
-    public string Name { get; private set; } = null!;
+    public Guid Id { get; }
+    public Guid HouseholdId { get; }
+    public string Name { get; } = null!;
     public bool IsDefault { get; private set; }
-    public Guid CreatedByMemberId { get; private set; }
-    public DateTimeOffset CreatedAt { get; private set; }
-    public DateTimeOffset UpdatedAt { get; private set; }
-    public DateTimeOffset? ArchivedAt { get; private set; }
+    public Guid CreatedByMemberId { get; }
+    public DateTimeOffset CreatedAt { get; }
+    public DateTimeOffset UpdatedAt { get; }
+    public DateTimeOffset? ArchivedAt { get; }
     public IReadOnlyCollection<ShoppingListItemEntity> Items => _items;
 
     public ShoppingList ToDomain()
@@ -54,7 +54,7 @@ public sealed class ShoppingListEntity
             shoppingList.Id,
             shoppingList.HouseholdId,
             shoppingList.Name,
-            isDefault: false,
+            false,
             shoppingList.CreatedByMemberId,
             shoppingList.CreatedAt,
             shoppingList.UpdatedAt,

@@ -55,13 +55,13 @@ All routes are authenticated and prefixed with `/api/v1`.
 
 ### Lists
 
-| Method | Route | Use case | Result |
-| --- | --- | --- | --- |
-| `GET` | `/households/{householdId}/shopping-lists` | `GetShoppingListsUseCase` | Active lists for the household |
-| `GET` | `/households/{householdId}/shopping-lists/{shoppingListId}` | `GetShoppingListUseCase` | One active list |
-| `POST` | `/households/{householdId}/shopping-lists` | `CreateShoppingListUseCase` | Creates a named list |
-| `PUT` | `/households/{householdId}/shopping-lists/{shoppingListId}` | `UpdateShoppingListUseCase` | Renames a list |
-| `DELETE` | `/households/{householdId}/shopping-lists/{shoppingListId}` | `DeleteShoppingListUseCase` | Archives a list |
+| Method   | Route                                                       | Use case                    | Result                         |
+|----------|-------------------------------------------------------------|-----------------------------|--------------------------------|
+| `GET`    | `/households/{householdId}/shopping-lists`                  | `GetShoppingListsUseCase`   | Active lists for the household |
+| `GET`    | `/households/{householdId}/shopping-lists/{shoppingListId}` | `GetShoppingListUseCase`    | One active list                |
+| `POST`   | `/households/{householdId}/shopping-lists`                  | `CreateShoppingListUseCase` | Creates a named list           |
+| `PUT`    | `/households/{householdId}/shopping-lists/{shoppingListId}` | `UpdateShoppingListUseCase` | Renames a list                 |
+| `DELETE` | `/households/{householdId}/shopping-lists/{shoppingListId}` | `DeleteShoppingListUseCase` | Archives a list                |
 
 Create and update requests contain a `name` property. Deleting a list is a soft
 delete: `ArchivedAt` is set and subsequent access returns not found.
@@ -74,15 +74,15 @@ The item route base is:
 /households/{householdId}/shopping-lists/{shoppingListId}/items
 ```
 
-| Method | Relative route | Use case | Result |
-| --- | --- | --- | --- |
-| `GET` | `/` | `GetShoppingListItemsUseCase` | Items in the list |
-| `POST` | `/` | `CreateShoppingListItemUseCase` | Creates an item |
-| `PATCH` | `/{itemId}` | `UpdateShoppingListItemUseCase` | Updates an item |
-| `POST` | `/{itemId}/check` | `SetShoppingListItemCheckedStateUseCase` | Marks an item checked |
-| `POST` | `/{itemId}/uncheck` | `SetShoppingListItemCheckedStateUseCase` | Marks an item unchecked |
-| `DELETE` | `/{itemId}` | `DeleteShoppingListItemUseCase` | Deletes an item |
-| `DELETE` | `/checked` | `ClearCheckedShoppingListItemsUseCase` | Deletes all checked items |
+| Method   | Relative route      | Use case                                 | Result                    |
+|----------|---------------------|------------------------------------------|---------------------------|
+| `GET`    | `/`                 | `GetShoppingListItemsUseCase`            | Items in the list         |
+| `POST`   | `/`                 | `CreateShoppingListItemUseCase`          | Creates an item           |
+| `PATCH`  | `/{itemId}`         | `UpdateShoppingListItemUseCase`          | Updates an item           |
+| `POST`   | `/{itemId}/check`   | `SetShoppingListItemCheckedStateUseCase` | Marks an item checked     |
+| `POST`   | `/{itemId}/uncheck` | `SetShoppingListItemCheckedStateUseCase` | Marks an item unchecked   |
+| `DELETE` | `/{itemId}`         | `DeleteShoppingListItemUseCase`          | Deletes an item           |
+| `DELETE` | `/checked`          | `ClearCheckedShoppingListItemsUseCase`   | Deletes all checked items |
 
 Items may optionally reference a Space or inventory Item. The permission policy
 rejects references that do not belong to the same household.

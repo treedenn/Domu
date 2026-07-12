@@ -16,7 +16,8 @@ public sealed class HouseholdRepository(AppDbContext dbContext) : IHouseholdRepo
         return entity?.ToDomain();
     }
 
-    public async Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId,
+        CancellationToken cancellationToken)
     {
         var memberHouseholdIds = dbContext.HouseholdMembers
             .AsNoTracking()

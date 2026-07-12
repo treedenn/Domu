@@ -14,7 +14,8 @@ public sealed class SetShoppingListItemCheckedStateUseCase(
     IHouseholdAccessService householdAccessService,
     IHouseholdEventRecorder? userEventRecorder = null)
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder =
+        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task<ShoppingListItemView> ExecuteAsync(
         SetShoppingListItemCheckedStateCommand command,

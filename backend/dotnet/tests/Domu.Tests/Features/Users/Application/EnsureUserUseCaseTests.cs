@@ -34,7 +34,8 @@ public sealed class EnsureUserUseCaseTests
 
         Assert.Equal(1, repository.AddCalls);
         Assert.Equal(1, repository.SaveChangesCalls);
-        Assert.Contains(repository.StoredUsers, entry => entry.User == result && entry.ExternalIdentifier == "auth0|new-user");
+        Assert.Contains(repository.StoredUsers,
+            entry => entry.User == result && entry.ExternalIdentifier == "auth0|new-user");
     }
 
     [Fact]
@@ -50,22 +51,25 @@ public sealed class EnsureUserUseCaseTests
         await Assert.ThrowsAsync<ArgumentException>(action);
     }
 
-    private sealed class FakeUserRepository(params (AuthenticatedUser User, string ExternalIdentifier)[] seededUsers) : IUserRepository
+    private sealed class FakeUserRepository(params (AuthenticatedUser User, string ExternalIdentifier)[] seededUsers)
+        : IUserRepository
     {
         public List<(AuthenticatedUser User, string ExternalIdentifier)> StoredUsers { get; } = seededUsers.ToList();
         public int AddCalls { get; private set; }
         public int SaveChangesCalls { get; private set; }
 
-        public Task<AuthenticatedUser?> GetByAuthIdentityAsync(string externalIdentifier, CancellationToken cancellationToken)
+        public Task<AuthenticatedUser?> GetByAuthIdentityAsync(string externalIdentifier,
+            CancellationToken cancellationToken)
         {
-            AuthenticatedUser? user = StoredUsers
+            var user = StoredUsers
                 .Where(existingUser => existingUser.ExternalIdentifier == externalIdentifier)
                 .Select(existingUser => existingUser.User)
                 .SingleOrDefault();
             return Task.FromResult(user);
         }
 
-        public Task AddAsync(AuthenticatedUser authenticatedUser, string externalIdentifier, CancellationToken cancellationToken)
+        public Task AddAsync(AuthenticatedUser authenticatedUser, string externalIdentifier,
+            CancellationToken cancellationToken)
         {
             AddCalls++;
             StoredUsers.Add((authenticatedUser, externalIdentifier));

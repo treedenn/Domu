@@ -11,7 +11,8 @@ public sealed class ReplaceItemEntriesUseCase(
     IHouseholdEventRecorder? userEventRecorder = null)
     : IReplaceItemEntriesUseCase
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder =
+        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task<ItemView> ExecuteAsync(ReplaceItemEntriesCommand command, CancellationToken cancellationToken)
     {

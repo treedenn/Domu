@@ -12,9 +12,11 @@ public sealed class CreateShoppingListUseCase(
     IHouseholdAccessService householdAccessService,
     IHouseholdEventRecorder? userEventRecorder = null)
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder =
+        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
-    public async Task<ShoppingListView> ExecuteAsync(CreateShoppingListCommand command, CancellationToken cancellationToken)
+    public async Task<ShoppingListView> ExecuteAsync(CreateShoppingListCommand command,
+        CancellationToken cancellationToken)
     {
         var memberId = await householdAccessService.GetRequiredMemberIdAsync(
             command.Actor, command.HouseholdId, cancellationToken);

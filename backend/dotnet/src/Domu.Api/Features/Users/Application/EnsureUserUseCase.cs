@@ -5,7 +5,8 @@ namespace Domu.Api.Features.Users.Application;
 
 public sealed class EnsureUserUseCase(IUserRepository userRepository) : IEnsureUserUseCase
 {
-    public async Task<AuthenticatedUser> ExecuteAsync(UserAuthIdentity authIdentity, CancellationToken cancellationToken)
+    public async Task<AuthenticatedUser> ExecuteAsync(UserAuthIdentity authIdentity,
+        CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(authIdentity.ExternalIdentifier);
 

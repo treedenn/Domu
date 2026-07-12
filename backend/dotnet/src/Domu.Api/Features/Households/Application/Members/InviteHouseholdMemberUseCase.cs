@@ -13,7 +13,8 @@ public sealed class InviteHouseholdMemberUseCase(
     IHouseholdInvitationSender invitationSender,
     IHouseholdEventRecorder? userEventRecorder = null)
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder =
+        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task<HouseholdInvitationView> ExecuteAsync(
         InviteHouseholdMemberCommand command,
@@ -28,11 +29,11 @@ public sealed class InviteHouseholdMemberUseCase(
             throw new KeyNotFoundException($"Household '{command.HouseholdId}' was not found.");
 
         var inviterMember = await membershipRepository.GetMemberAsync(
-            command.HouseholdId,
-            command.Actor.ActorId,
-            cancellationToken)
-            ?? throw new InvalidOperationException(
-                $"Household '{command.HouseholdId}' is owned by actor '{command.Actor.ActorId}' but has no linked household member.");
+                                command.HouseholdId,
+                                command.Actor.ActorId,
+                                cancellationToken)
+                            ?? throw new InvalidOperationException(
+                                $"Household '{command.HouseholdId}' is owned by actor '{command.Actor.ActorId}' but has no linked household member.");
 
         var email = HouseholdInvitation.NormalizeEmail(command.Email);
         var existingInvitation = await membershipRepository.GetPendingInvitationByEmailAsync(

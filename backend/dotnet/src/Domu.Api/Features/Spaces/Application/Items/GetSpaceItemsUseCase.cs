@@ -9,7 +9,8 @@ public sealed class GetSpaceItemsUseCase(
     ISpaceAccessService spaceAccessService)
     : IGetSpaceItemsUseCase
 {
-    public async Task<IReadOnlyList<ItemView>> ExecuteAsync(GetSpaceItemsQuery query, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<ItemView>> ExecuteAsync(GetSpaceItemsQuery query,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(query);
         await spaceAccessService.EnsureCanAccessSpaceAsync(

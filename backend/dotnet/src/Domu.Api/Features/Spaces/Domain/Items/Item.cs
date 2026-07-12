@@ -8,9 +8,6 @@ public sealed class Item
     public const int BarcodeMaxLength = 128;
 
     private readonly HashSet<ItemEntry> _entries = [];
-    private string _name = null!;
-    private string? _category;
-    private string? _barcode;
 
     public Item(Guid id, string name, Guid spaceId)
     {
@@ -26,14 +23,11 @@ public sealed class Item
     public IReadOnlySet<ItemEntry> Entries => _entries.AsReadOnly();
     public decimal TotalQuantity => _entries.Sum(entry => entry.CurrentQuantity);
 
-    public string Name
-    {
-        get => _name;
-        private set => _name = value;
-    }
+    public string Name { get; private set; } = null!;
 
-    public string? Category => _category;
-    public string? Barcode => _barcode;
+    public string? Category { get; private set; }
+
+    public string? Barcode { get; private set; }
 
     public void Rename(string name)
     {
@@ -65,7 +59,7 @@ public sealed class Item
                     nameof(category));
         }
 
-        _category = category;
+        Category = category;
     }
 
     public void ChangeBarcode(string? barcode)
@@ -80,7 +74,7 @@ public sealed class Item
                     nameof(barcode));
         }
 
-        _barcode = barcode;
+        Barcode = barcode;
     }
 
     public bool AddEntry(ItemEntry entry)

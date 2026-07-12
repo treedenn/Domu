@@ -1,5 +1,4 @@
 using Domu.Api.Features.Auth.Domain;
-
 using Domu.Api.Features.Spaces.Application.Items;
 using Domu.Api.Features.Spaces.Application.Items.Contracts;
 using Domu.Api.Features.Spaces.Application.Items.Ports;
@@ -22,7 +21,10 @@ public sealed class ReplaceItemEntriesUseCaseTests
                 Guid.NewGuid(),
                 item.SpaceId,
                 item.Id,
-                [new ItemEntryDraft(null, 3, 1.5m, ItemUnit.Liter, ItemContainerType.Carton, ConsumableState.Unopened, null, null)]),
+                [
+                    new ItemEntryDraft(null, 3, 1.5m, ItemUnit.Liter, ItemContainerType.Carton,
+                        ConsumableState.Unopened, null, null)
+                ]),
             CancellationToken.None);
 
         var entry = Assert.Single(result.Entries);

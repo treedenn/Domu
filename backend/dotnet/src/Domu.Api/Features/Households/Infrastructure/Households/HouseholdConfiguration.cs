@@ -1,6 +1,7 @@
+using Domu.Api.Features.Households.Domain.Households;
+using Domu.Api.Features.Households.Infrastructure.Members;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Domu.Api.Features.Households.Infrastructure.Members;
 
 namespace Domu.Api.Features.Households.Infrastructure.Households;
 
@@ -24,7 +25,7 @@ public sealed class HouseholdConfiguration : IEntityTypeConfiguration<HouseholdE
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.Property(household => household.Name)
-            .HasMaxLength(Domain.Households.Household.NameMaxLength)
+            .HasMaxLength(Household.NameMaxLength)
             .IsRequired();
 
         builder.Property(household => household.SubscriptionPlan)

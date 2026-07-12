@@ -32,13 +32,13 @@ public sealed class HouseholdMemberEntity
         Archived = archived;
     }
 
-    public Guid Id { get; private set; }
-    public Guid HouseholdId { get; private set; }
-    public Guid UserId { get; private set; }
-    public string DisplayName { get; private set; } = null!;
-    public HouseholdMemberRole Role { get; private set; }
-    public DateTimeOffset JoinedAt { get; private set; }
-    public bool Archived { get; private set; }
+    public Guid Id { get; }
+    public Guid HouseholdId { get; }
+    public Guid UserId { get; }
+    public string DisplayName { get; } = null!;
+    public HouseholdMemberRole Role { get; }
+    public DateTimeOffset JoinedAt { get; }
+    public bool Archived { get; }
 
     public HouseholdMember ToDomain()
     {

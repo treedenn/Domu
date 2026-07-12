@@ -12,7 +12,8 @@ public sealed class CreateItemUseCase(
     IHouseholdEventRecorder? userEventRecorder = null)
     : ICreateItemUseCase
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder =
+        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task<ItemView> ExecuteAsync(CreateItemCommand command, CancellationToken cancellationToken)
     {

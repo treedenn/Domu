@@ -10,12 +10,14 @@ public sealed class DeleteShoppingListUseCase(
     IHouseholdAccessService householdAccessService,
     IHouseholdEventRecorder? userEventRecorder = null)
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder =
+        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task ExecuteAsync(DeleteShoppingListCommand command, CancellationToken cancellationToken)
     {
         var list = await ShoppingListPermissionPolicy.GetAccessibleListAsync(
-            shoppingListRepository, householdAccessService, command.HouseholdId, command.ShoppingListId, command.Actor, cancellationToken);
+            shoppingListRepository, householdAccessService, command.HouseholdId, command.ShoppingListId, command.Actor,
+            cancellationToken);
         list.Archive(DateTimeOffset.UtcNow);
 
         await shoppingListRepository.UpdateAsync(list, cancellationToken);

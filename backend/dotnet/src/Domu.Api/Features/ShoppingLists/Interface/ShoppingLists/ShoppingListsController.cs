@@ -1,11 +1,8 @@
-using Domu.Api.Features.Auth.Domain;
-
 using Domu.Api.Features.Auth.Application;
 using Domu.Api.Features.ShoppingLists.Application.ShoppingLists;
 using Domu.Api.Features.ShoppingLists.Application.ShoppingLists.Commands;
 using Domu.Api.Features.ShoppingLists.Application.ShoppingLists.Contracts;
 using Domu.Api.Features.ShoppingLists.Application.ShoppingLists.Queries;
-using Domu.Api.Features.Users.Interface.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -101,7 +98,8 @@ public sealed class ShoppingListsController(
         try
         {
             var list = await updateShoppingListUseCase.ExecuteAsync(
-                new UpdateShoppingListCommand(actorAccessor.DomuActor, householdId, shoppingListId, request.Name, request.Archived),
+                new UpdateShoppingListCommand(actorAccessor.DomuActor, householdId, shoppingListId, request.Name,
+                    request.Archived),
                 cancellationToken);
             return Ok(list);
         }

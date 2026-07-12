@@ -5,8 +5,8 @@ namespace Domu.Tests.Features.Households.Application;
 
 internal sealed class FakeHouseholdMembershipRepository : IHouseholdMembershipRepository
 {
-    private readonly List<HouseholdMember> _members = [];
     private readonly List<HouseholdInvitation> _invitations = [];
+    private readonly List<HouseholdMember> _members = [];
 
     public IReadOnlyList<HouseholdMember> Members => _members;
     public IReadOnlyList<HouseholdInvitation> Invitations => _invitations;

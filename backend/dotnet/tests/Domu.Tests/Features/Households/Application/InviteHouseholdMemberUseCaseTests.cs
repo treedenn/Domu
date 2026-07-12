@@ -1,5 +1,4 @@
 using Domu.Api.Features.Auth.Domain;
-
 using Domu.Api.Features.Households.Application.Households.Ports;
 using Domu.Api.Features.Households.Application.Members;
 using Domu.Api.Features.Households.Domain.Households;
@@ -28,7 +27,8 @@ public sealed class InviteHouseholdMemberUseCaseTests
         var useCase = new InviteHouseholdMemberUseCase(householdRepository, membershipRepository, sender);
 
         var result = await useCase.ExecuteAsync(
-            new InviteHouseholdMemberCommand(new DomuActor(ownerMemberId, DomuActorType.Zitadel), household.Id, " Person@Example.COM ", "Alex", HouseholdMemberRole.Admin),
+            new InviteHouseholdMemberCommand(new DomuActor(ownerMemberId, DomuActorType.Zitadel), household.Id,
+                " Person@Example.COM ", "Alex", HouseholdMemberRole.Admin),
             CancellationToken.None);
 
         Assert.Equal(household.Id, result.HouseholdId);
@@ -51,7 +51,8 @@ public sealed class InviteHouseholdMemberUseCaseTests
             new FakeHouseholdInvitationSender());
 
         var action = () => useCase.ExecuteAsync(
-            new InviteHouseholdMemberCommand(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), household.Id, "person@example.com", "Alex", HouseholdMemberRole.Member),
+            new InviteHouseholdMemberCommand(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), household.Id,
+                "person@example.com", "Alex", HouseholdMemberRole.Member),
             CancellationToken.None);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(action);
@@ -66,13 +67,8 @@ public sealed class InviteHouseholdMemberUseCaseTests
             return Task.FromResult(_households.SingleOrDefault(household => household.Id == householdId));
         }
 
-        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerMemberId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<IReadOnlyList<Household>>(
-                _households.Where(household => household.OwnerMemberId == ownerMemberId).ToArray());
-        }
-
-        public Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+        public Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId,
+            CancellationToken cancellationToken)
         {
             return GetByOwnerIdAsync(userId, cancellationToken);
         }
@@ -97,6 +93,12 @@ public sealed class InviteHouseholdMemberUseCaseTests
         public Task SaveChangesAsync(CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
+        }
+
+        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerMemberId, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<IReadOnlyList<Household>>(
+                _households.Where(household => household.OwnerMemberId == ownerMemberId).ToArray());
         }
     }
 }

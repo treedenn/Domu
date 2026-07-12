@@ -48,7 +48,7 @@ public sealed class ShoppingListItemEntity
         SortOrder = sortOrder;
     }
 
-    public Guid Id { get; private set; }
+    public Guid Id { get; }
     public Guid HouseholdId { get; private set; }
     public Guid ShoppingListId { get; private set; }
     public string Name { get; private set; } = null!;

@@ -4,14 +4,14 @@ using Domu.Api.Features.Insights.Application.Contracts;
 namespace Domu.Api.Features.Insights.Application.Rules;
 
 /// <summary>
-/// Suggests restocking an item after repeated shopping-list check-offs.
+///     Suggests restocking an item after repeated shopping-list check-offs.
 /// </summary>
 /// <remarks>
-/// Purpose: infer repeat consumables from completed shopping activity.
-/// Produces: <c>shopping_list.restock_candidate</c> insights with a <c>shopping_list.add_item</c> action.
-/// Trigger: at least two recent checked shopping-list items that resolve to the same linked item or normalized name.
-/// Dedupe: uses <c>shopping_list.add_item:item:{itemId}</c> when linked, otherwise
-/// <c>shopping_list.add_item:name:{normalizedName}</c>.
+///     Purpose: infer repeat consumables from completed shopping activity.
+///     Produces: <c>shopping_list.restock_candidate</c> insights with a <c>shopping_list.add_item</c> action.
+///     Trigger: at least two recent checked shopping-list items that resolve to the same linked item or normalized name.
+///     Dedupe: uses <c>shopping_list.add_item:item:{itemId}</c> when linked, otherwise
+///     <c>shopping_list.add_item:name:{normalizedName}</c>.
 /// </remarks>
 public sealed class RestockCandidateRule : IInsightRule
 {
@@ -48,7 +48,8 @@ public sealed class RestockCandidateRule : IInsightRule
             .ToArray();
 
         var candidates = checkedItems
-            .GroupBy(fact => fact.LinkedItemId?.ToString("N") ?? InsightText.NormalizeName(fact.Name!), StringComparer.Ordinal)
+            .GroupBy(fact => fact.LinkedItemId?.ToString("N") ?? InsightText.NormalizeName(fact.Name!),
+                StringComparer.Ordinal)
             .Where(group => group.Count() >= 2)
             .Select(group =>
             {

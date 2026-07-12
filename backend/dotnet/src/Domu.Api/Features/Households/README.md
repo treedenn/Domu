@@ -82,27 +82,27 @@ All routes are authenticated and prefixed with `/api/v1`.
 
 ### Households
 
-| Method | Route | Use case | Result |
-| --- | --- | --- | --- |
-| `GET` | `/households` | `GetHouseholdsUseCase` | Households accessible to the user |
-| `GET` | `/households/{householdId}` | `GetHouseholdUseCase` | One accessible household |
-| `POST` | `/households` | `CreateHouseholdUseCase` | Creates a household and owner membership |
-| `PUT` | `/households/{householdId}` | `UpdateHouseholdUseCase` | Renames an owned household |
-| `DELETE` | `/households/{householdId}` | `DeleteHouseholdUseCase` | Deletes an owned household |
+| Method   | Route                       | Use case                 | Result                                   |
+|----------|-----------------------------|--------------------------|------------------------------------------|
+| `GET`    | `/households`               | `GetHouseholdsUseCase`   | Households accessible to the user        |
+| `GET`    | `/households/{householdId}` | `GetHouseholdUseCase`    | One accessible household                 |
+| `POST`   | `/households`               | `CreateHouseholdUseCase` | Creates a household and owner membership |
+| `PUT`    | `/households/{householdId}` | `UpdateHouseholdUseCase` | Renames an owned household               |
+| `DELETE` | `/households/{householdId}` | `DeleteHouseholdUseCase` | Deletes an owned household               |
 
 Create and update requests contain a `name` property. Household names are
 required and limited to 100 characters.
 
 ### Members and invitations
 
-| Method | Route | Use case | Result |
-| --- | --- | --- | --- |
-| `GET` | `/households/{householdId}/members` | `GetHouseholdMembersUseCase` | Members of an accessible household |
-| `POST` | `/households/{householdId}/members` | `CreateHouseholdMemberUseCase` | Creates an accountless member |
-| `PUT` | `/households/{householdId}/members/{memberId}` | `UpdateHouseholdMemberUseCase` | Updates a member |
-| `GET` | `/households/{householdId}/invitations` | `GetHouseholdInvitationsUseCase` | Pending invitations |
-| `POST` | `/households/{householdId}/invitations` | `InviteHouseholdMemberUseCase` | Creates or resends an invitation |
-| `POST` | `/households/invitations/{token}/accept` | `AcceptHouseholdInvitationUseCase` | Accepts an invitation and creates a linked member |
+| Method | Route                                          | Use case                           | Result                                            |
+|--------|------------------------------------------------|------------------------------------|---------------------------------------------------|
+| `GET`  | `/households/{householdId}/members`            | `GetHouseholdMembersUseCase`       | Members of an accessible household                |
+| `POST` | `/households/{householdId}/members`            | `CreateHouseholdMemberUseCase`     | Creates an accountless member                     |
+| `PUT`  | `/households/{householdId}/members/{memberId}` | `UpdateHouseholdMemberUseCase`     | Updates a member                                  |
+| `GET`  | `/households/{householdId}/invitations`        | `GetHouseholdInvitationsUseCase`   | Pending invitations                               |
+| `POST` | `/households/{householdId}/invitations`        | `InviteHouseholdMemberUseCase`     | Creates or resends an invitation                  |
+| `POST` | `/households/invitations/{token}/accept`       | `AcceptHouseholdInvitationUseCase` | Accepts an invitation and creates a linked member |
 
 Only the household owner may issue invitations. Invitation email addresses are
 normalized, invitations expire after seven days, and invitations cannot grant the

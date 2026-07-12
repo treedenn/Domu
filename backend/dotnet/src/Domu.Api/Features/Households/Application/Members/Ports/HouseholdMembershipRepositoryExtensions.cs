@@ -1,4 +1,5 @@
 using Domu.Api.Features.Households.Domain.Households;
+using Domu.Api.Features.Households.Domain.Members;
 
 namespace Domu.Api.Features.Households.Application.Members.Ports;
 
@@ -13,7 +14,7 @@ public static class HouseholdMembershipRepositoryExtensions
         var member = await repository.GetMemberAsync(household.Id, userId, cancellationToken);
         return member is not null
                && !member.Archived
-               && member.Role == Domain.Members.HouseholdMemberRole.Owner
+               && member.Role == HouseholdMemberRole.Owner
                && household.OwnerMemberId == member.Id;
     }
 }

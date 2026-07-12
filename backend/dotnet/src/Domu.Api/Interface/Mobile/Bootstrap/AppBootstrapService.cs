@@ -37,21 +37,21 @@ public sealed class AppBootstrapService(
     private string? ResolveStoreUrl(string? platform)
     {
         if (string.Equals(platform, "android", StringComparison.OrdinalIgnoreCase))
-        {
             return NullIfWhitespace(_options.AndroidStoreUrl);
-        }
 
         if (string.Equals(platform, "ios", StringComparison.OrdinalIgnoreCase))
-        {
             return NullIfWhitespace(_options.IosStoreUrl);
-        }
 
         return null;
     }
 
     private static Version? TryParseVersion(string? value)
-        => Version.TryParse(value, out var version) ? version : null;
+    {
+        return Version.TryParse(value, out var version) ? version : null;
+    }
 
     private static string? NullIfWhitespace(string? value)
-        => string.IsNullOrWhiteSpace(value) ? null : value;
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value;
+    }
 }

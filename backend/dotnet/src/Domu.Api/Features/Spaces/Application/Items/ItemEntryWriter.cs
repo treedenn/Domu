@@ -16,10 +16,8 @@ internal static class ItemEntryWriter
             .ToHashSet();
 
         foreach (var existingEntry in item.Entries.ToArray())
-        {
             if (!requestedIds.Contains(existingEntry.Id))
                 item.RemoveEntry(existingEntry.Id);
-        }
 
         foreach (var entryInput in requestedEntries)
         {

@@ -47,7 +47,7 @@ public sealed class ItemEntryEntity
         ExpirationDate = expirationDate;
     }
 
-    public Guid Id { get; private set; }
+    public Guid Id { get; }
     public Guid ItemId { get; private set; }
     public decimal InitialQuantity { get; private set; }
     public decimal CurrentQuantity { get; private set; }

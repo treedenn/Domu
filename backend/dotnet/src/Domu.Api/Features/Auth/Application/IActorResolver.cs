@@ -6,7 +6,7 @@ namespace Domu.Api.Features.Auth.Application;
 public interface IActorResolver
 {
     string AuthenticationSchema { get; }
-    
+
     bool CanResolve(ClaimsPrincipal principal);
     Task<DomuActor?> ResolveAsync(ClaimsPrincipal principal, CancellationToken cancellationToken);
 }

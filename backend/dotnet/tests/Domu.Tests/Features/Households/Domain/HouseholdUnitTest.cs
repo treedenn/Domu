@@ -40,7 +40,8 @@ public sealed class HouseholdUnitTest
         var action = () => household.Rename(tooLongName);
 
         var exception = Assert.Throws<ArgumentException>(action);
-        Assert.Contains($"Household name cannot be longer than {Household.NameMaxLength} characters.", exception.Message);
+        Assert.Contains($"Household name cannot be longer than {Household.NameMaxLength} characters.",
+            exception.Message);
     }
 
     [Fact]

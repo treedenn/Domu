@@ -1,5 +1,4 @@
 using Domu.Api.Features.Auth.Domain;
-
 using Domu.Api.Features.Spaces.Application.Items;
 using Domu.Api.Features.Spaces.Application.Items.Ports;
 using Domu.Api.Features.Spaces.Domain.Items;
@@ -16,7 +15,8 @@ public sealed class DeleteItemUseCaseTests
         var useCase = new DeleteItemUseCase(repository, new FakeSpaceAccessService());
 
         await useCase.ExecuteAsync(
-            new DeleteItemCommand(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), Guid.NewGuid(), item.SpaceId, item.Id),
+            new DeleteItemCommand(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), Guid.NewGuid(), item.SpaceId,
+                item.Id),
             CancellationToken.None);
 
         Assert.Empty(repository.StoredItems);
@@ -30,7 +30,8 @@ public sealed class DeleteItemUseCaseTests
         var useCase = new DeleteItemUseCase(repository, new FakeSpaceAccessService());
 
         var action = () => useCase.ExecuteAsync(
-            new DeleteItemCommand(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()),
+            new DeleteItemCommand(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), Guid.NewGuid(), Guid.NewGuid(),
+                Guid.NewGuid()),
             CancellationToken.None);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(action);

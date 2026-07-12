@@ -4,13 +4,13 @@ using Domu.Api.Features.Insights.Application.Contracts;
 namespace Domu.Api.Features.Insights.Application.Rules;
 
 /// <summary>
-/// Suggests a quick-add shopping-list action when the same item name has been added repeatedly.
+///     Suggests a quick-add shopping-list action when the same item name has been added repeatedly.
 /// </summary>
 /// <remarks>
-/// Purpose: make recurring manual shopping-list entries easier to add again.
-/// Produces: <c>shopping_list.frequent_item</c> insights with a <c>shopping_list.add_item</c> action.
-/// Trigger: at least three recent <c>shopping_list_item.created</c> events with the same normalized name.
-/// Dedupe: shares <c>shopping_list.add_item:name:{normalizedName}</c> with other add-item suggestions.
+///     Purpose: make recurring manual shopping-list entries easier to add again.
+///     Produces: <c>shopping_list.frequent_item</c> insights with a <c>shopping_list.add_item</c> action.
+///     Trigger: at least three recent <c>shopping_list_item.created</c> events with the same normalized name.
+///     Dedupe: shares <c>shopping_list.add_item:name:{normalizedName}</c> with other add-item suggestions.
 /// </remarks>
 public sealed class FrequentShoppingListItemRule : IInsightRule
 {

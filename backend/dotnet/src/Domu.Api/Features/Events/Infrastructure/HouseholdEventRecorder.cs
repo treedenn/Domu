@@ -31,12 +31,12 @@ public sealed class HouseholdEventRecorder(
             throw new ArgumentException("Household events require a household id.", nameof(householdId));
 
         var actor = await dbContext.HouseholdMembers
-            .SingleOrDefaultAsync(
-                member => member.HouseholdId == householdId.Value
-                          && (member.Id == actorMemberId || member.UserId == actorMemberId),
-                cancellationToken)
-            ?? throw new KeyNotFoundException(
-                $"Actor '{actorMemberId}' is not a member of household '{householdId}'.");
+                        .SingleOrDefaultAsync(
+                            member => member.HouseholdId == householdId.Value
+                                      && (member.Id == actorMemberId || member.UserId == actorMemberId),
+                            cancellationToken)
+                    ?? throw new KeyNotFoundException(
+                        $"Actor '{actorMemberId}' is not a member of household '{householdId}'.");
 
         var client = clientRequestContextAccessor.Current;
         var userEvent = new HouseholdEvent(

@@ -1,5 +1,6 @@
 using Domu.Api.Features.Households.Infrastructure.Households;
 using Domu.Api.Features.Households.Infrastructure.Members;
+using Domu.Api.Features.ShoppingLists.Domain.Items;
 using Domu.Api.Features.Spaces.Infrastructure.Items;
 using Domu.Api.Features.Spaces.Infrastructure.Spaces;
 using Microsoft.EntityFrameworkCore;
@@ -19,18 +20,18 @@ public sealed class ShoppingListItemConfiguration : IEntityTypeConfiguration<Sho
             .ValueGeneratedNever();
 
         builder.Property(item => item.Name)
-            .HasMaxLength(Domain.Items.ShoppingListItem.NameMaxLength)
+            .HasMaxLength(ShoppingListItem.NameMaxLength)
             .IsRequired();
 
         builder.Property(item => item.NormalizedName)
-            .HasMaxLength(Domain.Items.ShoppingListItem.NameMaxLength)
+            .HasMaxLength(ShoppingListItem.NameMaxLength)
             .IsRequired();
 
         builder.Property(item => item.ContainerUnit)
-            .HasMaxLength(Domain.Items.ShoppingListItem.UnitMaxLength);
+            .HasMaxLength(ShoppingListItem.UnitMaxLength);
 
         builder.Property(item => item.Note)
-            .HasMaxLength(Domain.Items.ShoppingListItem.NoteMaxLength);
+            .HasMaxLength(ShoppingListItem.NoteMaxLength);
 
         builder.HasOne<HouseholdEntity>()
             .WithMany()

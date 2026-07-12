@@ -9,7 +9,8 @@ public sealed class DeleteHouseholdUseCase(
     IHouseholdMembershipRepository membershipRepository,
     IHouseholdEventRecorder? userEventRecorder = null)
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder =
+        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task ExecuteAsync(DeleteHouseholdCommand command, CancellationToken cancellationToken)
     {

@@ -1,9 +1,6 @@
-using Domu.Api.Features.Auth.Domain;
-
 using Domu.Api.Features.Auth.Application;
 using Domu.Api.Features.Insights.Application;
 using Domu.Api.Features.Insights.Application.Contracts;
-using Domu.Api.Features.Users.Interface.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

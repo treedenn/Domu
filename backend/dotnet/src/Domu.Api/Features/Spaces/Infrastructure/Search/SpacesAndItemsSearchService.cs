@@ -80,21 +80,17 @@ public sealed class SpacesAndItemsSearchService(AppDbContext dbContext) : ISpace
             select item;
 
         if (hasText)
-        {
             baseQuery = baseQuery.Where(item =>
                 item.Name.ToLower().Contains(normalizedText!)
                 || (item.Category != null && item.Category.ToLower().Contains(normalizedText!))
                 || (item.Barcode != null && item.Barcode.ToLower() == normalizedText));
-        }
 
         if (expiresBefore is not null)
-        {
             baseQuery = baseQuery.Where(item => dbContext.ItemEntries
                 .Any(entry => entry.ItemId == item.Id
                               && entry.ExpirationDate != null
                               && entry.ExpirationDate >= now
                               && entry.ExpirationDate <= expiresBefore.Value));
-        }
 
         var itemRows = await baseQuery
             .OrderBy(item => hasText && item.Barcode != null && item.Barcode.ToLower() == normalizedText ? 0 : 1)

@@ -7,7 +7,8 @@ namespace Domu.Api.Features.Users.Infrastructure;
 
 public sealed class UserRepository(AppDbContext dbContext) : IUserRepository
 {
-    public async Task<AuthenticatedUser?> GetByAuthIdentityAsync(string externalIdentifier, CancellationToken cancellationToken)
+    public async Task<AuthenticatedUser?> GetByAuthIdentityAsync(string externalIdentifier,
+        CancellationToken cancellationToken)
     {
         var user = await dbContext.Users
             .SingleOrDefaultAsync(user => user.ExternalIdentifier == externalIdentifier, cancellationToken);
@@ -15,7 +16,8 @@ public sealed class UserRepository(AppDbContext dbContext) : IUserRepository
         return user?.ToDomain();
     }
 
-    public async Task AddAsync(AuthenticatedUser authenticatedUser, string externalIdentifier, CancellationToken cancellationToken)
+    public async Task AddAsync(AuthenticatedUser authenticatedUser, string externalIdentifier,
+        CancellationToken cancellationToken)
     {
         await dbContext.Users.AddAsync(UserEntity.FromDomain(authenticatedUser, externalIdentifier), cancellationToken);
     }

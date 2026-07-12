@@ -4,8 +4,6 @@ public sealed class Household
 {
     public const int NameMaxLength = 100;
 
-    private string _name = null!;
-
     public Household(Guid id, Guid? ownerMemberId, string name)
     {
         Id = id == Guid.Empty
@@ -40,22 +38,19 @@ public sealed class Household
     public DateTimeOffset? SubscriptionCurrentPeriodEndsAt { get; private set; }
     public DateTimeOffset? SubscriptionCancelledAt { get; private set; }
 
-    public string Name
-    {
-        get => _name;
-        private set => _name = value;
-    }
+    public string Name { get; private set; } = null!;
 
     public void Rename(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Household name cannot be null or whitespace.", nameof(name));
         if (name.Length > NameMaxLength)
-            throw new ArgumentException($"Household name cannot be longer than {NameMaxLength} characters.", nameof(name));
+            throw new ArgumentException($"Household name cannot be longer than {NameMaxLength} characters.",
+                nameof(name));
 
         Name = name;
     }
-    
+
     public void AssignOwner(Guid ownerMemberId)
     {
         if (ownerMemberId == Guid.Empty)
@@ -68,7 +63,8 @@ public sealed class Household
     public void ActivatePremiumSubscription(DateTimeOffset currentPeriodEndsAt, DateTimeOffset activatedAt)
     {
         if (currentPeriodEndsAt <= activatedAt)
-            throw new ArgumentException("Subscription period end must be after activation time.", nameof(currentPeriodEndsAt));
+            throw new ArgumentException("Subscription period end must be after activation time.",
+                nameof(currentPeriodEndsAt));
 
         SubscriptionPlan = HouseholdSubscriptionPlan.Premium;
         SubscriptionStatus = HouseholdSubscriptionStatus.Active;
@@ -83,7 +79,8 @@ public sealed class Household
         if (SubscriptionCurrentPeriodEndsAt is null)
             throw new InvalidOperationException("Paid subscriptions must have a current period end.");
         if (cancelledAt >= SubscriptionCurrentPeriodEndsAt.Value)
-            throw new ArgumentException("Cancellation time must be before the current period ends.", nameof(cancelledAt));
+            throw new ArgumentException("Cancellation time must be before the current period ends.",
+                nameof(cancelledAt));
 
         SubscriptionStatus = HouseholdSubscriptionStatus.CancellationScheduled;
         SubscriptionCancelledAt = cancelledAt;
@@ -94,7 +91,8 @@ public sealed class Household
         if (SubscriptionCurrentPeriodEndsAt is null)
             throw new InvalidOperationException("Subscription cannot expire without a current period end.");
         if (expiredAt < SubscriptionCurrentPeriodEndsAt.Value)
-            throw new ArgumentException("Subscription cannot expire before the current period ends.", nameof(expiredAt));
+            throw new ArgumentException("Subscription cannot expire before the current period ends.",
+                nameof(expiredAt));
 
         SubscriptionPlan = HouseholdSubscriptionPlan.Free;
         SubscriptionStatus = HouseholdSubscriptionStatus.Expired;
@@ -123,13 +121,18 @@ public sealed class Household
         if (subscriptionStatus == HouseholdSubscriptionStatus.Unknown)
             throw new ArgumentException("Subscription status must be specified.", nameof(subscriptionStatus));
         if (subscriptionPlan == HouseholdSubscriptionPlan.Free && subscriptionCurrentPeriodEndsAt is not null)
-            throw new ArgumentException("Free households cannot have a subscription period end.", nameof(subscriptionCurrentPeriodEndsAt));
+            throw new ArgumentException("Free households cannot have a subscription period end.",
+                nameof(subscriptionCurrentPeriodEndsAt));
         if (subscriptionPlan == HouseholdSubscriptionPlan.Premium && subscriptionCurrentPeriodEndsAt is null)
-            throw new ArgumentException("Premium households must have a subscription period end.", nameof(subscriptionCurrentPeriodEndsAt));
+            throw new ArgumentException("Premium households must have a subscription period end.",
+                nameof(subscriptionCurrentPeriodEndsAt));
         if (subscriptionStatus == HouseholdSubscriptionStatus.CancellationScheduled && subscriptionCancelledAt is null)
-            throw new ArgumentException("Cancellation-scheduled households must have a cancellation time.", nameof(subscriptionCancelledAt));
-        if (subscriptionStatus != HouseholdSubscriptionStatus.CancellationScheduled && subscriptionCancelledAt is not null)
-            throw new ArgumentException("Only cancellation-scheduled households can have a cancellation time.", nameof(subscriptionCancelledAt));
+            throw new ArgumentException("Cancellation-scheduled households must have a cancellation time.",
+                nameof(subscriptionCancelledAt));
+        if (subscriptionStatus != HouseholdSubscriptionStatus.CancellationScheduled &&
+            subscriptionCancelledAt is not null)
+            throw new ArgumentException("Only cancellation-scheduled households can have a cancellation time.",
+                nameof(subscriptionCancelledAt));
 
         SubscriptionPlan = subscriptionPlan;
         SubscriptionStatus = subscriptionStatus;

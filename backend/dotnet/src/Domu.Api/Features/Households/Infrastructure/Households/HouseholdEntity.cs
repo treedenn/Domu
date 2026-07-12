@@ -32,7 +32,7 @@ public sealed class HouseholdEntity
         SubscriptionCancelledAt = subscriptionCancelledAt;
     }
 
-    public Guid Id { get; private set; }
+    public Guid Id { get; }
     public Guid? OwnerMemberId { get; private set; }
     public string Name { get; private set; } = null!;
     public HouseholdSubscriptionPlan SubscriptionPlan { get; private set; }
@@ -70,7 +70,8 @@ public sealed class HouseholdEntity
     {
         ArgumentNullException.ThrowIfNull(household);
         if (household.Id != Id)
-            throw new ArgumentException("Cannot update household entity from a different household.", nameof(household));
+            throw new ArgumentException("Cannot update household entity from a different household.",
+                nameof(household));
 
         OwnerMemberId = household.OwnerMemberId;
         Name = household.Name;

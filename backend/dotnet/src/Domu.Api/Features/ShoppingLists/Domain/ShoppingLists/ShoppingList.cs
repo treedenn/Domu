@@ -6,8 +6,6 @@ public sealed class ShoppingList
 {
     public const int NameMaxLength = 120;
 
-    private string _name = null!;
-
     public ShoppingList(
         Guid id,
         Guid householdId,
@@ -34,7 +32,8 @@ public sealed class ShoppingList
 
     public Guid Id { get; }
     public Guid HouseholdId { get; }
-    public string Name => _name;
+    public string Name { get; private set; } = null!;
+
     public Guid CreatedByMemberId { get; }
     public DateTimeOffset CreatedAt { get; }
     public DateTimeOffset UpdatedAt { get; private set; }
@@ -48,7 +47,7 @@ public sealed class ShoppingList
                 $"Shopping list name cannot be longer than {NameMaxLength} characters.",
                 nameof(name));
 
-        _name = cleanedName;
+        Name = cleanedName;
         UpdatedAt = updatedAt;
     }
 
@@ -57,7 +56,7 @@ public sealed class ShoppingList
         ArchivedAt = archivedAt;
         UpdatedAt = archivedAt;
     }
-    
+
     public void Unarchive()
     {
         ArchivedAt = null;

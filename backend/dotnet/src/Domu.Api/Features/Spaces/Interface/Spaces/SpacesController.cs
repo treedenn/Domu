@@ -1,5 +1,3 @@
-using Domu.Api.Features.Auth.Domain;
-
 using Domu.Api.Features.Auth.Application;
 using Domu.Api.Features.Spaces.Application.Spaces;
 using Domu.Api.Features.Spaces.Application.Spaces.Contracts;
@@ -95,7 +93,8 @@ public sealed class SpacesController(
         try
         {
             var space = await createSpaceUseCase.ExecuteAsync(
-                new CreateSpaceCommand(actorAccessor.DomuActor, householdId, request.Name, request.Description, request.ParentId),
+                new CreateSpaceCommand(actorAccessor.DomuActor, householdId, request.Name, request.Description,
+                    request.ParentId),
                 cancellationToken);
 
             return CreatedAtAction(nameof(GetSpace), new { householdId, spaceId = space.Id }, space);
@@ -123,7 +122,8 @@ public sealed class SpacesController(
         try
         {
             var space = await updateSpaceUseCase.ExecuteAsync(
-                new UpdateSpaceCommand(actorAccessor.DomuActor, householdId, spaceId, request.Name, request.Description),
+                new UpdateSpaceCommand(actorAccessor.DomuActor, householdId, spaceId, request.Name,
+                    request.Description),
                 cancellationToken);
 
             return Ok(space);

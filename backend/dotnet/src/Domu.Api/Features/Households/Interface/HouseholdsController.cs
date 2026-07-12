@@ -1,11 +1,8 @@
-using Domu.Api.Features.Auth.Domain;
-
 using Domu.Api.Features.Auth.Application;
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.Households.Application.Households.Contracts;
 using Domu.Api.Features.Households.Application.Members;
 using Domu.Api.Features.Households.Application.Members.Contracts;
-using Domu.Api.Features.Users.Interface.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -128,7 +125,8 @@ public sealed class HouseholdsController(
         try
         {
             var invitation = await inviteHouseholdMemberUseCase.ExecuteAsync(
-                new InviteHouseholdMemberCommand(actorAccessor.DomuActor, householdId, request.Email, request.DisplayName, request.Role),
+                new InviteHouseholdMemberCommand(actorAccessor.DomuActor, householdId, request.Email,
+                    request.DisplayName, request.Role),
                 cancellationToken);
 
             return Created($"/api/v1/households/{householdId}/invitations/{invitation.Id}", invitation);

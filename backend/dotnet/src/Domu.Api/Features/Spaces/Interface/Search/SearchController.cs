@@ -1,5 +1,3 @@
-using Domu.Api.Features.Auth.Domain;
-
 using Domu.Api.Features.Auth.Application;
 using Domu.Api.Features.Spaces.Application.Search;
 using Domu.Api.Features.Spaces.Application.Search.Contracts;

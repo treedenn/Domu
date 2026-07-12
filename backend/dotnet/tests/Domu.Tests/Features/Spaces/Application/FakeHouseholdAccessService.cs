@@ -29,5 +29,4 @@ internal sealed class FakeHouseholdAccessService : IHouseholdAccessService
 
         return Task.FromResult(_memberId);
     }
-
 }

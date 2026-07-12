@@ -8,9 +8,6 @@ public sealed class HouseholdInvitation
     public const int TokenMaxLength = 128;
     public static readonly TimeSpan DefaultLifetime = TimeSpan.FromDays(7);
 
-    private string _email = null!;
-    private string _token = null!;
-
     public HouseholdInvitation(
         Guid id,
         Guid householdId,
@@ -84,17 +81,9 @@ public sealed class HouseholdInvitation
     public DateTimeOffset ExpiresAt { get; }
     public DateTimeOffset? AcceptedAt { get; private set; }
 
-    public string Email
-    {
-        get => _email;
-        private set => _email = value;
-    }
+    public string Email { get; private set; } = null!;
 
-    public string Token
-    {
-        get => _token;
-        private set => _token = value;
-    }
+    public string Token { get; private set; } = null!;
 
     public void Accept(DateTimeOffset acceptedAt)
     {
@@ -135,7 +124,8 @@ public sealed class HouseholdInvitation
         if (string.IsNullOrWhiteSpace(token))
             throw new ArgumentException("Invitation token cannot be empty.", nameof(token));
         if (token.Length > TokenMaxLength)
-            throw new ArgumentException($"Invitation token cannot be longer than {TokenMaxLength} characters.", nameof(token));
+            throw new ArgumentException($"Invitation token cannot be longer than {TokenMaxLength} characters.",
+                nameof(token));
 
         return token;
     }

@@ -10,9 +10,6 @@ public sealed class Space
 
     private readonly HashSet<Space> _children = [];
     private readonly HashSet<Item> _items = [];
-    private string _name = null!;
-    private string? _description;
-    private Guid? _parentId;
 
     public Space(Guid id, string name, Guid householdId)
     {
@@ -28,14 +25,12 @@ public sealed class Space
     public Guid Id { get; }
     public Guid HouseholdId { get; }
 
-    public string Name
-    {
-        get => _name;
-        private set => _name = value;
-    }
+    public string Name { get; private set; } = null!;
 
-    public string? Description => _description;
-    public Guid? ParentId => _parentId;
+    public string? Description { get; private set; }
+
+    public Guid? ParentId { get; private set; }
+
     public IReadOnlySet<Space> Children => _children.AsReadOnly();
     public IReadOnlySet<Item> Items => _items.AsReadOnly();
 
@@ -56,7 +51,7 @@ public sealed class Space
                 $"Space description cannot be longer than {DescriptionMaxLength} characters.",
                 nameof(description));
 
-        _description = description;
+        Description = description;
     }
 
     public void MoveTo(Guid? parentId)
@@ -66,7 +61,7 @@ public sealed class Space
         if (parentId == Id)
             throw new ArgumentException("Parent space cannot be itself.", nameof(parentId));
 
-        _parentId = parentId;
+        ParentId = parentId;
     }
 
     public bool AddChild(Space child)

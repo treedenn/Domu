@@ -44,16 +44,16 @@ public sealed class HouseholdInvitationEntity
         AcceptedAt = acceptedAt;
     }
 
-    public Guid Id { get; private set; }
-    public Guid HouseholdId { get; private set; }
-    public string Email { get; private set; } = null!;
-    public string DisplayName { get; private set; } = null!;
-    public Guid InvitedByMemberId { get; private set; }
-    public HouseholdMemberRole Role { get; private set; }
-    public string Token { get; private set; } = null!;
+    public Guid Id { get; }
+    public Guid HouseholdId { get; }
+    public string Email { get; } = null!;
+    public string DisplayName { get; } = null!;
+    public Guid InvitedByMemberId { get; }
+    public HouseholdMemberRole Role { get; }
+    public string Token { get; } = null!;
     public HouseholdInvitationStatus Status { get; private set; }
-    public DateTimeOffset CreatedAt { get; private set; }
-    public DateTimeOffset ExpiresAt { get; private set; }
+    public DateTimeOffset CreatedAt { get; }
+    public DateTimeOffset ExpiresAt { get; }
     public DateTimeOffset? AcceptedAt { get; private set; }
 
     public HouseholdInvitation ToDomain()
@@ -94,7 +94,8 @@ public sealed class HouseholdInvitationEntity
     {
         ArgumentNullException.ThrowIfNull(invitation);
         if (invitation.Id != Id)
-            throw new ArgumentException("Cannot update invitation entity from a different invitation.", nameof(invitation));
+            throw new ArgumentException("Cannot update invitation entity from a different invitation.",
+                nameof(invitation));
 
         Status = invitation.Status;
         AcceptedAt = invitation.AcceptedAt;

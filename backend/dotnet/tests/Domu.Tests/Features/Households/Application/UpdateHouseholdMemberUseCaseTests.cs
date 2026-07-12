@@ -22,7 +22,9 @@ public sealed class UpdateHouseholdMemberUseCaseTests
             HouseholdMemberRole.Member,
             DateTimeOffset.UtcNow);
         var membershipRepository = new FakeHouseholdMembershipRepository();
-        await membershipRepository.AddMemberAsync(new HouseholdMember(ownerMemberId, household.Id, ownerUserId, "Owner", HouseholdMemberRole.Owner, DateTimeOffset.UtcNow), CancellationToken.None);
+        await membershipRepository.AddMemberAsync(
+            new HouseholdMember(ownerMemberId, household.Id, ownerUserId, "Owner", HouseholdMemberRole.Owner,
+                DateTimeOffset.UtcNow), CancellationToken.None);
         await membershipRepository.AddMemberAsync(member, CancellationToken.None);
         var useCase = new UpdateHouseholdMemberUseCase(
             new StubHouseholdRepository(household),
@@ -35,7 +37,7 @@ public sealed class UpdateHouseholdMemberUseCaseTests
                 member.Id,
                 " Sam ",
                 HouseholdMemberRole.Admin,
-                Archived: true),
+                true),
             CancellationToken.None);
 
         Assert.Equal("Sam", result.DisplayName);
@@ -71,7 +73,7 @@ public sealed class UpdateHouseholdMemberUseCaseTests
                 member.Id,
                 "Sam",
                 HouseholdMemberRole.Admin,
-                Archived: false),
+                false),
             CancellationToken.None);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(action);
@@ -103,7 +105,7 @@ public sealed class UpdateHouseholdMemberUseCaseTests
                 member.Id,
                 "Owner",
                 HouseholdMemberRole.Admin,
-                Archived: false),
+                false),
             CancellationToken.None);
 
         await Assert.ThrowsAsync<ArgumentException>(action);
@@ -111,18 +113,40 @@ public sealed class UpdateHouseholdMemberUseCaseTests
 
     private sealed class StubHouseholdRepository(Household household) : IHouseholdRepository
     {
-        public Task<Household?> GetByIdAsync(Guid householdId, CancellationToken cancellationToken) =>
-            Task.FromResult(household.Id == householdId ? household : null);
+        public Task<Household?> GetByIdAsync(Guid householdId, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(household.Id == householdId ? household : null);
+        }
 
-        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerMemberId, CancellationToken cancellationToken) =>
-            Task.FromResult<IReadOnlyList<Household>>([]);
+        public Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult<IReadOnlyList<Household>>([]);
+        }
 
-        public Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId, CancellationToken cancellationToken) =>
-            Task.FromResult<IReadOnlyList<Household>>([]);
+        public Task AddAsync(Household value, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
 
-        public Task AddAsync(Household value, CancellationToken cancellationToken) => Task.CompletedTask;
-        public Task UpdateAsync(Household value, CancellationToken cancellationToken) => Task.CompletedTask;
-        public Task DeleteAsync(Guid householdId, CancellationToken cancellationToken) => Task.CompletedTask;
-        public Task SaveChangesAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task UpdateAsync(Household value, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteAsync(Guid householdId, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task SaveChangesAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerMemberId, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<IReadOnlyList<Household>>([]);
+        }
     }
 }

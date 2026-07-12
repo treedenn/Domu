@@ -10,7 +10,8 @@ public sealed class DeleteItemUseCase(
     IHouseholdEventRecorder? userEventRecorder = null)
     : IDeleteItemUseCase
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder =
+        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task ExecuteAsync(DeleteItemCommand command, CancellationToken cancellationToken)
     {

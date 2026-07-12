@@ -4,8 +4,6 @@ public sealed class HouseholdMember
 {
     public const int DisplayNameMaxLength = 100;
 
-    private string _displayName = null!;
-
     public HouseholdMember(
         Guid id,
         Guid householdId,
@@ -33,14 +31,15 @@ public sealed class HouseholdMember
     public Guid Id { get; }
     public Guid HouseholdId { get; }
     public Guid UserId { get; }
-    public string DisplayName => _displayName;
+    public string DisplayName { get; private set; } = null!;
+
     public HouseholdMemberRole Role { get; private set; }
     public DateTimeOffset JoinedAt { get; }
     public bool Archived { get; private set; }
 
     public void Rename(string displayName)
     {
-        _displayName = ValidateDisplayName(displayName);
+        DisplayName = ValidateDisplayName(displayName);
     }
 
     public void ChangeRole(HouseholdMemberRole role)
@@ -65,7 +64,8 @@ public sealed class HouseholdMember
 
         var normalized = displayName.Trim();
         if (normalized.Length > DisplayNameMaxLength)
-            throw new ArgumentException($"Display name cannot be longer than {DisplayNameMaxLength} characters.", nameof(displayName));
+            throw new ArgumentException($"Display name cannot be longer than {DisplayNameMaxLength} characters.",
+                nameof(displayName));
 
         return normalized;
     }

@@ -9,12 +9,11 @@ namespace Domu.Api.Features.ShoppingLists.Application.ShoppingLists;
 
 internal static class ShoppingListPermissionPolicy
 {
-    public static async Task EnsureCanAccessListAsync(
-        IShoppingListRepository shoppingListRepository,
+    public static async Task EnsureCanAccessListAsync(IShoppingListRepository shoppingListRepository,
         IHouseholdAccessService householdAccessService,
+        DomuActor actor,
         Guid householdId,
         Guid shoppingListId,
-        DomuActor actor,
         CancellationToken cancellationToken)
     {
         await GetAccessibleListAsync(
@@ -53,10 +52,8 @@ internal static class ShoppingListPermissionPolicy
         await EnsureCanAccessListAsync(
             shoppingListRepository,
             householdAccessService,
-            householdId,
-            shoppingListId,
             actor,
-            cancellationToken);
+            householdId, shoppingListId, cancellationToken);
 
         return await GetListItemAsync(shoppingListItemRepository, shoppingListId, itemId, cancellationToken);
     }
@@ -84,11 +81,13 @@ internal static class ShoppingListPermissionPolicy
         CancellationToken cancellationToken)
     {
         if (spaceId is not null
-            && !await shoppingListItemRepository.SpaceBelongsToHouseholdAsync(spaceId.Value, householdId, cancellationToken))
+            && !await shoppingListItemRepository.SpaceBelongsToHouseholdAsync(spaceId.Value, householdId,
+                cancellationToken))
             throw new KeyNotFoundException($"Space '{spaceId}' was not found.");
 
         if (itemId is not null
-            && !await shoppingListItemRepository.ItemBelongsToHouseholdAsync(itemId.Value, householdId, cancellationToken))
+            && !await shoppingListItemRepository.ItemBelongsToHouseholdAsync(itemId.Value, householdId,
+                cancellationToken))
             throw new KeyNotFoundException($"Item '{itemId}' was not found.");
     }
 }

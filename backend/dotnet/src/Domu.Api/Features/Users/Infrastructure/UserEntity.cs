@@ -18,7 +18,7 @@ public sealed class UserEntity
             : externalIdentifier;
     }
 
-    public Guid Id { get; private set; }
+    public Guid Id { get; }
     public string ExternalIdentifier { get; private set; } = null!;
 
     public AuthenticatedUser ToDomain()

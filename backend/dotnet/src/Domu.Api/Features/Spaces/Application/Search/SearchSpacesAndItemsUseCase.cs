@@ -9,7 +9,8 @@ public sealed class SearchSpacesAndItemsUseCase(
     IHouseholdAccessService householdAccessService)
     : ISearchSpacesAndItemsUseCase
 {
-    public async Task<SearchResultsView> ExecuteAsync(SearchSpacesAndItemsQuery query, CancellationToken cancellationToken)
+    public async Task<SearchResultsView> ExecuteAsync(SearchSpacesAndItemsQuery query,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(query);
         if (query.ExpiringWithinDays is < 0)

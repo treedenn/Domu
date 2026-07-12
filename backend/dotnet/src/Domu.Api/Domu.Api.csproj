@@ -7,32 +7,32 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="EFCore.NamingConventions" Version="10.0.1" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
-        <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
+        <PackageReference Include="EFCore.NamingConventions" Version="10.0.1"/>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9"/>
+        <PackageReference Include="Microsoft.OpenApi" Version="2.7.5"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.9"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3"/>
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Application\" />
-        <Folder Include="Features\Households\Infrastructure\" />
-        <Folder Include="Features\Spaces\Application\Items\Contracts\" />
-        <Folder Include="Features\Spaces\Application\Items\Ports\" />
-        <Folder Include="Features\Spaces\Application\Spaces\Contracts\" />
-        <Folder Include="Features\Spaces\Application\Spaces\Ports\" />
-        <Folder Include="Features\Spaces\Infrastructure\Items\" />
-        <Folder Include="Features\Spaces\Infrastructure\Spaces\" />
-        <Folder Include="Features\Spaces\Interface\" />
-        <Folder Include="Features\Users\Application\Contracts\" />
-        <Folder Include="Features\Users\Application\Ports\" />
-        <Folder Include="Features\Users\Infrastructure\" />
-        <Folder Include="Infrastructure\Database\Migrations\" />
+        <Folder Include="Application\"/>
+        <Folder Include="Features\Households\Infrastructure\"/>
+        <Folder Include="Features\Spaces\Application\Items\Contracts\"/>
+        <Folder Include="Features\Spaces\Application\Items\Ports\"/>
+        <Folder Include="Features\Spaces\Application\Spaces\Contracts\"/>
+        <Folder Include="Features\Spaces\Application\Spaces\Ports\"/>
+        <Folder Include="Features\Spaces\Infrastructure\Items\"/>
+        <Folder Include="Features\Spaces\Infrastructure\Spaces\"/>
+        <Folder Include="Features\Spaces\Interface\"/>
+        <Folder Include="Features\Users\Application\Contracts\"/>
+        <Folder Include="Features\Users\Application\Ports\"/>
+        <Folder Include="Features\Users\Infrastructure\"/>
+        <Folder Include="Infrastructure\Database\Migrations\"/>
     </ItemGroup>
 
 </Project>

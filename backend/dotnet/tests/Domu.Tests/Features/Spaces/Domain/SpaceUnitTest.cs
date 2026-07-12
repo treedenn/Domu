@@ -35,7 +35,10 @@ public sealed class SpaceUnitTest
         var parent = new Space(Guid.NewGuid(), "House", Guid.NewGuid());
         var child = new Space(Guid.NewGuid(), "Kitchen", Guid.NewGuid());
 
-        void Action() => parent.AddChild(child);
+        void Action()
+        {
+            parent.AddChild(child);
+        }
 
         var exception = Assert.Throws<ArgumentException>(Action);
         Assert.Contains("same household", exception.Message);
@@ -47,7 +50,10 @@ public sealed class SpaceUnitTest
         var space = new Space(Guid.NewGuid(), "Pantry", Guid.NewGuid());
         var item = new Item(Guid.NewGuid(), "Pasta", Guid.NewGuid());
 
-        void Action() => space.AddItem(item);
+        void Action()
+        {
+            space.AddItem(item);
+        }
 
         var exception = Assert.Throws<ArgumentException>(Action);
         Assert.Contains("Item must belong to this space.", exception.Message);

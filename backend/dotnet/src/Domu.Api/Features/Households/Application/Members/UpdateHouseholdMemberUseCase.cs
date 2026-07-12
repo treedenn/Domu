@@ -24,13 +24,14 @@ public sealed class UpdateHouseholdMemberUseCase(
             throw new ArgumentException("Household members must have the admin or member role.", nameof(command));
 
         var member = await membershipRepository.GetMemberByIdAsync(
-            command.HouseholdId,
-            command.MemberId,
-            cancellationToken)
-            ?? throw new KeyNotFoundException($"Household member '{command.MemberId}' was not found.");
+                         command.HouseholdId,
+                         command.MemberId,
+                         cancellationToken)
+                     ?? throw new KeyNotFoundException($"Household member '{command.MemberId}' was not found.");
 
         if (member.Role == HouseholdMemberRole.Owner)
-            throw new ArgumentException("The household owner member cannot be updated through this endpoint.", nameof(command));
+            throw new ArgumentException("The household owner member cannot be updated through this endpoint.",
+                nameof(command));
 
         member.Rename(command.DisplayName);
         member.ChangeRole(command.Role);

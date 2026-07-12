@@ -65,6 +65,16 @@ public sealed class GetHouseholdInsightsUseCaseTests
             return Task.CompletedTask;
         }
 
+        public Task<Guid> GetRequiredMemberIdAsync(DomuActor actor,
+            Guid householdId,
+            CancellationToken cancellationToken)
+        {
+            if (DenyAccess)
+                throw new KeyNotFoundException();
+
+            return Task.FromResult(Guid.NewGuid());
+        }
+
         public Task EnsureCanAccessHouseholdAsync(
             Guid householdId,
             Guid userId,
@@ -74,16 +84,6 @@ public sealed class GetHouseholdInsightsUseCaseTests
                 throw new KeyNotFoundException();
 
             return Task.CompletedTask;
-        }
-
-        public Task<Guid> GetRequiredMemberIdAsync(DomuActor actor,
-            Guid householdId,
-            CancellationToken cancellationToken)
-        {
-            if (DenyAccess)
-                throw new KeyNotFoundException();
-
-            return Task.FromResult(Guid.NewGuid());
         }
 
         public Task<Guid> GetRequiredMemberIdAsync(

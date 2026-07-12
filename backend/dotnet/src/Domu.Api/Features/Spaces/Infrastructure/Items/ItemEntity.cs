@@ -25,7 +25,7 @@ public sealed class ItemEntity
         Barcode = barcode;
     }
 
-    public Guid Id { get; private set; }
+    public Guid Id { get; }
     public Guid SpaceId { get; private set; }
     public string Name { get; private set; } = null!;
     public string? Category { get; private set; }

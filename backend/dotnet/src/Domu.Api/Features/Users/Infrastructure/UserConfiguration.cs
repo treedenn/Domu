@@ -20,6 +20,5 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<UserEntity>
 
         builder.HasIndex(user => user.ExternalIdentifier)
             .IsUnique();
-
     }
 }

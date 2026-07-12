@@ -11,7 +11,8 @@ public sealed class UpdateItemUseCase(
     IHouseholdEventRecorder? userEventRecorder = null)
     : IUpdateItemUseCase
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder =
+        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task<ItemView> ExecuteAsync(UpdateItemCommand command, CancellationToken cancellationToken)
     {

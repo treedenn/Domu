@@ -1,5 +1,4 @@
 using Domu.Api.Features.Auth.Domain;
-
 using Domu.Api.Features.Households.Application.Households.Ports;
 using Domu.Api.Features.Households.Application.Members;
 using Domu.Api.Features.Households.Domain.Households;
@@ -67,13 +66,8 @@ public sealed class GetHouseholdInvitationsUseCaseTests
             return Task.FromResult(_households.SingleOrDefault(household => household.Id == householdId));
         }
 
-        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerMemberId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<IReadOnlyList<Household>>(
-                _households.Where(household => household.OwnerMemberId == ownerMemberId).ToArray());
-        }
-
-        public Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+        public Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId,
+            CancellationToken cancellationToken)
         {
             return GetByOwnerIdAsync(userId, cancellationToken);
         }
@@ -98,6 +92,12 @@ public sealed class GetHouseholdInvitationsUseCaseTests
         public Task SaveChangesAsync(CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
+        }
+
+        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerMemberId, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<IReadOnlyList<Household>>(
+                _households.Where(household => household.OwnerMemberId == ownerMemberId).ToArray());
         }
     }
 }

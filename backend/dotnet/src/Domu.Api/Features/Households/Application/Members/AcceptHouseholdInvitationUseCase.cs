@@ -1,4 +1,3 @@
-using Domu.Api.Features.Auth.Application;
 using Domu.Api.Features.Events.Application;
 using Domu.Api.Features.Households.Application.Members.Contracts;
 using Domu.Api.Features.Households.Application.Members.Ports;
@@ -10,7 +9,8 @@ public sealed class AcceptHouseholdInvitationUseCase(
     IHouseholdMembershipRepository membershipRepository,
     IHouseholdEventRecorder? userEventRecorder = null)
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder =
+        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task<HouseholdMemberView> ExecuteAsync(
         AcceptHouseholdInvitationCommand command,
@@ -25,7 +25,8 @@ public sealed class AcceptHouseholdInvitationUseCase(
         var now = DateTimeOffset.UtcNow;
         invitation.Accept(now);
 
-        var member = await membershipRepository.GetMemberAsync(invitation.HouseholdId, command.Actor.ActorId, cancellationToken);
+        var member =
+            await membershipRepository.GetMemberAsync(invitation.HouseholdId, command.Actor.ActorId, cancellationToken);
         if (member is null)
         {
             member = new HouseholdMember(

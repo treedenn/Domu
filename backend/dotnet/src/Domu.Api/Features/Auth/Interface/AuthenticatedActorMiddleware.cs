@@ -14,7 +14,7 @@ public sealed class AuthenticatedActorMiddleware(RequestDelegate next)
             {
                 if (!resolver.CanResolve(context.User))
                     continue;
-                
+
                 var actor = await resolver.ResolveAsync(context.User, context.RequestAborted);
                 if (actor != null)
                 {

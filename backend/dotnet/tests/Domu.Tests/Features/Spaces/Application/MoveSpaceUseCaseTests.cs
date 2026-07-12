@@ -1,5 +1,4 @@
 using Domu.Api.Features.Auth.Domain;
-
 using Domu.Api.Features.Spaces.Application.Spaces;
 using Domu.Api.Features.Spaces.Application.Spaces.Ports;
 using Domu.Api.Features.Spaces.Domain.Spaces;
@@ -17,7 +16,8 @@ public sealed class MoveSpaceUseCaseTests
         var parentId = Guid.NewGuid();
 
         var result = await useCase.ExecuteAsync(
-            new MoveSpaceCommand(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), space.HouseholdId, space.Id, parentId),
+            new MoveSpaceCommand(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), space.HouseholdId, space.Id,
+                parentId),
             CancellationToken.None);
 
         Assert.Equal(parentId, result.ParentId);

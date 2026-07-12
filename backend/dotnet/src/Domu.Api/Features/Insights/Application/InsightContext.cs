@@ -1,5 +1,4 @@
 using Domu.Api.Features.Auth.Domain;
-
 using Domu.Api.Features.Events.Domain;
 
 namespace Domu.Api.Features.Insights.Application;

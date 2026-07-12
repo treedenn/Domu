@@ -9,5 +9,5 @@ public enum ItemUnit
     Liter = 101,
 
     Gram = 200,
-    Kilogram = 201,
+    Kilogram = 201
 }

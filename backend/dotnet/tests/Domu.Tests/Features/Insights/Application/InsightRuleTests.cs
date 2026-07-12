@@ -1,5 +1,5 @@
+using System.Text.Json;
 using Domu.Api.Features.Auth.Domain;
-
 using Domu.Api.Features.Events.Application;
 using Domu.Api.Features.Events.Domain;
 using Domu.Api.Features.Insights.Application;
@@ -48,7 +48,8 @@ public sealed class InsightRuleTests
         var now = DateTimeOffset.UtcNow;
         var events = new List<HouseholdEvent>
         {
-            Event(householdId, HouseholdEventActions.ShoppingListCheckedItemsCleared, shoppingListId, "{}", now.AddMinutes(-10))
+            Event(householdId, HouseholdEventActions.ShoppingListCheckedItemsCleared, shoppingListId, "{}",
+                now.AddMinutes(-10))
         };
         events.AddRange(Enumerable.Range(0, 5).Select(index =>
             Event(
@@ -64,7 +65,8 @@ public sealed class InsightRuleTests
             Metadata(("shoppingListId", shoppingListId)),
             now.AddMinutes(-20)));
 
-        var context = new InsightContext(householdId, new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), now, events);
+        var context =
+            new InsightContext(householdId, new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), now, events);
 
         var result = await new ClearCheckedShoppingListItemsRule().EvaluateAsync(context, CancellationToken.None);
 
@@ -98,8 +100,8 @@ public sealed class InsightRuleTests
 
     private static string Metadata(params (string Key, object? Value)[] values)
     {
-        return System.Text.Json.JsonSerializer.Serialize(
+        return JsonSerializer.Serialize(
             values.ToDictionary(value => value.Key, value => value.Value),
-            new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web));
+            new JsonSerializerOptions(JsonSerializerDefaults.Web));
     }
 }

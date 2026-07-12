@@ -1,3 +1,4 @@
+using Domu.Api.Features.Spaces.Domain.Items;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -18,14 +19,14 @@ public sealed class ItemConfiguration : IEntityTypeConfiguration<ItemEntity>
             .IsRequired();
 
         builder.Property(item => item.Name)
-            .HasMaxLength(Domain.Items.Item.NameMaxLength)
+            .HasMaxLength(Item.NameMaxLength)
             .IsRequired();
 
         builder.Property(item => item.Category)
-            .HasMaxLength(Domain.Items.Item.CategoryMaxLength);
+            .HasMaxLength(Item.CategoryMaxLength);
 
         builder.Property(item => item.Barcode)
-            .HasMaxLength(Domain.Items.Item.BarcodeMaxLength);
+            .HasMaxLength(Item.BarcodeMaxLength);
 
         builder.HasMany(item => item.Entries)
             .WithOne()

@@ -1,6 +1,6 @@
+using Domu.Api.Features.Events.Infrastructure;
 using Domu.Api.Features.Households.Infrastructure.Households;
 using Domu.Api.Features.Households.Infrastructure.Members;
-using Domu.Api.Features.Events.Infrastructure;
 using Domu.Api.Features.ShoppingLists.Infrastructure.Items;
 using Domu.Api.Features.ShoppingLists.Infrastructure.ShoppingLists;
 using Domu.Api.Features.Spaces.Infrastructure.Items;

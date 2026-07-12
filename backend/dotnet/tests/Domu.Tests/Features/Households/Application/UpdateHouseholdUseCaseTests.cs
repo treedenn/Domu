@@ -1,5 +1,4 @@
 using Domu.Api.Features.Auth.Domain;
-
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.Households.Application.Households.Ports;
 using Domu.Api.Features.Households.Domain.Households;
@@ -17,7 +16,9 @@ public sealed class UpdateHouseholdUseCaseTests
         var household = new Household(Guid.NewGuid(), ownerMemberId, "Home");
         var repository = new FakeHouseholdRepository(household);
         var memberships = new FakeHouseholdMembershipRepository();
-        await memberships.AddMemberAsync(new HouseholdMember(ownerMemberId, household.Id, ownerUserId, "Owner", HouseholdMemberRole.Owner, DateTimeOffset.UtcNow), CancellationToken.None);
+        await memberships.AddMemberAsync(
+            new HouseholdMember(ownerMemberId, household.Id, ownerUserId, "Owner", HouseholdMemberRole.Owner,
+                DateTimeOffset.UtcNow), CancellationToken.None);
         var useCase = new UpdateHouseholdUseCase(repository, memberships);
 
         var result = await useCase.ExecuteAsync(
@@ -57,13 +58,8 @@ public sealed class UpdateHouseholdUseCaseTests
             return Task.FromResult(_storedHouseholds.SingleOrDefault(household => household.Id == householdId));
         }
 
-        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerMemberId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<IReadOnlyList<Household>>(
-                _storedHouseholds.Where(household => household.OwnerMemberId == ownerMemberId).ToArray());
-        }
-
-        public Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+        public Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId,
+            CancellationToken cancellationToken)
         {
             return GetByOwnerIdAsync(userId, cancellationToken);
         }
@@ -90,6 +86,12 @@ public sealed class UpdateHouseholdUseCaseTests
         {
             SaveChangesCalls++;
             return Task.CompletedTask;
+        }
+
+        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerMemberId, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<IReadOnlyList<Household>>(
+                _storedHouseholds.Where(household => household.OwnerMemberId == ownerMemberId).ToArray());
         }
     }
 }

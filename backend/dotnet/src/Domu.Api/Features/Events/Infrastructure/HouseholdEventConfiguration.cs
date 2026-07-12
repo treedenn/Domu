@@ -1,7 +1,7 @@
 using Domu.Api.Features.Events.Domain;
+using Domu.Api.Features.Households.Infrastructure.Members;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Domu.Api.Features.Households.Infrastructure.Members;
 
 namespace Domu.Api.Features.Events.Infrastructure;
 

@@ -1,5 +1,6 @@
 using Domu.Api.Features.Households.Infrastructure.Households;
 using Domu.Api.Features.Households.Infrastructure.Members;
+using Domu.Api.Features.ShoppingLists.Domain.ShoppingLists;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -17,7 +18,7 @@ public sealed class ShoppingListConfiguration : IEntityTypeConfiguration<Shoppin
             .ValueGeneratedNever();
 
         builder.Property(shoppingList => shoppingList.Name)
-            .HasMaxLength(Domain.ShoppingLists.ShoppingList.NameMaxLength)
+            .HasMaxLength(ShoppingList.NameMaxLength)
             .IsRequired();
 
         builder.Property(shoppingList => shoppingList.HouseholdId)

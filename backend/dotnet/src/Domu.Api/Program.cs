@@ -2,12 +2,12 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Domu.Api.Features.Auth.Application;
 using Domu.Api.Features.Auth.Interface;
+using Domu.Api.Features.Events.Application;
+using Domu.Api.Features.Events.Infrastructure;
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.Households.Application.Households.Ports;
 using Domu.Api.Features.Households.Application.Members;
 using Domu.Api.Features.Households.Application.Members.Ports;
-using Domu.Api.Features.Events.Application;
-using Domu.Api.Features.Events.Infrastructure;
 using Domu.Api.Features.Households.Infrastructure.Households;
 using Domu.Api.Features.Households.Infrastructure.Members;
 using Domu.Api.Features.Insights.Application;
@@ -110,7 +110,7 @@ builder.Services
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(
-            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false));
+            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, false));
     });
 builder.Services.AddAuthorization();
 builder.Services
@@ -118,9 +118,9 @@ builder.Services
     .AddJwtBearer(options =>
     {
         var settings = builder.Configuration
-            .GetSection(JwtAuthenticationOptions.SectionName)
-            .Get<JwtAuthenticationOptions>()
-            ?? new JwtAuthenticationOptions();
+                           .GetSection(JwtAuthenticationOptions.SectionName)
+                           .Get<JwtAuthenticationOptions>()
+                       ?? new JwtAuthenticationOptions();
 
         if (!string.IsNullOrWhiteSpace(settings.Authority))
             options.Authority = settings.Authority;
@@ -134,10 +134,7 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+if (app.Environment.IsDevelopment()) app.MapOpenApi();
 
 app.UseHttpsRedirection();
 

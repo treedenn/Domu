@@ -11,7 +11,8 @@ public sealed class HouseholdMembershipRepository(AppDbContext dbContext) : IHou
     {
         return dbContext.HouseholdMembers
             .AsNoTracking()
-            .AnyAsync(member => member.HouseholdId == householdId && member.UserId == userId && !member.Archived, cancellationToken);
+            .AnyAsync(member => member.HouseholdId == householdId && member.UserId == userId && !member.Archived,
+                cancellationToken);
     }
 
     public async Task<HouseholdMember?> GetMemberAsync(
@@ -114,7 +115,8 @@ public sealed class HouseholdMembershipRepository(AppDbContext dbContext) : IHou
 
     public async Task AddInvitationAsync(HouseholdInvitation invitation, CancellationToken cancellationToken)
     {
-        await dbContext.HouseholdInvitations.AddAsync(HouseholdInvitationEntity.FromDomain(invitation), cancellationToken);
+        await dbContext.HouseholdInvitations.AddAsync(HouseholdInvitationEntity.FromDomain(invitation),
+            cancellationToken);
     }
 
     public async Task UpdateInvitationAsync(HouseholdInvitation invitation, CancellationToken cancellationToken)

@@ -1,5 +1,4 @@
 using Domu.Api.Features.Auth.Domain;
-
 using Domu.Api.Features.Spaces.Application.Search;
 using Domu.Api.Features.Spaces.Application.Search.Contracts;
 using Domu.Api.Features.Spaces.Application.Search.Ports;
@@ -13,7 +12,8 @@ public sealed class SearchSpacesAndItemsUseCaseTests
     {
         var service = new FakeSearchService();
         var useCase = new SearchSpacesAndItemsUseCase(service, new FakeHouseholdAccessService());
-        var query = new SearchSpacesAndItemsQuery(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), Guid.NewGuid(), "milk", null, 20);
+        var query = new SearchSpacesAndItemsQuery(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), Guid.NewGuid(),
+            "milk", null, 20);
 
         await useCase.ExecuteAsync(query, CancellationToken.None);
 
@@ -26,7 +26,8 @@ public sealed class SearchSpacesAndItemsUseCaseTests
         var useCase = new SearchSpacesAndItemsUseCase(new FakeSearchService(), new FakeHouseholdAccessService());
 
         var action = () => useCase.ExecuteAsync(
-            new SearchSpacesAndItemsQuery(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), Guid.NewGuid(), "milk", null, 101),
+            new SearchSpacesAndItemsQuery(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), Guid.NewGuid(), "milk",
+                null, 101),
             CancellationToken.None);
 
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(action);

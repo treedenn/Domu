@@ -79,7 +79,8 @@ public sealed class ShoppingListItemUseCaseTests
         var routeList = repository.AddList(householdId);
         var otherList = repository.AddList(Guid.NewGuid());
         var item = repository.AddItem(householdId, otherList.Id, "Milk");
-        var useCase = new SetShoppingListItemCheckedStateUseCase(repository, repository, new FakeHouseholdAccessService());
+        var useCase =
+            new SetShoppingListItemCheckedStateUseCase(repository, repository, new FakeHouseholdAccessService());
 
         var action = () => useCase.ExecuteAsync(
             new SetShoppingListItemCheckedStateCommand(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel),
@@ -104,19 +105,19 @@ public sealed class ShoppingListItemUseCaseTests
             return Task.CompletedTask;
         }
 
+        public Task<Guid> GetRequiredMemberIdAsync(DomuActor actor,
+            Guid householdId,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(_memberId);
+        }
+
         public Task EnsureCanAccessHouseholdAsync(
             Guid householdId,
             Guid userId,
             CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
-        }
-
-        public Task<Guid> GetRequiredMemberIdAsync(DomuActor actor,
-            Guid householdId,
-            CancellationToken cancellationToken)
-        {
-            return Task.FromResult(_memberId);
         }
 
         public Task<Guid> GetRequiredMemberIdAsync(
@@ -130,83 +131,13 @@ public sealed class ShoppingListItemUseCaseTests
 
     private sealed class FakeShoppingListRepository : IShoppingListRepository, IShoppingListItemRepository
     {
-        private readonly HashSet<(Guid SpaceId, Guid HouseholdId)> _spaces = [];
         private readonly HashSet<(Guid ItemId, Guid HouseholdId)> _items = [];
+        private readonly HashSet<(Guid SpaceId, Guid HouseholdId)> _spaces = [];
 
         public List<ShoppingList> Lists { get; } = [];
         public List<ShoppingListItem> Items { get; } = [];
         public int AddItemCalls { get; private set; }
         public int SaveChangesCalls { get; private set; }
-
-        public ShoppingList AddList(Guid householdId)
-        {
-            var now = DateTimeOffset.UtcNow;
-            var shoppingList = new ShoppingList(
-                Guid.NewGuid(),
-                householdId,
-                "Shopping list",
-                Guid.NewGuid(),
-                now,
-                now);
-            Lists.Add(shoppingList);
-            return shoppingList;
-        }
-
-        public ShoppingListItem AddItem(Guid householdId, Guid shoppingListId, string name)
-        {
-            var now = DateTimeOffset.UtcNow;
-            var item = new ShoppingListItem(
-                Guid.NewGuid(),
-                householdId,
-                shoppingListId,
-                name,
-                Guid.NewGuid(),
-                now,
-                now,
-                Items.Count + 1);
-            Items.Add(item);
-            return item;
-        }
-
-        public Guid AddHouseholdSpace(Guid householdId)
-        {
-            var spaceId = Guid.NewGuid();
-            _spaces.Add((spaceId, householdId));
-            return spaceId;
-        }
-
-        public Guid AddHouseholdItem(Guid householdId)
-        {
-            var itemId = Guid.NewGuid();
-            _items.Add((itemId, householdId));
-            return itemId;
-        }
-
-        public Task<IReadOnlyList<ShoppingList>> GetActiveByHouseholdAsync(
-            Guid householdId,
-            CancellationToken cancellationToken)
-        {
-            IReadOnlyList<ShoppingList> lists = Lists
-                .Where(list => list.HouseholdId == householdId && list.ArchivedAt is null)
-                .ToList();
-            return Task.FromResult(lists);
-        }
-
-        public Task<ShoppingList?> GetByIdAsync(Guid shoppingListId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(Lists.SingleOrDefault(list => list.Id == shoppingListId));
-        }
-
-        public Task AddAsync(ShoppingList shoppingList, CancellationToken cancellationToken)
-        {
-            Lists.Add(shoppingList);
-            return Task.CompletedTask;
-        }
-
-        public Task UpdateAsync(ShoppingList shoppingList, CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
 
         public Task<IReadOnlyList<ShoppingListItem>> GetItemsAsync(
             Guid shoppingListId,
@@ -268,10 +199,80 @@ public sealed class ShoppingListItemUseCaseTests
             return Task.FromResult(removed);
         }
 
+        public Task<IReadOnlyList<ShoppingList>> GetActiveByHouseholdAsync(
+            Guid householdId,
+            CancellationToken cancellationToken)
+        {
+            IReadOnlyList<ShoppingList> lists = Lists
+                .Where(list => list.HouseholdId == householdId && list.ArchivedAt is null)
+                .ToList();
+            return Task.FromResult(lists);
+        }
+
+        public Task<ShoppingList?> GetByIdAsync(Guid shoppingListId, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(Lists.SingleOrDefault(list => list.Id == shoppingListId));
+        }
+
+        public Task AddAsync(ShoppingList shoppingList, CancellationToken cancellationToken)
+        {
+            Lists.Add(shoppingList);
+            return Task.CompletedTask;
+        }
+
+        public Task UpdateAsync(ShoppingList shoppingList, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
         public Task SaveChangesAsync(CancellationToken cancellationToken)
         {
             SaveChangesCalls++;
             return Task.CompletedTask;
+        }
+
+        public ShoppingList AddList(Guid householdId)
+        {
+            var now = DateTimeOffset.UtcNow;
+            var shoppingList = new ShoppingList(
+                Guid.NewGuid(),
+                householdId,
+                "Shopping list",
+                Guid.NewGuid(),
+                now,
+                now);
+            Lists.Add(shoppingList);
+            return shoppingList;
+        }
+
+        public ShoppingListItem AddItem(Guid householdId, Guid shoppingListId, string name)
+        {
+            var now = DateTimeOffset.UtcNow;
+            var item = new ShoppingListItem(
+                Guid.NewGuid(),
+                householdId,
+                shoppingListId,
+                name,
+                Guid.NewGuid(),
+                now,
+                now,
+                Items.Count + 1);
+            Items.Add(item);
+            return item;
+        }
+
+        public Guid AddHouseholdSpace(Guid householdId)
+        {
+            var spaceId = Guid.NewGuid();
+            _spaces.Add((spaceId, householdId));
+            return spaceId;
+        }
+
+        public Guid AddHouseholdItem(Guid householdId)
+        {
+            var itemId = Guid.NewGuid();
+            _items.Add((itemId, householdId));
+            return itemId;
         }
     }
 }

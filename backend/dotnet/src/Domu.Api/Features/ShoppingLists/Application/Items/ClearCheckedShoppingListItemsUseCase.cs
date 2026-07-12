@@ -13,17 +13,16 @@ public sealed class ClearCheckedShoppingListItemsUseCase(
     IHouseholdAccessService householdAccessService,
     IHouseholdEventRecorder? userEventRecorder = null)
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder =
+        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task ExecuteAsync(ClearCheckedShoppingListItemsCommand command, CancellationToken cancellationToken)
     {
         await ShoppingListPermissionPolicy.EnsureCanAccessListAsync(
             shoppingListRepository,
             householdAccessService,
-            command.HouseholdId,
-            command.ShoppingListId,
             command.Actor,
-            cancellationToken);
+            command.HouseholdId, command.ShoppingListId, cancellationToken);
 
         await shoppingListItemRepository.DeleteCheckedAsync(command.ShoppingListId, cancellationToken);
         await _userEventRecorder.RecordAsync(
