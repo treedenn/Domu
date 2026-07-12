@@ -1,3 +1,5 @@
+using Domu.Api.Features.Auth.Domain;
+
 using Domu.Api.Features.Auth.Application;
 using Domu.Api.Features.ShoppingLists.Application.Items;
 using Domu.Api.Features.ShoppingLists.Application.Items.Commands;
@@ -34,7 +36,7 @@ public sealed class ShoppingListItemsController(
         try
         {
             var items = await getShoppingListItemsUseCase.ExecuteAsync(
-                new GetShoppingListItemsQuery(actorAccessor.DomuActor.ActorId, householdId, shoppingListId),
+                new GetShoppingListItemsQuery(actorAccessor.DomuActor, householdId, shoppingListId),
                 cancellationToken);
 
             return Ok(items);
@@ -59,7 +61,7 @@ public sealed class ShoppingListItemsController(
         {
             var item = await createShoppingListItemUseCase.ExecuteAsync(
                 new CreateShoppingListItemCommand(
-                    actorAccessor.DomuActor.ActorId,
+                    actorAccessor.DomuActor,
                     householdId,
                     shoppingListId,
                     request.Name,
@@ -98,7 +100,7 @@ public sealed class ShoppingListItemsController(
         {
             var item = await updateShoppingListItemUseCase.ExecuteAsync(
                 new UpdateShoppingListItemCommand(
-                    actorAccessor.DomuActor.ActorId,
+                    actorAccessor.DomuActor,
                     householdId,
                     shoppingListId,
                     itemId,
@@ -170,7 +172,7 @@ public sealed class ShoppingListItemsController(
         try
         {
             await deleteShoppingListItemUseCase.ExecuteAsync(
-                new DeleteShoppingListItemCommand(actorAccessor.DomuActor.ActorId, householdId, shoppingListId, itemId),
+                new DeleteShoppingListItemCommand(actorAccessor.DomuActor, householdId, shoppingListId, itemId),
                 cancellationToken);
 
             return NoContent();
@@ -192,7 +194,7 @@ public sealed class ShoppingListItemsController(
         try
         {
             await clearCheckedShoppingListItemsUseCase.ExecuteAsync(
-                new ClearCheckedShoppingListItemsCommand(actorAccessor.DomuActor.ActorId, householdId, shoppingListId),
+                new ClearCheckedShoppingListItemsCommand(actorAccessor.DomuActor, householdId, shoppingListId),
                 cancellationToken);
 
             return NoContent();
@@ -214,7 +216,7 @@ public sealed class ShoppingListItemsController(
         {
             var item = await setShoppingListItemCheckedStateUseCase.ExecuteAsync(
                 new SetShoppingListItemCheckedStateCommand(
-                    actorAccessor.DomuActor.ActorId,
+                    actorAccessor.DomuActor,
                     householdId,
                     shoppingListId,
                     itemId,

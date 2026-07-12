@@ -1,3 +1,4 @@
+using Domu.Api.Features.Auth.Domain;
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.Spaces.Application.Spaces.Ports;
 
@@ -11,20 +12,20 @@ public sealed class SpaceAccessService(
     public async Task EnsureCanAccessSpaceAsync(
         Guid householdId,
         Guid spaceId,
-        Guid userId,
+        DomuActor actor,
         CancellationToken cancellationToken)
     {
-        await householdAccessService.EnsureCanAccessHouseholdAsync(householdId, userId, cancellationToken);
+        await householdAccessService.EnsureCanAccessHouseholdAsync(actor, householdId, cancellationToken);
         await EnsureSpaceBelongsToHouseholdAsync(spaceId, householdId, cancellationToken);
     }
 
     public async Task EnsureCanAccessSpaceTargetAsync(
         Guid householdId,
         Guid? parentId,
-        Guid userId,
+        DomuActor actor,
         CancellationToken cancellationToken)
     {
-        await householdAccessService.EnsureCanAccessHouseholdAsync(householdId, userId, cancellationToken);
+        await householdAccessService.EnsureCanAccessHouseholdAsync(actor, householdId, cancellationToken);
 
         if (parentId is not null)
             await EnsureSpaceBelongsToHouseholdAsync(parentId.Value, householdId, cancellationToken);

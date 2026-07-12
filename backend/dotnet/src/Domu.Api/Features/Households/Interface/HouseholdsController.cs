@@ -1,3 +1,5 @@
+using Domu.Api.Features.Auth.Domain;
+
 using Domu.Api.Features.Auth.Application;
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.Households.Application.Households.Contracts;
@@ -33,7 +35,7 @@ public sealed class HouseholdsController(
     public async Task<ActionResult<IReadOnlyList<HouseholdView>>> GetHouseholds(CancellationToken cancellationToken)
     {
         var households = await getHouseholdsUseCase.ExecuteAsync(
-            new GetHouseholdsQuery(actorAccessor.DomuActor.ActorId),
+            new GetHouseholdsQuery(actorAccessor.DomuActor),
             cancellationToken);
 
         return Ok(households);
@@ -135,7 +137,7 @@ public sealed class HouseholdsController(
         try
         {
             var invitations = await getHouseholdInvitationsUseCase.ExecuteAsync(
-                new GetHouseholdInvitationsQuery(householdId, actorAccessor.DomuActor.ActorId),
+                new GetHouseholdInvitationsQuery(householdId, actorAccessor.DomuActor),
                 cancellationToken);
 
             return Ok(invitations);
@@ -158,7 +160,7 @@ public sealed class HouseholdsController(
         try
         {
             var invitation = await inviteHouseholdMemberUseCase.ExecuteAsync(
-                new InviteHouseholdMemberCommand(householdId, actorAccessor.DomuActor.ActorId, request.Email, request.DisplayName, request.Role),
+                new InviteHouseholdMemberCommand(actorAccessor.DomuActor, householdId, request.Email, request.DisplayName, request.Role),
                 cancellationToken);
 
             return Created($"/api/v1/households/{householdId}/invitations/{invitation.Id}", invitation);
@@ -213,7 +215,7 @@ public sealed class HouseholdsController(
         try
         {
             var household = await getHouseholdUseCase.ExecuteAsync(
-                new GetHouseholdQuery(householdId, actorAccessor.DomuActor.ActorId),
+                new GetHouseholdQuery(householdId, actorAccessor.DomuActor),
                 cancellationToken);
 
             return Ok(household);
@@ -234,7 +236,7 @@ public sealed class HouseholdsController(
         try
         {
             var household = await createHouseholdUseCase.ExecuteAsync(
-                new CreateHouseholdCommand(actorAccessor.DomuActor.ActorId, request.Name, request.OwnerDisplayName),
+                new CreateHouseholdCommand(actorAccessor.DomuActor, request.Name, request.OwnerDisplayName),
                 cancellationToken);
 
             return CreatedAtAction(nameof(GetHousehold), new { householdId = household.Id }, household);
@@ -257,7 +259,7 @@ public sealed class HouseholdsController(
         try
         {
             var household = await updateHouseholdUseCase.ExecuteAsync(
-                new UpdateHouseholdCommand(householdId, actorAccessor.DomuActor.ActorId, request.Name),
+                new UpdateHouseholdCommand(householdId, actorAccessor.DomuActor, request.Name),
                 cancellationToken);
 
             return Ok(household);
@@ -280,7 +282,7 @@ public sealed class HouseholdsController(
         try
         {
             await deleteHouseholdUseCase.ExecuteAsync(
-                new DeleteHouseholdCommand(householdId, actorAccessor.DomuActor.ActorId),
+                new DeleteHouseholdCommand(householdId, actorAccessor.DomuActor),
                 cancellationToken);
 
             return NoContent();

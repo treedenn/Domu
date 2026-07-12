@@ -1,3 +1,5 @@
+using Domu.Api.Features.Auth.Domain;
+
 using Domu.Api.Features.Auth.Application;
 using Domu.Api.Features.Insights.Application;
 using Domu.Api.Features.Insights.Application.Contracts;
@@ -26,7 +28,7 @@ public sealed class HouseholdInsightsController(
         try
         {
             var insights = await getHouseholdInsightsUseCase.ExecuteAsync(
-                new GetHouseholdInsightsQuery(householdId, actorAccessor.DomuActor.ActorId),
+                new GetHouseholdInsightsQuery(householdId, actorAccessor.DomuActor),
                 cancellationToken);
 
             return Ok(insights);

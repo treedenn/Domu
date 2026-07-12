@@ -22,8 +22,8 @@ public sealed class SearchSpacesAndItemsUseCase(
             throw new ArgumentOutOfRangeException(nameof(query.Limit), "Limit cannot be greater than 100.");
 
         await householdAccessService.EnsureCanAccessHouseholdAsync(
+            query.Actor,
             query.HouseholdId,
-            query.UserId,
             cancellationToken);
 
         return await searchService.SearchAsync(query, cancellationToken);

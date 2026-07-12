@@ -27,7 +27,7 @@ public sealed class SetShoppingListItemCheckedStateUseCase(
             command.HouseholdId,
             command.ShoppingListId,
             command.ItemId,
-            command.UserId,
+            command.Actor,
             cancellationToken);
 
         var now = DateTimeOffset.UtcNow;
@@ -38,7 +38,7 @@ public sealed class SetShoppingListItemCheckedStateUseCase(
         if (command.IsChecked)
         {
             var memberId = await householdAccessService.GetRequiredMemberIdAsync(
-                command.HouseholdId, command.UserId, cancellationToken);
+                command.Actor, command.HouseholdId, cancellationToken);
             item.Check(memberId, now);
         }
         else
@@ -48,7 +48,7 @@ public sealed class SetShoppingListItemCheckedStateUseCase(
 
         await shoppingListItemRepository.UpdateAsync(item, cancellationToken);
         await _userEventRecorder.RecordAsync(
-            command.UserId,
+            command.Actor.ActorId,
             eventAction,
             UserEventTargetTypes.ShoppingListItem,
             item.Id,

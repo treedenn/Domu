@@ -15,12 +15,12 @@ public sealed class DeleteShoppingListUseCase(
     public async Task ExecuteAsync(DeleteShoppingListCommand command, CancellationToken cancellationToken)
     {
         var list = await ShoppingListPermissionPolicy.GetAccessibleListAsync(
-            shoppingListRepository, householdAccessService, command.HouseholdId, command.ShoppingListId, command.UserId, cancellationToken);
+            shoppingListRepository, householdAccessService, command.HouseholdId, command.ShoppingListId, command.Actor, cancellationToken);
         list.Archive(DateTimeOffset.UtcNow);
 
         await shoppingListRepository.UpdateAsync(list, cancellationToken);
         await _userEventRecorder.RecordAsync(
-            command.UserId, UserEventActions.ShoppingListDeleted, UserEventTargetTypes.ShoppingList,
+            command.Actor.ActorId, UserEventActions.ShoppingListDeleted, UserEventTargetTypes.ShoppingList,
             list.Id, command.HouseholdId, EventMetadata.From(("name", list.Name)), cancellationToken);
         await shoppingListRepository.SaveChangesAsync(cancellationToken);
     }

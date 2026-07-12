@@ -1,3 +1,5 @@
+using Domu.Api.Features.Auth.Domain;
+
 using Domu.Api.Features.Spaces.Application.Spaces;
 using Domu.Api.Features.Spaces.Application.Spaces.Ports;
 using Domu.Api.Features.Spaces.Domain.Spaces;
@@ -15,7 +17,7 @@ public sealed class CreateSpaceUseCaseTests
         var parentId = Guid.NewGuid();
 
         var result = await useCase.ExecuteAsync(
-            new CreateSpaceCommand(Guid.NewGuid(), householdId, "Pantry", "Food storage", parentId),
+            new CreateSpaceCommand(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), householdId, "Pantry", "Food storage", parentId),
             CancellationToken.None);
 
         Assert.Equal(householdId, result.HouseholdId);

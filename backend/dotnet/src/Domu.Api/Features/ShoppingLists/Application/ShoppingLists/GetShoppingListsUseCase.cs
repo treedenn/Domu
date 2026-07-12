@@ -13,7 +13,7 @@ public sealed class GetShoppingListsUseCase(
         GetShoppingListsQuery query,
         CancellationToken cancellationToken)
     {
-        await householdAccessService.EnsureCanAccessHouseholdAsync(query.HouseholdId, query.UserId, cancellationToken);
+        await householdAccessService.EnsureCanAccessHouseholdAsync(query.Actor, query.HouseholdId, cancellationToken);
         var lists = await shoppingListRepository.GetActiveByHouseholdAsync(query.HouseholdId, cancellationToken);
         return lists.Select(ShoppingListView.FromDomain).ToList();
     }

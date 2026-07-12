@@ -1,3 +1,5 @@
+using Domu.Api.Features.Auth.Domain;
+
 namespace Domu.Api.Features.Spaces.Application.Spaces;
 
 public interface ISpaceAccessService
@@ -5,7 +7,7 @@ public interface ISpaceAccessService
     Task EnsureCanAccessSpaceAsync(
         Guid householdId,
         Guid spaceId,
-        Guid userId,
+        DomuActor actor,
         CancellationToken cancellationToken);
 
     Task EnsureSpaceBelongsToHouseholdAsync(
@@ -16,6 +18,6 @@ public interface ISpaceAccessService
     Task EnsureCanAccessSpaceTargetAsync(
         Guid householdId,
         Guid? parentId,
-        Guid userId,
+        DomuActor actor,
         CancellationToken cancellationToken);
 }

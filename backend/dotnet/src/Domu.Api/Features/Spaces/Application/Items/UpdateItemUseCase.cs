@@ -19,7 +19,7 @@ public sealed class UpdateItemUseCase(
         await spaceAccessService.EnsureCanAccessSpaceAsync(
             command.HouseholdId,
             command.SpaceId,
-            command.UserId,
+            command.Actor,
             cancellationToken);
 
         var item = await itemRepository.GetByIdAsync(command.ItemId, cancellationToken)
@@ -33,7 +33,7 @@ public sealed class UpdateItemUseCase(
 
         await itemRepository.UpdateAsync(item, cancellationToken);
         await _userEventRecorder.RecordAsync(
-            command.UserId,
+            command.Actor.ActorId,
             UserEventActions.ItemUpdated,
             UserEventTargetTypes.Item,
             item.Id,

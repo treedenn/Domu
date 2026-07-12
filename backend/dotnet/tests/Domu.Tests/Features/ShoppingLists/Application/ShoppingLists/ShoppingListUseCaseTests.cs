@@ -1,3 +1,5 @@
+using Domu.Api.Features.Auth.Domain;
+
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.ShoppingLists.Application.ShoppingLists;
 using Domu.Api.Features.ShoppingLists.Application.ShoppingLists.Commands;
@@ -30,7 +32,7 @@ public sealed class ShoppingListUseCaseTests
         var useCase = new CreateShoppingListUseCase(repository, access);
 
         var result = await useCase.ExecuteAsync(
-            new CreateShoppingListCommand(userId, householdId, "  Weekly   groceries "), CancellationToken.None);
+            new CreateShoppingListCommand(new DomuActor(userId, DomuActorType.Zitadel), householdId, "  Weekly   groceries "), CancellationToken.None);
 
         Assert.Equal("Weekly groceries", result.Name);
         Assert.Equal(householdId, result.HouseholdId);
@@ -40,7 +42,7 @@ public sealed class ShoppingListUseCaseTests
         Assert.Equal(householdId, createdList.HouseholdId);
         Assert.Equal(memberId, createdList.CreatedByMemberId);
         await access.Received(1)
-            .GetRequiredMemberIdAsync(householdId, userId, Arg.Any<CancellationToken>());
+            .GetRequiredMemberIdAsync(Arg.Any<DomuActor>(), householdId, Arg.Any<CancellationToken>());
         await repository.Received(1)
             .AddAsync(Arg.Any<ShoppingList>(), Arg.Any<CancellationToken>());
         await repository.Received(1)
@@ -63,11 +65,11 @@ public sealed class ShoppingListUseCaseTests
         var useCase = new GetShoppingListsUseCase(repository, access);
 
         var result = await useCase.ExecuteAsync(
-            new GetShoppingListsQuery(userId, householdId), CancellationToken.None);
+            new GetShoppingListsQuery(new DomuActor(userId, DomuActorType.Zitadel), householdId), CancellationToken.None);
 
         Assert.Collection(result, listView => Assert.Equal("Weekly", listView.Name));
         await access.Received(1)
-            .EnsureCanAccessHouseholdAsync(householdId, userId, Arg.Any<CancellationToken>());
+            .EnsureCanAccessHouseholdAsync(Arg.Any<DomuActor>(), householdId, Arg.Any<CancellationToken>());
         await repository.Received(1)
             .GetActiveByHouseholdAsync(householdId, Arg.Any<CancellationToken>());
     }
@@ -82,7 +84,7 @@ public sealed class ShoppingListUseCaseTests
         var useCase = new UpdateShoppingListUseCase(repository, access);
 
         var result = await useCase.ExecuteAsync(
-            new UpdateShoppingListCommand(Guid.NewGuid(), householdId, list.Id, "Monthly", false), CancellationToken.None);
+            new UpdateShoppingListCommand(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), householdId, list.Id, "Monthly", false), CancellationToken.None);
 
         Assert.Equal("Monthly", result.Name);
         Assert.Null(result.ArchivedAt);
@@ -100,7 +102,7 @@ public sealed class ShoppingListUseCaseTests
         var useCase = new UpdateShoppingListUseCase(repository, access);
 
         var result = await useCase.ExecuteAsync(
-            new UpdateShoppingListCommand(Guid.NewGuid(), householdId, list.Id, "Weekly", true), CancellationToken.None);
+            new UpdateShoppingListCommand(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), householdId, list.Id, "Weekly", true), CancellationToken.None);
 
         Assert.NotNull(result.ArchivedAt);
         await repository.Received(1)
@@ -116,7 +118,7 @@ public sealed class ShoppingListUseCaseTests
         var useCase = new DeleteShoppingListUseCase(repository, CreateAccessService());
 
         await useCase.ExecuteAsync(
-            new DeleteShoppingListCommand(Guid.NewGuid(), householdId, list.Id), CancellationToken.None);
+            new DeleteShoppingListCommand(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), householdId, list.Id), CancellationToken.None);
 
         Assert.NotNull(list.ArchivedAt);
         await repository.Received(1)
@@ -127,10 +129,10 @@ public sealed class ShoppingListUseCaseTests
     {
         var access = Substitute.For<IHouseholdAccessService>();
         access
-            .EnsureCanAccessHouseholdAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .EnsureCanAccessHouseholdAsync(Arg.Any<DomuActor>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
         access
-            .GetRequiredMemberIdAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .GetRequiredMemberIdAsync(Arg.Any<DomuActor>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(memberId ?? Guid.NewGuid()));
 
         return access;

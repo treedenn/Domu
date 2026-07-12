@@ -20,7 +20,7 @@ public sealed class CreateItemUseCase(
         await spaceAccessService.EnsureCanAccessSpaceAsync(
             command.HouseholdId,
             command.SpaceId,
-            command.Actor.ActorId,
+            command.Actor,
             cancellationToken);
 
         var item = new Item(Guid.CreateVersion7(), command.Name, command.SpaceId);

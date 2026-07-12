@@ -19,7 +19,7 @@ public sealed class GetSpacesPageUseCase(
         await spaceAccessService.EnsureCanAccessSpaceTargetAsync(
             query.HouseholdId,
             query.ParentId,
-            query.UserId,
+            query.Actor,
             cancellationToken);
 
         return await spaceQueryService.GetPageAsync(query, cancellationToken);

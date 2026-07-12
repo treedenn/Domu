@@ -25,7 +25,7 @@ public sealed class UpdateShoppingListItemUseCase(
             householdAccessService,
             command.HouseholdId,
             command.ShoppingListId,
-            command.UserId,
+            command.Actor,
             cancellationToken);
 
         await ShoppingListPermissionPolicy.ValidateReferencesAsync(
@@ -54,7 +54,7 @@ public sealed class UpdateShoppingListItemUseCase(
 
         await shoppingListItemRepository.UpdateAsync(item, cancellationToken);
         await _userEventRecorder.RecordAsync(
-            command.UserId,
+            command.Actor.ActorId,
             UserEventActions.ShoppingListItemUpdated,
             UserEventTargetTypes.ShoppingListItem,
             item.Id,

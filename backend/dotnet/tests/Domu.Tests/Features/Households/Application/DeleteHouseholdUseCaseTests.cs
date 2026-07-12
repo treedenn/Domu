@@ -1,3 +1,5 @@
+using Domu.Api.Features.Auth.Domain;
+
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.Households.Application.Households.Ports;
 using Domu.Api.Features.Households.Domain.Households;
@@ -14,7 +16,7 @@ public sealed class DeleteHouseholdUseCaseTests
         var repository = new FakeHouseholdRepository(household);
         var useCase = new DeleteHouseholdUseCase(repository);
 
-        await useCase.ExecuteAsync(new DeleteHouseholdCommand(household.Id, ownerId), CancellationToken.None);
+        await useCase.ExecuteAsync(new DeleteHouseholdCommand(household.Id, new DomuActor(ownerId, DomuActorType.Zitadel)), CancellationToken.None);
 
         Assert.Empty(repository.StoredHouseholds);
         Assert.Equal(1, repository.DeleteCalls);
@@ -29,7 +31,7 @@ public sealed class DeleteHouseholdUseCaseTests
         var useCase = new DeleteHouseholdUseCase(repository);
 
         var action = () => useCase.ExecuteAsync(
-            new DeleteHouseholdCommand(household.Id, Guid.NewGuid()),
+            new DeleteHouseholdCommand(household.Id, new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel)),
             CancellationToken.None);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(action);

@@ -1,3 +1,5 @@
+using Domu.Api.Features.Auth.Domain;
+
 using Domu.Api.Features.Spaces.Application.Spaces;
 using Domu.Api.Features.Spaces.Application.Spaces.Ports;
 using Domu.Api.Features.Spaces.Domain.Spaces;
@@ -17,7 +19,7 @@ public sealed class GetSpaceUseCaseTests
         var useCase = new GetSpaceUseCase(repository, new FakeSpaceAccessService());
 
         var result = await useCase.ExecuteAsync(
-            new GetSpaceQuery(Guid.NewGuid(), householdId, space.Id),
+            new GetSpaceQuery(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), householdId, space.Id),
             CancellationToken.None);
 
         Assert.Equal(space.Id, result.Id);
@@ -34,7 +36,7 @@ public sealed class GetSpaceUseCaseTests
         var useCase = new GetSpaceUseCase(repository, new FakeSpaceAccessService());
 
         var action = () => useCase.ExecuteAsync(
-            new GetSpaceQuery(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()),
+            new GetSpaceQuery(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), Guid.NewGuid(), Guid.NewGuid()),
             CancellationToken.None);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(action);
@@ -48,7 +50,7 @@ public sealed class GetSpaceUseCaseTests
         var useCase = new GetSpaceUseCase(repository, new FakeSpaceAccessService { DenyAccess = true });
 
         var action = () => useCase.ExecuteAsync(
-            new GetSpaceQuery(Guid.NewGuid(), Guid.NewGuid(), space.Id),
+            new GetSpaceQuery(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), Guid.NewGuid(), space.Id),
             CancellationToken.None);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(action);

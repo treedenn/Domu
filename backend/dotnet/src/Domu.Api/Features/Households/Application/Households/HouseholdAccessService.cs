@@ -18,17 +18,6 @@ public sealed class HouseholdAccessService(
         _ = await GetAccessibleMemberAsync(actor, householdId, cancellationToken);
     }
 
-    public Task EnsureCanAccessHouseholdAsync(
-        Guid householdId,
-        Guid userId,
-        CancellationToken cancellationToken)
-    {
-        return EnsureCanAccessHouseholdAsync(
-            new DomuActor(userId, DomuActorType.Zitadel),
-            householdId,
-            cancellationToken);
-    }
-
     public async Task<Guid> GetRequiredMemberIdAsync(
         DomuActor actor,
         Guid householdId,
@@ -40,17 +29,6 @@ public sealed class HouseholdAccessService(
                 $"Household '{householdId}' is accessible to actor '{actor.ActorId}' but has no linked household member.");
 
         return member.Id;
-    }
-
-    public Task<Guid> GetRequiredMemberIdAsync(
-        Guid householdId,
-        Guid userId,
-        CancellationToken cancellationToken)
-    {
-        return GetRequiredMemberIdAsync(
-            new DomuActor(userId, DomuActorType.Zitadel),
-            householdId,
-            cancellationToken);
     }
 
     private async Task<HouseholdMember?> GetAccessibleMemberAsync(

@@ -17,7 +17,7 @@ public sealed class CreateShoppingListUseCase(
     public async Task<ShoppingListView> ExecuteAsync(CreateShoppingListCommand command, CancellationToken cancellationToken)
     {
         var memberId = await householdAccessService.GetRequiredMemberIdAsync(
-            command.HouseholdId, command.UserId, cancellationToken);
+            command.Actor, command.HouseholdId, cancellationToken);
 
         var now = DateTimeOffset.UtcNow;
         var shoppingList = new ShoppingList(
@@ -25,7 +25,7 @@ public sealed class CreateShoppingListUseCase(
 
         await shoppingListRepository.AddAsync(shoppingList, cancellationToken);
         await _userEventRecorder.RecordAsync(
-            command.UserId, UserEventActions.ShoppingListCreated, UserEventTargetTypes.ShoppingList,
+            command.Actor.ActorId, UserEventActions.ShoppingListCreated, UserEventTargetTypes.ShoppingList,
             shoppingList.Id, command.HouseholdId, EventMetadata.From(("name", shoppingList.Name)), cancellationToken);
         await shoppingListRepository.SaveChangesAsync(cancellationToken);
 

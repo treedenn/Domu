@@ -1,3 +1,4 @@
+using Domu.Api.Features.Auth.Domain;
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.ShoppingLists.Application.Items.Ports;
 using Domu.Api.Features.ShoppingLists.Application.ShoppingLists.Ports;
@@ -13,11 +14,11 @@ internal static class ShoppingListPermissionPolicy
         IHouseholdAccessService householdAccessService,
         Guid householdId,
         Guid shoppingListId,
-        Guid userId,
+        DomuActor actor,
         CancellationToken cancellationToken)
     {
         await GetAccessibleListAsync(
-            shoppingListRepository, householdAccessService, householdId, shoppingListId, userId, cancellationToken);
+            shoppingListRepository, householdAccessService, householdId, shoppingListId, actor, cancellationToken);
     }
 
     public static async Task<ShoppingList> GetAccessibleListAsync(
@@ -25,10 +26,10 @@ internal static class ShoppingListPermissionPolicy
         IHouseholdAccessService householdAccessService,
         Guid householdId,
         Guid shoppingListId,
-        Guid userId,
+        DomuActor actor,
         CancellationToken cancellationToken)
     {
-        await householdAccessService.EnsureCanAccessHouseholdAsync(householdId, userId, cancellationToken);
+        await householdAccessService.EnsureCanAccessHouseholdAsync(actor, householdId, cancellationToken);
 
         var shoppingList = await shoppingListRepository.GetByIdAsync(shoppingListId, cancellationToken)
                            ?? throw new KeyNotFoundException($"Shopping list '{shoppingListId}' was not found.");
@@ -46,7 +47,7 @@ internal static class ShoppingListPermissionPolicy
         Guid householdId,
         Guid shoppingListId,
         Guid itemId,
-        Guid userId,
+        DomuActor actor,
         CancellationToken cancellationToken)
     {
         await EnsureCanAccessListAsync(
@@ -54,7 +55,7 @@ internal static class ShoppingListPermissionPolicy
             householdAccessService,
             householdId,
             shoppingListId,
-            userId,
+            actor,
             cancellationToken);
 
         return await GetListItemAsync(shoppingListItemRepository, shoppingListId, itemId, cancellationToken);

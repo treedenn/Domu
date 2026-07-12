@@ -1,3 +1,5 @@
+using Domu.Api.Features.Auth.Domain;
+
 using Domu.Api.Features.Auth.Application;
 using Domu.Api.Features.Spaces.Application.Search;
 using Domu.Api.Features.Spaces.Application.Search.Contracts;
@@ -29,7 +31,7 @@ public sealed class SearchController(
         try
         {
             var results = await searchSpacesAndItemsUseCase.ExecuteAsync(
-                new SearchSpacesAndItemsQuery(actorAccessor.DomuActor.ActorId, householdId, text, expiringWithinDays, limit),
+                new SearchSpacesAndItemsQuery(actorAccessor.DomuActor, householdId, text, expiringWithinDays, limit),
                 cancellationToken);
 
             return Ok(results);

@@ -1,3 +1,5 @@
+using Domu.Api.Features.Auth.Domain;
+
 using Domu.Api.Features.Events.Application;
 using Domu.Api.Features.Events.Domain;
 using Domu.Api.Features.Insights.Application;
@@ -14,7 +16,7 @@ public sealed class InsightRuleTests
         var shoppingListId = Guid.NewGuid();
         var context = new InsightContext(
             householdId,
-            Guid.NewGuid(),
+            new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel),
             DateTimeOffset.UtcNow,
             [
                 Event(householdId, UserEventActions.ShoppingListItemCreated, Guid.NewGuid(), Metadata(
@@ -62,7 +64,7 @@ public sealed class InsightRuleTests
             Metadata(("shoppingListId", shoppingListId)),
             now.AddMinutes(-20)));
 
-        var context = new InsightContext(householdId, Guid.NewGuid(), now, events);
+        var context = new InsightContext(householdId, new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), now, events);
 
         var result = await new ClearCheckedShoppingListItemsRule().EvaluateAsync(context, CancellationToken.None);
 

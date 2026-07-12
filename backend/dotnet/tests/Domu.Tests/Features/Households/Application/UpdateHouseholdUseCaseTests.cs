@@ -1,3 +1,5 @@
+using Domu.Api.Features.Auth.Domain;
+
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.Households.Application.Households.Ports;
 using Domu.Api.Features.Households.Domain.Households;
@@ -15,7 +17,7 @@ public sealed class UpdateHouseholdUseCaseTests
         var useCase = new UpdateHouseholdUseCase(repository);
 
         var result = await useCase.ExecuteAsync(
-            new UpdateHouseholdCommand(household.Id, ownerId, "Apartment"),
+            new UpdateHouseholdCommand(household.Id, new DomuActor(ownerId, DomuActorType.Zitadel), "Apartment"),
             CancellationToken.None);
 
         Assert.Equal("Apartment", result.Name);
@@ -31,7 +33,7 @@ public sealed class UpdateHouseholdUseCaseTests
         var useCase = new UpdateHouseholdUseCase(repository);
 
         var action = () => useCase.ExecuteAsync(
-            new UpdateHouseholdCommand(household.Id, Guid.NewGuid(), "Apartment"),
+            new UpdateHouseholdCommand(household.Id, new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), "Apartment"),
             CancellationToken.None);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(action);

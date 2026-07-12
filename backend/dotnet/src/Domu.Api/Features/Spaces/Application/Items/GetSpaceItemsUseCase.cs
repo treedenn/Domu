@@ -15,7 +15,7 @@ public sealed class GetSpaceItemsUseCase(
         await spaceAccessService.EnsureCanAccessSpaceAsync(
             query.HouseholdId,
             query.SpaceId,
-            query.UserId,
+            query.Actor,
             cancellationToken);
 
         var items = await itemRepository.GetBySpaceAsync(query.SpaceId, cancellationToken);

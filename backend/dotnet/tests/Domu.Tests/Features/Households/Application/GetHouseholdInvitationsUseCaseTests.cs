@@ -1,3 +1,5 @@
+using Domu.Api.Features.Auth.Domain;
+
 using Domu.Api.Features.Households.Application.Households.Ports;
 using Domu.Api.Features.Households.Application.Members;
 using Domu.Api.Features.Households.Domain.Households;
@@ -30,7 +32,7 @@ public sealed class GetHouseholdInvitationsUseCaseTests
         var useCase = new GetHouseholdInvitationsUseCase(householdRepository, membershipRepository);
 
         var result = await useCase.ExecuteAsync(
-            new GetHouseholdInvitationsQuery(household.Id, ownerId),
+            new GetHouseholdInvitationsQuery(household.Id, new DomuActor(ownerId, DomuActorType.Zitadel)),
             CancellationToken.None);
 
         var invitation = Assert.Single(result);
@@ -47,7 +49,7 @@ public sealed class GetHouseholdInvitationsUseCaseTests
             new FakeHouseholdMembershipRepository());
 
         var action = () => useCase.ExecuteAsync(
-            new GetHouseholdInvitationsQuery(household.Id, Guid.NewGuid()),
+            new GetHouseholdInvitationsQuery(household.Id, new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel)),
             CancellationToken.None);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(action);

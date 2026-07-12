@@ -1,3 +1,4 @@
+using Domu.Api.Features.Auth.Domain;
 using Domu.Api.Features.Spaces.Application.Spaces;
 
 namespace Domu.Tests.Features.Spaces.Application;
@@ -9,7 +10,7 @@ internal sealed class FakeSpaceAccessService : ISpaceAccessService
     public Task EnsureCanAccessSpaceAsync(
         Guid householdId,
         Guid spaceId,
-        Guid userId,
+        DomuActor actor,
         CancellationToken cancellationToken)
     {
         if (DenyAccess)
@@ -32,7 +33,7 @@ internal sealed class FakeSpaceAccessService : ISpaceAccessService
     public Task EnsureCanAccessSpaceTargetAsync(
         Guid householdId,
         Guid? parentId,
-        Guid userId,
+        DomuActor actor,
         CancellationToken cancellationToken)
     {
         if (DenyAccess)

@@ -19,8 +19,8 @@ public sealed class GetHouseholdInsightsUseCase(
     {
         ArgumentNullException.ThrowIfNull(query);
         await householdAccessService.EnsureCanAccessHouseholdAsync(
+            query.Actor,
             query.HouseholdId,
-            query.UserId,
             cancellationToken);
 
         var now = DateTimeOffset.UtcNow;
@@ -28,7 +28,7 @@ public sealed class GetHouseholdInsightsUseCase(
             query.HouseholdId,
             now.Subtract(Lookback),
             cancellationToken);
-        var context = new InsightContext(query.HouseholdId, query.UserId, now, events);
+        var context = new InsightContext(query.HouseholdId, query.Actor, now, events);
 
         var candidates = new List<HouseholdInsightCandidate>();
         foreach (var rule in rules)

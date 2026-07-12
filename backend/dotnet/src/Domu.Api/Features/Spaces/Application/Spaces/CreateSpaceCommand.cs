@@ -1,7 +1,9 @@
+using Domu.Api.Features.Auth.Domain;
+
 namespace Domu.Api.Features.Spaces.Application.Spaces;
 
 public sealed record CreateSpaceCommand(
-    Guid UserId,
+    DomuActor Actor,
     Guid HouseholdId,
     string Name,
     string? Description,

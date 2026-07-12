@@ -24,7 +24,7 @@ public sealed class GetHouseholdInsightsUseCaseTests
             ]);
 
         var result = await useCase.ExecuteAsync(
-            new GetHouseholdInsightsQuery(householdId, userId),
+            new GetHouseholdInsightsQuery(householdId, new DomuActor(userId, DomuActorType.Zitadel)),
             CancellationToken.None);
 
         var insight = Assert.Single(result.Insights);
@@ -43,7 +43,7 @@ public sealed class GetHouseholdInsightsUseCaseTests
             [new StaticInsightRule("rule", "dedupe", 0.5)]);
 
         var action = () => useCase.ExecuteAsync(
-            new GetHouseholdInsightsQuery(Guid.NewGuid(), Guid.NewGuid()),
+            new GetHouseholdInsightsQuery(Guid.NewGuid(), new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel)),
             CancellationToken.None);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(action);

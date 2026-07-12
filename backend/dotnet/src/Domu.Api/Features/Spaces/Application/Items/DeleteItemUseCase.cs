@@ -18,7 +18,7 @@ public sealed class DeleteItemUseCase(
         await spaceAccessService.EnsureCanAccessSpaceAsync(
             command.HouseholdId,
             command.SpaceId,
-            command.UserId,
+            command.Actor,
             cancellationToken);
 
         var item = await itemRepository.GetByIdAsync(command.ItemId, cancellationToken)
@@ -28,7 +28,7 @@ public sealed class DeleteItemUseCase(
 
         await itemRepository.DeleteAsync(command.ItemId, cancellationToken);
         await _userEventRecorder.RecordAsync(
-            command.UserId,
+            command.Actor.ActorId,
             UserEventActions.ItemDeleted,
             UserEventTargetTypes.Item,
             command.ItemId,

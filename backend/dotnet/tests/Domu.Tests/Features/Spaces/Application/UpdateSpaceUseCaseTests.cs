@@ -1,3 +1,5 @@
+using Domu.Api.Features.Auth.Domain;
+
 using Domu.Api.Features.Spaces.Application.Spaces;
 using Domu.Api.Features.Spaces.Application.Spaces.Ports;
 using Domu.Api.Features.Spaces.Domain.Spaces;
@@ -16,7 +18,7 @@ public sealed class UpdateSpaceUseCaseTests
         var originalParentId = space.ParentId;
 
         var result = await useCase.ExecuteAsync(
-            new UpdateSpaceCommand(Guid.NewGuid(), space.HouseholdId, space.Id, "Kitchen Pantry", "Updated description"),
+            new UpdateSpaceCommand(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), space.HouseholdId, space.Id, "Kitchen Pantry", "Updated description"),
             CancellationToken.None);
 
         Assert.Equal("Kitchen Pantry", result.Name);
@@ -32,7 +34,7 @@ public sealed class UpdateSpaceUseCaseTests
         var useCase = new UpdateSpaceUseCase(repository, new FakeSpaceAccessService());
 
         var action = () => useCase.ExecuteAsync(
-            new UpdateSpaceCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Pantry", null),
+            new UpdateSpaceCommand(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), Guid.NewGuid(), Guid.NewGuid(), "Pantry", null),
             CancellationToken.None);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(action);

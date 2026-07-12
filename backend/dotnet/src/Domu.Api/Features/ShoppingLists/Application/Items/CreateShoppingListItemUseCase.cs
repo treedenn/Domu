@@ -26,10 +26,10 @@ public sealed class CreateShoppingListItemUseCase(
             householdAccessService,
             command.HouseholdId,
             command.ShoppingListId,
-            command.UserId,
+            command.Actor,
             cancellationToken);
         var memberId = await householdAccessService.GetRequiredMemberIdAsync(
-            command.HouseholdId, command.UserId, cancellationToken);
+            command.Actor, command.HouseholdId, cancellationToken);
 
         await ShoppingListPermissionPolicy.ValidateReferencesAsync(
             shoppingListItemRepository,
@@ -57,7 +57,7 @@ public sealed class CreateShoppingListItemUseCase(
 
         await shoppingListItemRepository.AddAsync(item, cancellationToken);
         await _userEventRecorder.RecordAsync(
-            command.UserId,
+            command.Actor.ActorId,
             UserEventActions.ShoppingListItemCreated,
             UserEventTargetTypes.ShoppingListItem,
             item.Id,

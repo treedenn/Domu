@@ -24,15 +24,15 @@ public sealed class InviteHouseholdMemberUseCase(
         var household = await householdRepository.GetByIdAsync(command.HouseholdId, cancellationToken)
                         ?? throw new KeyNotFoundException($"Household '{command.HouseholdId}' was not found.");
 
-        if (household.OwnerId != command.InvitedByHouseholdMemberId)
+        if (household.OwnerId != command.Actor.ActorId)
             throw new KeyNotFoundException($"Household '{command.HouseholdId}' was not found.");
 
         var inviterMember = await membershipRepository.GetMemberAsync(
             command.HouseholdId,
-            command.InvitedByHouseholdMemberId,
+            command.Actor.ActorId,
             cancellationToken)
             ?? throw new InvalidOperationException(
-                $"Household '{command.HouseholdId}' is owned by user '{command.InvitedByHouseholdMemberId}' but has no linked household member.");
+                $"Household '{command.HouseholdId}' is owned by actor '{command.Actor.ActorId}' but has no linked household member.");
 
         var email = HouseholdInvitation.NormalizeEmail(command.Email);
         var existingInvitation = await membershipRepository.GetPendingInvitationByEmailAsync(
@@ -60,7 +60,7 @@ public sealed class InviteHouseholdMemberUseCase(
 
         await membershipRepository.AddInvitationAsync(invitation, cancellationToken);
         await _userEventRecorder.RecordAsync(
-            command.InvitedByHouseholdMemberId,
+            command.Actor.ActorId,
             UserEventActions.HouseholdMemberInvited,
             UserEventTargetTypes.HouseholdInvitation,
             invitation.Id,

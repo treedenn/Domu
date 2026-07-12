@@ -20,8 +20,7 @@ public sealed class ShoppingListItemUseCaseTests
         var useCase = new CreateShoppingListItemUseCase(repository, repository, new FakeHouseholdAccessService());
 
         var action = () => useCase.ExecuteAsync(
-            new CreateShoppingListItemCommand(
-                Guid.NewGuid(),
+            new CreateShoppingListItemCommand(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel),
                 householdId,
                 shoppingList.Id,
                 "Milk",
@@ -48,8 +47,7 @@ public sealed class ShoppingListItemUseCaseTests
         var useCase = new CreateShoppingListItemUseCase(repository, repository, new FakeHouseholdAccessService());
 
         var result = await useCase.ExecuteAsync(
-            new CreateShoppingListItemCommand(
-                Guid.NewGuid(),
+            new CreateShoppingListItemCommand(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel),
                 householdId,
                 shoppingList.Id,
                 "  Milk   chocolate ",
@@ -84,8 +82,7 @@ public sealed class ShoppingListItemUseCaseTests
         var useCase = new SetShoppingListItemCheckedStateUseCase(repository, repository, new FakeHouseholdAccessService());
 
         var action = () => useCase.ExecuteAsync(
-            new SetShoppingListItemCheckedStateCommand(
-                Guid.NewGuid(),
+            new SetShoppingListItemCheckedStateCommand(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel),
                 householdId,
                 routeList.Id,
                 item.Id,

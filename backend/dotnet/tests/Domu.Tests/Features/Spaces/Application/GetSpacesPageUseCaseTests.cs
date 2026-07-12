@@ -1,3 +1,5 @@
+using Domu.Api.Features.Auth.Domain;
+
 using Domu.Api.Features.Spaces.Application.Spaces;
 using Domu.Api.Features.Spaces.Application.Spaces.Contracts;
 using Domu.Api.Features.Spaces.Application.Spaces.Ports;
@@ -29,8 +31,7 @@ public sealed class GetSpacesPageUseCaseTests
             17);
         var queryService = new FakeSpaceQueryService(expectedPage);
         var useCase = new GetSpacesPageUseCase(queryService, new FakeSpaceAccessService());
-        var query = new GetSpacesPageQuery(
-            Guid.NewGuid(),
+        var query = new GetSpacesPageQuery(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel),
             Guid.NewGuid(),
             null,
             2,
@@ -50,7 +51,7 @@ public sealed class GetSpacesPageUseCaseTests
         var useCase = new GetSpacesPageUseCase(queryService, new FakeSpaceAccessService());
 
         var action = () => useCase.ExecuteAsync(
-            new GetSpacesPageQuery(Guid.NewGuid(), Guid.NewGuid(), null, PageNumber: 1, PageSize: 0),
+            new GetSpacesPageQuery(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), Guid.NewGuid(), null, PageNumber: 1, PageSize: 0),
             CancellationToken.None);
 
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(action);

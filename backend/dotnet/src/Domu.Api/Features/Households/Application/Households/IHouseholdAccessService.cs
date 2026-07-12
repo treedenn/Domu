@@ -6,6 +6,4 @@ public interface IHouseholdAccessService
 {
     Task EnsureCanAccessHouseholdAsync(DomuActor actor, Guid householdId, CancellationToken cancellationToken);
     Task<Guid> GetRequiredMemberIdAsync(DomuActor actor, Guid householdId, CancellationToken cancellationToken);
-    Task EnsureCanAccessHouseholdAsync(Guid householdId, Guid userId, CancellationToken cancellationToken);
-    Task<Guid> GetRequiredMemberIdAsync(Guid householdId, Guid userId, CancellationToken cancellationToken);
 }

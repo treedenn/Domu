@@ -19,7 +19,7 @@ public sealed class CreateSpaceUseCase(
         await spaceAccessService.EnsureCanAccessSpaceTargetAsync(
             command.HouseholdId,
             command.ParentId,
-            command.UserId,
+            command.Actor,
             cancellationToken);
 
         var space = new Space(Guid.CreateVersion7(), command.Name, command.HouseholdId);
@@ -28,7 +28,7 @@ public sealed class CreateSpaceUseCase(
 
         await spaceRepository.AddAsync(space, cancellationToken);
         await _userEventRecorder.RecordAsync(
-            command.UserId,
+            command.Actor.ActorId,
             UserEventActions.SpaceCreated,
             UserEventTargetTypes.Space,
             space.Id,

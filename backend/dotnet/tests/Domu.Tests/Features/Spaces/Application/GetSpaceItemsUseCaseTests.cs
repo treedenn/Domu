@@ -1,3 +1,5 @@
+using Domu.Api.Features.Auth.Domain;
+
 using Domu.Api.Features.Spaces.Application.Items;
 using Domu.Api.Features.Spaces.Application.Items.Ports;
 using Domu.Api.Features.Spaces.Domain.Items;
@@ -16,7 +18,7 @@ public sealed class GetSpaceItemsUseCaseTests
         var useCase = new GetSpaceItemsUseCase(repository, new FakeSpaceAccessService());
 
         var result = await useCase.ExecuteAsync(
-            new GetSpaceItemsQuery(Guid.NewGuid(), Guid.NewGuid(), spaceId),
+            new GetSpaceItemsQuery(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), Guid.NewGuid(), spaceId),
             CancellationToken.None);
 
         var item = Assert.Single(result);

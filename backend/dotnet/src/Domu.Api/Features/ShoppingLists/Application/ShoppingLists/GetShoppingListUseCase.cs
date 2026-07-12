@@ -12,7 +12,7 @@ public sealed class GetShoppingListUseCase(
     public async Task<ShoppingListView> ExecuteAsync(GetShoppingListQuery query, CancellationToken cancellationToken)
     {
         var list = await ShoppingListPermissionPolicy.GetAccessibleListAsync(
-            shoppingListRepository, householdAccessService, query.HouseholdId, query.ShoppingListId, query.UserId, cancellationToken);
+            shoppingListRepository, householdAccessService, query.HouseholdId, query.ShoppingListId, query.Actor, cancellationToken);
         return ShoppingListView.FromDomain(list);
     }
 }

@@ -16,7 +16,7 @@ public sealed class UpdateShoppingListUseCase(
     public async Task<ShoppingListView> ExecuteAsync(UpdateShoppingListCommand command, CancellationToken cancellationToken)
     {
         var list = await ShoppingListPermissionPolicy.GetAccessibleListAsync(
-            shoppingListRepository, householdAccessService, command.HouseholdId, command.ShoppingListId, command.UserId, cancellationToken);
+            shoppingListRepository, householdAccessService, command.HouseholdId, command.ShoppingListId, command.Actor, cancellationToken);
         list.Rename(command.Name, DateTimeOffset.UtcNow);
         if (command.Archived)
         {
@@ -29,7 +29,7 @@ public sealed class UpdateShoppingListUseCase(
 
         await shoppingListRepository.UpdateAsync(list, cancellationToken);
         await _userEventRecorder.RecordAsync(
-            command.UserId, UserEventActions.ShoppingListUpdated, UserEventTargetTypes.ShoppingList,
+            command.Actor.ActorId, UserEventActions.ShoppingListUpdated, UserEventTargetTypes.ShoppingList,
             list.Id, command.HouseholdId, EventMetadata.From(("name", list.Name)), cancellationToken);
         await shoppingListRepository.SaveChangesAsync(cancellationToken);
         return ShoppingListView.FromDomain(list);

@@ -20,17 +20,6 @@ internal sealed class FakeHouseholdAccessService : IHouseholdAccessService
         return Task.CompletedTask;
     }
 
-    public Task EnsureCanAccessHouseholdAsync(
-        Guid householdId,
-        Guid userId,
-        CancellationToken cancellationToken)
-    {
-        if (DenyAccess)
-            throw new KeyNotFoundException();
-
-        return Task.CompletedTask;
-    }
-
     public Task<Guid> GetRequiredMemberIdAsync(DomuActor actor,
         Guid householdId,
         CancellationToken cancellationToken)
@@ -41,14 +30,4 @@ internal sealed class FakeHouseholdAccessService : IHouseholdAccessService
         return Task.FromResult(_memberId);
     }
 
-    public Task<Guid> GetRequiredMemberIdAsync(
-        Guid householdId,
-        Guid userId,
-        CancellationToken cancellationToken)
-    {
-        if (DenyAccess)
-            throw new KeyNotFoundException();
-
-        return Task.FromResult(_memberId);
-    }
 }

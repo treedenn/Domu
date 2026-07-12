@@ -1,3 +1,5 @@
+using Domu.Api.Features.Auth.Domain;
+
 namespace Domu.Api.Features.ShoppingLists.Application.ShoppingLists.Queries;
 
-public sealed record GetShoppingListQuery(Guid UserId, Guid HouseholdId, Guid ShoppingListId);
+public sealed record GetShoppingListQuery(DomuActor Actor, Guid HouseholdId, Guid ShoppingListId);

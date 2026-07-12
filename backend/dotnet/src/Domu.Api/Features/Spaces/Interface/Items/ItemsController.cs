@@ -1,3 +1,5 @@
+using Domu.Api.Features.Auth.Domain;
+
 using Domu.Api.Features.Auth.Application;
 using Domu.Api.Features.Spaces.Application.Items;
 using Domu.Api.Features.Spaces.Application.Items.Contracts;
@@ -31,7 +33,7 @@ public sealed class ItemsController(
         try
         {
             var items = await getSpaceItemsUseCase.ExecuteAsync(
-                new GetSpaceItemsQuery(actorAccessor.DomuActor.ActorId, householdId, spaceId),
+                new GetSpaceItemsQuery(actorAccessor.DomuActor, householdId, spaceId),
                 cancellationToken);
             return Ok(items);
         }
@@ -91,7 +93,7 @@ public sealed class ItemsController(
         {
             var item = await updateItemUseCase.ExecuteAsync(
                 new UpdateItemCommand(
-                    actorAccessor.DomuActor.ActorId,
+                    actorAccessor.DomuActor,
                     householdId,
                     spaceId,
                     itemId,
@@ -127,7 +129,7 @@ public sealed class ItemsController(
         {
             var item = await replaceItemEntriesUseCase.ExecuteAsync(
                 new ReplaceItemEntriesCommand(
-                    actorAccessor.DomuActor.ActorId,
+                    actorAccessor.DomuActor,
                     householdId,
                     spaceId,
                     itemId,
@@ -158,7 +160,7 @@ public sealed class ItemsController(
         try
         {
             await deleteItemUseCase.ExecuteAsync(
-                new DeleteItemCommand(actorAccessor.DomuActor.ActorId, householdId, spaceId, itemId),
+                new DeleteItemCommand(actorAccessor.DomuActor, householdId, spaceId, itemId),
                 cancellationToken);
             return NoContent();
         }

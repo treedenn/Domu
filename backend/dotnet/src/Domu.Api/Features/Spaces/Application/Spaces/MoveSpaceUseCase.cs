@@ -18,7 +18,7 @@ public sealed class MoveSpaceUseCase(
         await spaceAccessService.EnsureCanAccessSpaceAsync(
             command.HouseholdId,
             command.SpaceId,
-            command.UserId,
+            command.Actor,
             cancellationToken);
 
         if (command.ParentId is not null)
@@ -34,7 +34,7 @@ public sealed class MoveSpaceUseCase(
 
         await spaceRepository.UpdateAsync(space, cancellationToken);
         await _userEventRecorder.RecordAsync(
-            command.UserId,
+            command.Actor.ActorId,
             UserEventActions.SpaceMoved,
             UserEventTargetTypes.Space,
             space.Id,

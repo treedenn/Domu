@@ -16,12 +16,12 @@ public sealed class DeleteHouseholdUseCase(
         var household = await householdRepository.GetByIdAsync(command.HouseholdId, cancellationToken)
                         ?? throw new KeyNotFoundException($"Household '{command.HouseholdId}' was not found.");
 
-        if (household.OwnerId != command.OwnerId)
+        if (household.OwnerId != command.Actor.ActorId)
             throw new KeyNotFoundException($"Household '{command.HouseholdId}' was not found.");
 
         await householdRepository.DeleteAsync(command.HouseholdId, cancellationToken);
         await _userEventRecorder.RecordAsync(
-            command.OwnerId,
+            command.Actor.ActorId,
             UserEventActions.HouseholdDeleted,
             UserEventTargetTypes.Household,
             command.HouseholdId,

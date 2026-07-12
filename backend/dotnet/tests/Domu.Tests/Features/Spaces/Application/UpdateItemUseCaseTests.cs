@@ -1,3 +1,5 @@
+using Domu.Api.Features.Auth.Domain;
+
 using Domu.Api.Features.Spaces.Application.Items;
 using Domu.Api.Features.Spaces.Application.Items.Contracts;
 using Domu.Api.Features.Spaces.Application.Items.Ports;
@@ -16,8 +18,7 @@ public sealed class UpdateItemUseCaseTests
         var useCase = new UpdateItemUseCase(repository, new FakeSpaceAccessService());
 
         var result = await useCase.ExecuteAsync(
-            new UpdateItemCommand(
-                Guid.NewGuid(),
+            new UpdateItemCommand(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel),
                 Guid.NewGuid(),
                 item.SpaceId,
                 item.Id,

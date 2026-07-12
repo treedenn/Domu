@@ -17,14 +17,14 @@ public sealed class UpdateHouseholdUseCase(
         var household = await householdRepository.GetByIdAsync(command.HouseholdId, cancellationToken)
                         ?? throw new KeyNotFoundException($"Household '{command.HouseholdId}' was not found.");
 
-        if (household.OwnerId != command.OwnerId)
+        if (household.OwnerId != command.Actor.ActorId)
             throw new KeyNotFoundException($"Household '{command.HouseholdId}' was not found.");
 
         household.Rename(command.Name);
 
         await householdRepository.UpdateAsync(household, cancellationToken);
         await _userEventRecorder.RecordAsync(
-            command.OwnerId,
+            command.Actor.ActorId,
             UserEventActions.HouseholdUpdated,
             UserEventTargetTypes.Household,
             household.Id,

@@ -1,3 +1,5 @@
+using Domu.Api.Features.Auth.Domain;
+
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.Households.Application.Households.Ports;
 using Domu.Api.Features.Households.Domain.Households;
@@ -16,7 +18,7 @@ public sealed class GetHouseholdsUseCaseTests
             new Household(Guid.NewGuid(), otherOwnerId, "Other"));
         var useCase = new GetHouseholdsUseCase(repository);
 
-        var result = await useCase.ExecuteAsync(new GetHouseholdsQuery(ownerId), CancellationToken.None);
+        var result = await useCase.ExecuteAsync(new GetHouseholdsQuery(new DomuActor(ownerId, DomuActorType.Zitadel)), CancellationToken.None);
 
         var household = Assert.Single(result);
         Assert.Equal(ownerId, household.OwnerId);

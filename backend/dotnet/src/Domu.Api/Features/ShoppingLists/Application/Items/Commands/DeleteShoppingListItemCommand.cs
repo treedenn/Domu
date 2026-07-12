@@ -1,3 +1,5 @@
+using Domu.Api.Features.Auth.Domain;
+
 namespace Domu.Api.Features.ShoppingLists.Application.Items.Commands;
 
-public sealed record DeleteShoppingListItemCommand(Guid UserId, Guid HouseholdId, Guid ShoppingListId, Guid ItemId);
+public sealed record DeleteShoppingListItemCommand(DomuActor Actor, Guid HouseholdId, Guid ShoppingListId, Guid ItemId);

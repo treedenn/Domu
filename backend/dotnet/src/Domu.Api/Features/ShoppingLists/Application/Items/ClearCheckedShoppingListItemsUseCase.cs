@@ -22,12 +22,12 @@ public sealed class ClearCheckedShoppingListItemsUseCase(
             householdAccessService,
             command.HouseholdId,
             command.ShoppingListId,
-            command.UserId,
+            command.Actor,
             cancellationToken);
 
         await shoppingListItemRepository.DeleteCheckedAsync(command.ShoppingListId, cancellationToken);
         await _userEventRecorder.RecordAsync(
-            command.UserId,
+            command.Actor.ActorId,
             UserEventActions.ShoppingListCheckedItemsCleared,
             UserEventTargetTypes.ShoppingList,
             command.ShoppingListId,
