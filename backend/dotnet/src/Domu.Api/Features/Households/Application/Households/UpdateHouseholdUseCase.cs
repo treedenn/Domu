@@ -1,14 +1,16 @@
 using Domu.Api.Features.Events.Application;
 using Domu.Api.Features.Households.Application.Households.Contracts;
 using Domu.Api.Features.Households.Application.Households.Ports;
+using Domu.Api.Features.Households.Application.Members.Ports;
 
 namespace Domu.Api.Features.Households.Application.Households;
 
 public sealed class UpdateHouseholdUseCase(
     IHouseholdRepository householdRepository,
-    IUserEventRecorder? userEventRecorder = null)
+    IHouseholdMembershipRepository membershipRepository,
+    IHouseholdEventRecorder? userEventRecorder = null)
 {
-    private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task<HouseholdView> ExecuteAsync(UpdateHouseholdCommand command, CancellationToken cancellationToken)
     {
@@ -17,7 +19,7 @@ public sealed class UpdateHouseholdUseCase(
         var household = await householdRepository.GetByIdAsync(command.HouseholdId, cancellationToken)
                         ?? throw new KeyNotFoundException($"Household '{command.HouseholdId}' was not found.");
 
-        if (household.OwnerId != command.Actor.ActorId)
+        if (!await membershipRepository.IsOwnerAsync(household, command.Actor.ActorId, cancellationToken))
             throw new KeyNotFoundException($"Household '{command.HouseholdId}' was not found.");
 
         household.Rename(command.Name);
@@ -25,8 +27,8 @@ public sealed class UpdateHouseholdUseCase(
         await householdRepository.UpdateAsync(household, cancellationToken);
         await _userEventRecorder.RecordAsync(
             command.Actor.ActorId,
-            UserEventActions.HouseholdUpdated,
-            UserEventTargetTypes.Household,
+            HouseholdEventActions.HouseholdUpdated,
+            HouseholdEventTargetTypes.Household,
             household.Id,
             household.Id,
             EventMetadata.From(("name", household.Name)),

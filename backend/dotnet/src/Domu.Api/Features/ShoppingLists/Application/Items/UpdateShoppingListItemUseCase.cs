@@ -12,9 +12,9 @@ public sealed class UpdateShoppingListItemUseCase(
     IShoppingListRepository shoppingListRepository,
     IShoppingListItemRepository shoppingListItemRepository,
     IHouseholdAccessService householdAccessService,
-    IUserEventRecorder? userEventRecorder = null)
+    IHouseholdEventRecorder? userEventRecorder = null)
 {
-    private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task<ShoppingListItemView> ExecuteAsync(
         UpdateShoppingListItemCommand command,
@@ -55,8 +55,8 @@ public sealed class UpdateShoppingListItemUseCase(
         await shoppingListItemRepository.UpdateAsync(item, cancellationToken);
         await _userEventRecorder.RecordAsync(
             command.Actor.ActorId,
-            UserEventActions.ShoppingListItemUpdated,
-            UserEventTargetTypes.ShoppingListItem,
+            HouseholdEventActions.ShoppingListItemUpdated,
+            HouseholdEventTargetTypes.ShoppingListItem,
             item.Id,
             command.HouseholdId,
             EventMetadata.From(

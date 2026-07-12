@@ -1,15 +1,15 @@
 namespace Domu.Api.Features.Events.Application;
 
-public sealed class NoOpUserEventRecorder : IUserEventRecorder
+public sealed class NoOpHouseholdEventRecorder : IHouseholdEventRecorder
 {
-    public static readonly NoOpUserEventRecorder Instance = new();
+    public static readonly NoOpHouseholdEventRecorder Instance = new();
 
-    private NoOpUserEventRecorder()
+    private NoOpHouseholdEventRecorder()
     {
     }
 
     public Task RecordAsync(
-        Guid actorUserId,
+        Guid actorMemberId,
         string action,
         string targetType,
         Guid? targetId,

@@ -1,6 +1,6 @@
 namespace Domu.Api.Features.Events.Application;
 
-public static class UserEventTargetTypes
+public static class HouseholdEventTargetTypes
 {
     public const string Household = "household";
     public const string HouseholdInvitation = "household_invitation";

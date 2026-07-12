@@ -23,8 +23,8 @@ public sealed class RestockCandidateRule : IInsightRule
     {
         var itemFacts = context.Events
             .Where(userEvent =>
-                userEvent.Action is UserEventActions.ShoppingListItemCreated
-                    or UserEventActions.ShoppingListItemUpdated)
+                userEvent.Action is HouseholdEventActions.ShoppingListItemCreated
+                    or HouseholdEventActions.ShoppingListItemUpdated)
             .Select(userEvent => (Event: userEvent, Metadata: new EventMetadataReader(userEvent)))
             .Select(entry => new ShoppingListItemFact(
                 entry.Event.TargetId,
@@ -39,7 +39,7 @@ public sealed class RestockCandidateRule : IInsightRule
                 group => group.OrderByDescending(fact => fact.OccurredAt).First());
 
         var checkedItems = context.Events
-            .Where(userEvent => userEvent.Action == UserEventActions.ShoppingListItemChecked)
+            .Where(userEvent => userEvent.Action == HouseholdEventActions.ShoppingListItemChecked)
             .Select(userEvent => itemFacts.TryGetValue(userEvent.TargetId ?? Guid.Empty, out var fact)
                 ? fact
                 : null)

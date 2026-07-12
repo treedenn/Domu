@@ -12,14 +12,14 @@ public sealed class InviteHouseholdMemberUseCaseTests
     [Fact]
     public async Task ExecuteAsync_CreatesPendingInvitationAndSendsIt()
     {
-        var ownerId = Guid.NewGuid();
-        var household = new Household(Guid.NewGuid(), ownerId, "Home");
+        var ownerMemberId = Guid.NewGuid();
+        var household = new Household(Guid.NewGuid(), ownerMemberId, "Home");
         var householdRepository = new FakeHouseholdRepository(household);
         var membershipRepository = new FakeHouseholdMembershipRepository();
         var ownerMember = new HouseholdMember(
-            Guid.NewGuid(),
+            ownerMemberId,
             household.Id,
-            ownerId,
+            ownerMemberId,
             "Owner",
             HouseholdMemberRole.Owner,
             DateTimeOffset.UtcNow);
@@ -28,7 +28,7 @@ public sealed class InviteHouseholdMemberUseCaseTests
         var useCase = new InviteHouseholdMemberUseCase(householdRepository, membershipRepository, sender);
 
         var result = await useCase.ExecuteAsync(
-            new InviteHouseholdMemberCommand(new DomuActor(ownerId, DomuActorType.Zitadel), household.Id, " Person@Example.COM ", "Alex", HouseholdMemberRole.Admin),
+            new InviteHouseholdMemberCommand(new DomuActor(ownerMemberId, DomuActorType.Zitadel), household.Id, " Person@Example.COM ", "Alex", HouseholdMemberRole.Admin),
             CancellationToken.None);
 
         Assert.Equal(household.Id, result.HouseholdId);
@@ -66,10 +66,10 @@ public sealed class InviteHouseholdMemberUseCaseTests
             return Task.FromResult(_households.SingleOrDefault(household => household.Id == householdId));
         }
 
-        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken)
+        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerMemberId, CancellationToken cancellationToken)
         {
             return Task.FromResult<IReadOnlyList<Household>>(
-                _households.Where(household => household.OwnerId == ownerId).ToArray());
+                _households.Where(household => household.OwnerMemberId == ownerMemberId).ToArray());
         }
 
         public Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId, CancellationToken cancellationToken)

@@ -13,7 +13,7 @@ public sealed class CreateItemUseCaseTests
     public async Task ExecuteAsync_CreatesItemAndPersistsIt()
     {
         var repository = new FakeItemRepository();
-        var eventRecorder = new FakeUserEventRecorder();
+        var eventRecorder = new FakeHouseholdEventRecorder();
         var useCase = new CreateItemUseCase(repository, new FakeSpaceAccessService(), eventRecorder);
         var userId = Guid.NewGuid();
         var householdId = Guid.NewGuid();
@@ -37,10 +37,10 @@ public sealed class CreateItemUseCaseTests
         Assert.Equal(1, repository.AddCalls);
         Assert.Equal(1, repository.SaveChangesCalls);
         var userEvent = Assert.Single(eventRecorder.Events);
-        Assert.Equal(userId, userEvent.ActorUserId);
+        Assert.Equal(userId, userEvent.ActorMemberId);
         Assert.Equal(householdId, userEvent.HouseholdId);
-        Assert.Equal(UserEventActions.ItemCreated, userEvent.Action);
-        Assert.Equal(UserEventTargetTypes.Item, userEvent.TargetType);
+        Assert.Equal(HouseholdEventActions.ItemCreated, userEvent.Action);
+        Assert.Equal(HouseholdEventTargetTypes.Item, userEvent.TargetType);
         Assert.Equal(result.Id, userEvent.TargetId);
         Assert.Equal(spaceId, userEvent.Metadata["spaceId"]);
         Assert.Equal("Milk", userEvent.Metadata["name"]);
@@ -53,7 +53,7 @@ public sealed class CreateItemUseCaseTests
     public async Task ExecuteAsync_WhenAccessFails_DoesNotRecordEvent()
     {
         var repository = new FakeItemRepository();
-        var eventRecorder = new FakeUserEventRecorder();
+        var eventRecorder = new FakeHouseholdEventRecorder();
         var accessService = new FakeSpaceAccessService { DenyAccess = true };
         var useCase = new CreateItemUseCase(repository, accessService, eventRecorder);
 
@@ -115,12 +115,12 @@ public sealed class CreateItemUseCaseTests
         }
     }
 
-    private sealed class FakeUserEventRecorder : IUserEventRecorder
+    private sealed class FakeHouseholdEventRecorder : IHouseholdEventRecorder
     {
         public List<RecordedEvent> Events { get; } = [];
 
         public Task RecordAsync(
-            Guid actorUserId,
+            Guid actorMemberId,
             string action,
             string targetType,
             Guid? targetId,
@@ -129,7 +129,7 @@ public sealed class CreateItemUseCaseTests
             CancellationToken cancellationToken)
         {
             Events.Add(new RecordedEvent(
-                actorUserId,
+                actorMemberId,
                 action,
                 targetType,
                 targetId,
@@ -140,7 +140,7 @@ public sealed class CreateItemUseCaseTests
     }
 
     private sealed record RecordedEvent(
-        Guid ActorUserId,
+        Guid ActorMemberId,
         string Action,
         string TargetType,
         Guid? TargetId,

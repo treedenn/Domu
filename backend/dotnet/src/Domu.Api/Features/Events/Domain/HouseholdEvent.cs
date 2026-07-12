@@ -1,14 +1,14 @@
 namespace Domu.Api.Features.Events.Domain;
 
-public sealed class UserEvent
+public sealed class HouseholdEvent
 {
     public const int ActionMaxLength = 100;
     public const int TargetTypeMaxLength = 64;
 
-    public UserEvent(
+    public HouseholdEvent(
         Guid id,
         DateTimeOffset occurredAt,
-        Guid actorUserId,
+        Guid actorMemberId,
         string action,
         string targetType,
         Guid? targetId,
@@ -22,9 +22,9 @@ public sealed class UserEvent
     {
         Id = id == Guid.Empty ? throw new ArgumentException("Event id cannot be empty.", nameof(id)) : id;
         OccurredAt = occurredAt;
-        ActorUserId = actorUserId == Guid.Empty
-            ? throw new ArgumentException("Actor user id cannot be empty.", nameof(actorUserId))
-            : actorUserId;
+        ActorMemberId = actorMemberId == Guid.Empty
+            ? throw new ArgumentException("Actor user id cannot be empty.", nameof(actorMemberId))
+            : actorMemberId;
         Action = string.IsNullOrWhiteSpace(action)
             ? throw new ArgumentException("Event action cannot be empty.", nameof(action))
             : action;
@@ -43,7 +43,7 @@ public sealed class UserEvent
 
     public Guid Id { get; }
     public DateTimeOffset OccurredAt { get; }
-    public Guid ActorUserId { get; }
+    public Guid ActorMemberId { get; }
     public string Action { get; }
     public string TargetType { get; }
     public Guid? TargetId { get; }

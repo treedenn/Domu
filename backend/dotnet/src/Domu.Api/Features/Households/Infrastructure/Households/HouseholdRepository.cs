@@ -16,18 +16,6 @@ public sealed class HouseholdRepository(AppDbContext dbContext) : IHouseholdRepo
         return entity?.ToDomain();
     }
 
-    public async Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken)
-    {
-        var entities = await dbContext.Households
-            .AsNoTracking()
-            .Where(household => household.OwnerId == ownerId)
-            .OrderBy(household => household.Name)
-            .ThenBy(household => household.Id)
-            .ToArrayAsync(cancellationToken);
-
-        return entities.Select(household => household.ToDomain()).ToArray();
-    }
-
     public async Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId, CancellationToken cancellationToken)
     {
         var memberHouseholdIds = dbContext.HouseholdMembers
@@ -37,7 +25,7 @@ public sealed class HouseholdRepository(AppDbContext dbContext) : IHouseholdRepo
 
         var entities = await dbContext.Households
             .AsNoTracking()
-            .Where(household => household.OwnerId == userId || memberHouseholdIds.Contains(household.Id))
+            .Where(household => memberHouseholdIds.Contains(household.Id))
             .OrderBy(household => household.Name)
             .ThenBy(household => household.Id)
             .ToArrayAsync(cancellationToken);

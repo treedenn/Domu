@@ -1,14 +1,15 @@
 using Domu.Api.Features.Events.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Domu.Api.Features.Households.Infrastructure.Members;
 
 namespace Domu.Api.Features.Events.Infrastructure;
 
-public sealed class UserEventConfiguration : IEntityTypeConfiguration<UserEventEntity>
+public sealed class HouseholdEventConfiguration : IEntityTypeConfiguration<HouseholdEventEntity>
 {
-    public void Configure(EntityTypeBuilder<UserEventEntity> builder)
+    public void Configure(EntityTypeBuilder<HouseholdEventEntity> builder)
     {
-        builder.ToTable("user_events");
+        builder.ToTable("household_events");
 
         builder.HasKey(userEvent => userEvent.Id);
 
@@ -18,15 +19,20 @@ public sealed class UserEventConfiguration : IEntityTypeConfiguration<UserEventE
         builder.Property(userEvent => userEvent.OccurredAt)
             .IsRequired();
 
-        builder.Property(userEvent => userEvent.ActorUserId)
+        builder.Property(userEvent => userEvent.ActorMemberId)
             .IsRequired();
 
+        builder.HasOne<HouseholdMemberEntity>()
+            .WithMany()
+            .HasForeignKey(userEvent => userEvent.ActorMemberId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.Property(userEvent => userEvent.Action)
-            .HasMaxLength(UserEvent.ActionMaxLength)
+            .HasMaxLength(HouseholdEvent.ActionMaxLength)
             .IsRequired();
 
         builder.Property(userEvent => userEvent.TargetType)
-            .HasMaxLength(UserEvent.TargetTypeMaxLength)
+            .HasMaxLength(HouseholdEvent.TargetTypeMaxLength)
             .IsRequired();
 
         builder.Property(userEvent => userEvent.MetadataJson)
@@ -47,7 +53,7 @@ public sealed class UserEventConfiguration : IEntityTypeConfiguration<UserEventE
 
         builder.HasIndex(userEvent => userEvent.OccurredAt);
         builder.HasIndex(userEvent => new { userEvent.HouseholdId, userEvent.OccurredAt });
-        builder.HasIndex(userEvent => new { userEvent.ActorUserId, userEvent.OccurredAt });
+        builder.HasIndex(userEvent => new { userEvent.ActorMemberId, userEvent.OccurredAt });
         builder.HasIndex(userEvent => new { userEvent.TargetType, userEvent.TargetId });
     }
 }

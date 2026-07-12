@@ -11,17 +11,17 @@ public sealed class GetHouseholdsUseCaseTests
     [Fact]
     public async Task ExecuteAsync_ReturnsOnlyHouseholdsForOwner()
     {
-        var ownerId = Guid.NewGuid();
+        var ownerMemberId = Guid.NewGuid();
         var otherOwnerId = Guid.NewGuid();
         var repository = new FakeHouseholdRepository(
-            new Household(Guid.NewGuid(), ownerId, "Home"),
+            new Household(Guid.NewGuid(), ownerMemberId, "Home"),
             new Household(Guid.NewGuid(), otherOwnerId, "Other"));
         var useCase = new GetHouseholdsUseCase(repository);
 
-        var result = await useCase.ExecuteAsync(new GetHouseholdsQuery(new DomuActor(ownerId, DomuActorType.Zitadel)), CancellationToken.None);
+        var result = await useCase.ExecuteAsync(new GetHouseholdsQuery(new DomuActor(ownerMemberId, DomuActorType.Zitadel)), CancellationToken.None);
 
         var household = Assert.Single(result);
-        Assert.Equal(ownerId, household.OwnerId);
+        Assert.Equal(ownerMemberId, household.OwnerMemberId);
         Assert.Equal("Home", household.Name);
     }
 
@@ -34,10 +34,10 @@ public sealed class GetHouseholdsUseCaseTests
             return Task.FromResult(_storedHouseholds.SingleOrDefault(household => household.Id == householdId));
         }
 
-        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken)
+        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerMemberId, CancellationToken cancellationToken)
         {
             return Task.FromResult<IReadOnlyList<Household>>(
-                _storedHouseholds.Where(household => household.OwnerId == ownerId).ToArray());
+                _storedHouseholds.Where(household => household.OwnerMemberId == ownerMemberId).ToArray());
         }
 
         public Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId, CancellationToken cancellationToken)

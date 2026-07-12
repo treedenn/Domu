@@ -15,8 +15,7 @@ public sealed class GetHouseholdUseCase(
         var household = await householdRepository.GetByIdAsync(query.HouseholdId, cancellationToken)
                         ?? throw new KeyNotFoundException($"Household '{query.HouseholdId}' was not found.");
 
-        if (household.OwnerId != query.Actor.ActorId
-            && !await membershipRepository.IsMemberAsync(query.HouseholdId, query.Actor.ActorId, cancellationToken))
+        if (!await membershipRepository.IsMemberAsync(query.HouseholdId, query.Actor.ActorId, cancellationToken))
             throw new KeyNotFoundException($"Household '{query.HouseholdId}' was not found.");
 
         return HouseholdView.FromDomain(household);

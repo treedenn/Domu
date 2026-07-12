@@ -6,24 +6,25 @@ public sealed class Household
 
     private string _name = null!;
 
-    public Household(Guid id, Guid ownerId, string name)
+    public Household(Guid id, Guid? ownerMemberId, string name)
     {
         Id = id == Guid.Empty
             ? throw new ArgumentException("Household id cannot be empty.", nameof(id))
             : id;
-        ChangeOwnership(ownerId);
+        if (ownerMemberId is not null)
+            AssignOwner(ownerMemberId.Value);
         Rename(name);
     }
 
     public Household(
         Guid id,
-        Guid ownerId,
+        Guid? ownerMemberId,
         string name,
         HouseholdSubscriptionPlan subscriptionPlan,
         HouseholdSubscriptionStatus subscriptionStatus,
         DateTimeOffset? subscriptionCurrentPeriodEndsAt,
         DateTimeOffset? subscriptionCancelledAt)
-        : this(id, ownerId, name)
+        : this(id, ownerMemberId, name)
     {
         RestoreSubscriptionState(
             subscriptionPlan,
@@ -33,7 +34,7 @@ public sealed class Household
     }
 
     public Guid Id { get; }
-    public Guid OwnerId { get; private set; }
+    public Guid? OwnerMemberId { get; private set; }
     public HouseholdSubscriptionPlan SubscriptionPlan { get; private set; } = HouseholdSubscriptionPlan.Free;
     public HouseholdSubscriptionStatus SubscriptionStatus { get; private set; } = HouseholdSubscriptionStatus.Active;
     public DateTimeOffset? SubscriptionCurrentPeriodEndsAt { get; private set; }
@@ -55,11 +56,13 @@ public sealed class Household
         Name = name;
     }
     
-    public void ChangeOwnership(Guid ownerId)
+    public void AssignOwner(Guid ownerMemberId)
     {
-        if (ownerId == Guid.Empty)
-            throw new ArgumentException("Owner id cannot be empty.", nameof(ownerId));
-        OwnerId = ownerId;
+        if (ownerMemberId == Guid.Empty)
+            throw new ArgumentException("Owner member id cannot be empty.", nameof(ownerMemberId));
+        if (OwnerMemberId is not null)
+            throw new InvalidOperationException("Household ownership is already assigned.");
+        OwnerMemberId = ownerMemberId;
     }
 
     public void ActivatePremiumSubscription(DateTimeOffset currentPeriodEndsAt, DateTimeOffset activatedAt)

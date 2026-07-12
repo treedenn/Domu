@@ -11,9 +11,9 @@ public sealed class InviteHouseholdMemberUseCase(
     IHouseholdRepository householdRepository,
     IHouseholdMembershipRepository membershipRepository,
     IHouseholdInvitationSender invitationSender,
-    IUserEventRecorder? userEventRecorder = null)
+    IHouseholdEventRecorder? userEventRecorder = null)
 {
-    private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task<HouseholdInvitationView> ExecuteAsync(
         InviteHouseholdMemberCommand command,
@@ -24,7 +24,7 @@ public sealed class InviteHouseholdMemberUseCase(
         var household = await householdRepository.GetByIdAsync(command.HouseholdId, cancellationToken)
                         ?? throw new KeyNotFoundException($"Household '{command.HouseholdId}' was not found.");
 
-        if (household.OwnerId != command.Actor.ActorId)
+        if (!await membershipRepository.IsOwnerAsync(household, command.Actor.ActorId, cancellationToken))
             throw new KeyNotFoundException($"Household '{command.HouseholdId}' was not found.");
 
         var inviterMember = await membershipRepository.GetMemberAsync(
@@ -61,8 +61,8 @@ public sealed class InviteHouseholdMemberUseCase(
         await membershipRepository.AddInvitationAsync(invitation, cancellationToken);
         await _userEventRecorder.RecordAsync(
             command.Actor.ActorId,
-            UserEventActions.HouseholdMemberInvited,
-            UserEventTargetTypes.HouseholdInvitation,
+            HouseholdEventActions.HouseholdMemberInvited,
+            HouseholdEventTargetTypes.HouseholdInvitation,
             invitation.Id,
             command.HouseholdId,
             EventMetadata.From(("email", invitation.Email), ("role", invitation.Role.ToString())),

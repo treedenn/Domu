@@ -9,7 +9,7 @@ public sealed class HouseholdMember
     public HouseholdMember(
         Guid id,
         Guid householdId,
-        Guid? userId,
+        Guid userId,
         string displayName,
         HouseholdMemberRole role,
         DateTimeOffset joinedAt,
@@ -21,7 +21,7 @@ public sealed class HouseholdMember
         HouseholdId = householdId == Guid.Empty
             ? throw new ArgumentException("Household id cannot be empty.", nameof(householdId))
             : householdId;
-        UserId = userId is { } value && value == Guid.Empty
+        UserId = userId == Guid.Empty
             ? throw new ArgumentException("User id cannot be empty.", nameof(userId))
             : userId;
         Rename(displayName);
@@ -32,7 +32,7 @@ public sealed class HouseholdMember
 
     public Guid Id { get; }
     public Guid HouseholdId { get; }
-    public Guid? UserId { get; }
+    public Guid UserId { get; }
     public string DisplayName => _displayName;
     public HouseholdMemberRole Role { get; private set; }
     public DateTimeOffset JoinedAt { get; }

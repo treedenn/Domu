@@ -24,14 +24,10 @@ public sealed class HouseholdAccessService(
         CancellationToken cancellationToken)
     {
         var member = await GetAccessibleMemberAsync(actor, householdId, cancellationToken);
-        if (member is null)
-            throw new InvalidOperationException(
-                $"Household '{householdId}' is accessible to actor '{actor.ActorId}' but has no linked household member.");
-
         return member.Id;
     }
 
-    private async Task<HouseholdMember?> GetAccessibleMemberAsync(
+    private async Task<HouseholdMember> GetAccessibleMemberAsync(
         DomuActor actor,
         Guid householdId,
         CancellationToken cancellationToken)
@@ -39,10 +35,7 @@ public sealed class HouseholdAccessService(
         var household = await householdRepository.GetByIdAsync(householdId, cancellationToken)
                         ?? throw new KeyNotFoundException($"Household '{householdId}' was not found.");
 
-        var member = await membershipRepository.GetMemberAsync(householdId, actor.ActorId, cancellationToken);
-        if (household.OwnerId != actor.ActorId && member is null)
-            throw new KeyNotFoundException($"Household '{householdId}' was not found.");
-
-        return member;
+        return await membershipRepository.GetMemberAsync(householdId, actor.ActorId, cancellationToken)
+               ?? throw new KeyNotFoundException($"Household '{householdId}' was not found.");
     }
 }

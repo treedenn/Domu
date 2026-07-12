@@ -6,10 +6,10 @@ namespace Domu.Api.Features.Spaces.Application.Spaces;
 public sealed class DeleteSpaceUseCase(
     ISpaceRepository spaceRepository,
     ISpaceAccessService spaceAccessService,
-    IUserEventRecorder? userEventRecorder = null)
+    IHouseholdEventRecorder? userEventRecorder = null)
     : IDeleteSpaceUseCase
 {
-    private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task ExecuteAsync(DeleteSpaceCommand command, CancellationToken cancellationToken)
     {
@@ -23,8 +23,8 @@ public sealed class DeleteSpaceUseCase(
         await spaceRepository.DeleteAsync(command.SpaceId, cancellationToken);
         await _userEventRecorder.RecordAsync(
             command.Actor.ActorId,
-            UserEventActions.SpaceDeleted,
-            UserEventTargetTypes.Space,
+            HouseholdEventActions.SpaceDeleted,
+            HouseholdEventTargetTypes.Space,
             command.SpaceId,
             command.HouseholdId,
             EventMetadata.Empty(),

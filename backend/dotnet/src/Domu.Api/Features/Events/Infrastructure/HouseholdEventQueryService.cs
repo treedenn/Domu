@@ -5,14 +5,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Domu.Api.Features.Events.Infrastructure;
 
-public sealed class UserEventQueryService(AppDbContext dbContext) : IUserEventQueryService
+public sealed class HouseholdEventQueryService(AppDbContext dbContext) : IHouseholdEventQueryService
 {
-    public async Task<IReadOnlyList<UserEvent>> GetRecentHouseholdEventsAsync(
+    public async Task<IReadOnlyList<HouseholdEvent>> GetRecentHouseholdEventsAsync(
         Guid householdId,
         DateTimeOffset since,
         CancellationToken cancellationToken)
     {
-        var events = await dbContext.UserEvents
+        var events = await dbContext.HouseholdEvents
             .AsNoTracking()
             .Where(userEvent => userEvent.HouseholdId == householdId && userEvent.OccurredAt >= since)
             .OrderByDescending(userEvent => userEvent.OccurredAt)

@@ -9,10 +9,10 @@ namespace Domu.Api.Features.Spaces.Application.Items;
 public sealed class CreateItemUseCase(
     IItemRepository itemRepository,
     ISpaceAccessService spaceAccessService,
-    IUserEventRecorder? userEventRecorder = null)
+    IHouseholdEventRecorder? userEventRecorder = null)
     : ICreateItemUseCase
 {
-    private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task<ItemView> ExecuteAsync(CreateItemCommand command, CancellationToken cancellationToken)
     {
@@ -31,8 +31,8 @@ public sealed class CreateItemUseCase(
         await itemRepository.AddAsync(item, cancellationToken);
         await _userEventRecorder.RecordAsync(
             command.Actor.ActorId,
-            UserEventActions.ItemCreated,
-            UserEventTargetTypes.Item,
+            HouseholdEventActions.ItemCreated,
+            HouseholdEventTargetTypes.Item,
             item.Id,
             command.HouseholdId,
             EventMetadata.From(

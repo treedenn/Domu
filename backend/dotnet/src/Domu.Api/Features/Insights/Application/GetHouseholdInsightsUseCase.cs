@@ -6,7 +6,7 @@ namespace Domu.Api.Features.Insights.Application;
 
 public sealed class GetHouseholdInsightsUseCase(
     IHouseholdAccessService householdAccessService,
-    IUserEventQueryService userEventQueryService,
+    IHouseholdEventQueryService userEventQueryService,
     IEnumerable<IInsightRule> rules)
     : IGetHouseholdInsightsUseCase
 {

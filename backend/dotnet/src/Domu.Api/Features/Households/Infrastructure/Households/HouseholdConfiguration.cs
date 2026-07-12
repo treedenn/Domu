@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Domu.Api.Features.Households.Infrastructure.Members;
 
 namespace Domu.Api.Features.Households.Infrastructure.Households;
 
@@ -14,8 +15,13 @@ public sealed class HouseholdConfiguration : IEntityTypeConfiguration<HouseholdE
         builder.Property(household => household.Id)
             .ValueGeneratedNever();
 
-        builder.Property(household => household.OwnerId)
-            .IsRequired();
+        builder.Property(household => household.OwnerMemberId)
+            .IsRequired(false);
+
+        builder.HasOne<HouseholdMemberEntity>()
+            .WithMany()
+            .HasForeignKey(household => household.OwnerMemberId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.Property(household => household.Name)
             .HasMaxLength(Domain.Households.Household.NameMaxLength)
@@ -29,6 +35,6 @@ public sealed class HouseholdConfiguration : IEntityTypeConfiguration<HouseholdE
             .HasConversion<int>()
             .IsRequired();
 
-        builder.HasIndex(household => new { household.OwnerId, household.Name });
+        builder.HasIndex(household => new { household.OwnerMemberId, household.Name });
     }
 }

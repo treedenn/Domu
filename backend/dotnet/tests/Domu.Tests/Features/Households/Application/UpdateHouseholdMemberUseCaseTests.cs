@@ -11,16 +11,18 @@ public sealed class UpdateHouseholdMemberUseCaseTests
     [Fact]
     public async Task ExecuteAsync_UpdatesExistingMemberForOwner()
     {
-        var ownerId = Guid.NewGuid();
-        var household = new Household(Guid.NewGuid(), ownerId, "Home");
+        var ownerMemberId = Guid.NewGuid();
+        var ownerUserId = Guid.NewGuid();
+        var household = new Household(Guid.NewGuid(), ownerMemberId, "Home");
         var member = new HouseholdMember(
             Guid.NewGuid(),
             household.Id,
-            null,
+            Guid.NewGuid(),
             "Alex",
             HouseholdMemberRole.Member,
             DateTimeOffset.UtcNow);
         var membershipRepository = new FakeHouseholdMembershipRepository();
+        await membershipRepository.AddMemberAsync(new HouseholdMember(ownerMemberId, household.Id, ownerUserId, "Owner", HouseholdMemberRole.Owner, DateTimeOffset.UtcNow), CancellationToken.None);
         await membershipRepository.AddMemberAsync(member, CancellationToken.None);
         var useCase = new UpdateHouseholdMemberUseCase(
             new StubHouseholdRepository(household),
@@ -28,7 +30,7 @@ public sealed class UpdateHouseholdMemberUseCaseTests
 
         var result = await useCase.ExecuteAsync(
             new UpdateHouseholdMemberCommand(
-                new DomuActor(ownerId, DomuActorType.Zitadel),
+                new DomuActor(ownerUserId, DomuActorType.Zitadel),
                 household.Id,
                 member.Id,
                 " Sam ",
@@ -39,7 +41,7 @@ public sealed class UpdateHouseholdMemberUseCaseTests
         Assert.Equal("Sam", result.DisplayName);
         Assert.Equal(HouseholdMemberRole.Admin, result.Role);
         Assert.True(result.Archived);
-        var storedMember = Assert.Single(membershipRepository.Members);
+        var storedMember = Assert.Single(membershipRepository.Members, value => value.Id == member.Id);
         Assert.Equal("Sam", storedMember.DisplayName);
         Assert.Equal(HouseholdMemberRole.Admin, storedMember.Role);
         Assert.True(storedMember.Archived);
@@ -52,7 +54,7 @@ public sealed class UpdateHouseholdMemberUseCaseTests
         var member = new HouseholdMember(
             Guid.NewGuid(),
             household.Id,
-            null,
+            Guid.NewGuid(),
             "Alex",
             HouseholdMemberRole.Member,
             DateTimeOffset.UtcNow);
@@ -78,12 +80,13 @@ public sealed class UpdateHouseholdMemberUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WhenMemberIsOwner_Throws()
     {
-        var ownerId = Guid.NewGuid();
-        var household = new Household(Guid.NewGuid(), ownerId, "Home");
+        var ownerMemberId = Guid.NewGuid();
+        var ownerUserId = Guid.NewGuid();
+        var household = new Household(Guid.NewGuid(), ownerMemberId, "Home");
         var member = new HouseholdMember(
-            Guid.NewGuid(),
+            ownerMemberId,
             household.Id,
-            ownerId,
+            ownerUserId,
             "Owner",
             HouseholdMemberRole.Owner,
             DateTimeOffset.UtcNow);
@@ -95,7 +98,7 @@ public sealed class UpdateHouseholdMemberUseCaseTests
 
         var action = () => useCase.ExecuteAsync(
             new UpdateHouseholdMemberCommand(
-                new DomuActor(ownerId, DomuActorType.Zitadel),
+                new DomuActor(ownerUserId, DomuActorType.Zitadel),
                 household.Id,
                 member.Id,
                 "Owner",
@@ -111,7 +114,7 @@ public sealed class UpdateHouseholdMemberUseCaseTests
         public Task<Household?> GetByIdAsync(Guid householdId, CancellationToken cancellationToken) =>
             Task.FromResult(household.Id == householdId ? household : null);
 
-        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken) =>
+        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerMemberId, CancellationToken cancellationToken) =>
             Task.FromResult<IReadOnlyList<Household>>([]);
 
         public Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId, CancellationToken cancellationToken) =>

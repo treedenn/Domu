@@ -12,9 +12,9 @@ public sealed class SetShoppingListItemCheckedStateUseCase(
     IShoppingListRepository shoppingListRepository,
     IShoppingListItemRepository shoppingListItemRepository,
     IHouseholdAccessService householdAccessService,
-    IUserEventRecorder? userEventRecorder = null)
+    IHouseholdEventRecorder? userEventRecorder = null)
 {
-    private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task<ShoppingListItemView> ExecuteAsync(
         SetShoppingListItemCheckedStateCommand command,
@@ -32,8 +32,8 @@ public sealed class SetShoppingListItemCheckedStateUseCase(
 
         var now = DateTimeOffset.UtcNow;
         var eventAction = command.IsChecked
-            ? UserEventActions.ShoppingListItemChecked
-            : UserEventActions.ShoppingListItemUnchecked;
+            ? HouseholdEventActions.ShoppingListItemChecked
+            : HouseholdEventActions.ShoppingListItemUnchecked;
 
         if (command.IsChecked)
         {
@@ -50,7 +50,7 @@ public sealed class SetShoppingListItemCheckedStateUseCase(
         await _userEventRecorder.RecordAsync(
             command.Actor.ActorId,
             eventAction,
-            UserEventTargetTypes.ShoppingListItem,
+            HouseholdEventTargetTypes.ShoppingListItem,
             item.Id,
             command.HouseholdId,
             EventMetadata.From(("shoppingListId", command.ShoppingListId)),

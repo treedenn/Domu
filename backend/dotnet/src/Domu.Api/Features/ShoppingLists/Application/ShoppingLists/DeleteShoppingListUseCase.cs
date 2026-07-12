@@ -8,9 +8,9 @@ namespace Domu.Api.Features.ShoppingLists.Application.ShoppingLists;
 public sealed class DeleteShoppingListUseCase(
     IShoppingListRepository shoppingListRepository,
     IHouseholdAccessService householdAccessService,
-    IUserEventRecorder? userEventRecorder = null)
+    IHouseholdEventRecorder? userEventRecorder = null)
 {
-    private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task ExecuteAsync(DeleteShoppingListCommand command, CancellationToken cancellationToken)
     {
@@ -20,7 +20,7 @@ public sealed class DeleteShoppingListUseCase(
 
         await shoppingListRepository.UpdateAsync(list, cancellationToken);
         await _userEventRecorder.RecordAsync(
-            command.Actor.ActorId, UserEventActions.ShoppingListDeleted, UserEventTargetTypes.ShoppingList,
+            command.Actor.ActorId, HouseholdEventActions.ShoppingListDeleted, HouseholdEventTargetTypes.ShoppingList,
             list.Id, command.HouseholdId, EventMetadata.From(("name", list.Name)), cancellationToken);
         await shoppingListRepository.SaveChangesAsync(cancellationToken);
     }

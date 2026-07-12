@@ -1,9 +1,9 @@
 namespace Domu.Api.Features.Events.Application;
 
-public interface IUserEventRecorder
+public interface IHouseholdEventRecorder
 {
     Task RecordAsync(
-        Guid actorUserId,
+        Guid actorMemberId,
         string action,
         string targetType,
         Guid? targetId,

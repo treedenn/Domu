@@ -21,7 +21,7 @@ public sealed class FrequentShoppingListItemRule : IInsightRule
         CancellationToken cancellationToken)
     {
         var candidates = context.Events
-            .Where(userEvent => userEvent.Action == UserEventActions.ShoppingListItemCreated)
+            .Where(userEvent => userEvent.Action == HouseholdEventActions.ShoppingListItemCreated)
             .Select(userEvent => (Event: userEvent, Metadata: new EventMetadataReader(userEvent)))
             .Select(entry => new
             {

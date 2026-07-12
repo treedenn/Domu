@@ -19,7 +19,7 @@ public sealed class HouseholdUnitTest
         var action = () => new Household(Guid.NewGuid(), Guid.Empty, "Home");
 
         var exception = Assert.Throws<ArgumentException>(action);
-        Assert.Contains("Owner id cannot be empty.", exception.Message);
+        Assert.Contains("Owner member id cannot be empty.", exception.Message);
     }
 
     [Fact]

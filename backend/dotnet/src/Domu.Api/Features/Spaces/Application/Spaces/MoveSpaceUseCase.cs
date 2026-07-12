@@ -7,10 +7,10 @@ namespace Domu.Api.Features.Spaces.Application.Spaces;
 public sealed class MoveSpaceUseCase(
     ISpaceRepository spaceRepository,
     ISpaceAccessService spaceAccessService,
-    IUserEventRecorder? userEventRecorder = null)
+    IHouseholdEventRecorder? userEventRecorder = null)
     : IMoveSpaceUseCase
 {
-    private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task<SpaceView> ExecuteAsync(MoveSpaceCommand command, CancellationToken cancellationToken)
     {
@@ -35,8 +35,8 @@ public sealed class MoveSpaceUseCase(
         await spaceRepository.UpdateAsync(space, cancellationToken);
         await _userEventRecorder.RecordAsync(
             command.Actor.ActorId,
-            UserEventActions.SpaceMoved,
-            UserEventTargetTypes.Space,
+            HouseholdEventActions.SpaceMoved,
+            HouseholdEventTargetTypes.Space,
             space.Id,
             command.HouseholdId,
             EventMetadata.From(("parentId", space.ParentId)),

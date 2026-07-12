@@ -50,8 +50,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IClientRequestContextAccessor, ClientRequestContextAccessor>();
-builder.Services.AddScoped<IUserEventRecorder, UserEventRecorder>();
-builder.Services.AddScoped<IUserEventQueryService, UserEventQueryService>();
+builder.Services.AddScoped<IHouseholdEventRecorder, HouseholdEventRecorder>();
+builder.Services.AddScoped<IHouseholdEventQueryService, HouseholdEventQueryService>();
 builder.Services.AddScoped<IGetHouseholdInsightsUseCase, GetHouseholdInsightsUseCase>();
 builder.Services.AddScoped<IInsightRule, FrequentShoppingListItemRule>();
 builder.Services.AddScoped<IInsightRule, RestockCandidateRule>();
@@ -67,7 +67,6 @@ builder.Services.AddScoped<GetHouseholdsUseCase>();
 builder.Services.AddScoped<UpdateHouseholdUseCase>();
 builder.Services.AddScoped<DeleteHouseholdUseCase>();
 builder.Services.AddScoped<GetHouseholdMembersUseCase>();
-builder.Services.AddScoped<CreateHouseholdMemberUseCase>();
 builder.Services.AddScoped<UpdateHouseholdMemberUseCase>();
 builder.Services.AddScoped<GetHouseholdInvitationsUseCase>();
 builder.Services.AddScoped<InviteHouseholdMemberUseCase>();

@@ -19,13 +19,13 @@ public sealed class InsightRuleTests
             new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel),
             DateTimeOffset.UtcNow,
             [
-                Event(householdId, UserEventActions.ShoppingListItemCreated, Guid.NewGuid(), Metadata(
+                Event(householdId, HouseholdEventActions.ShoppingListItemCreated, Guid.NewGuid(), Metadata(
                     ("shoppingListId", shoppingListId),
                     ("name", " Milk "))),
-                Event(householdId, UserEventActions.ShoppingListItemCreated, Guid.NewGuid(), Metadata(
+                Event(householdId, HouseholdEventActions.ShoppingListItemCreated, Guid.NewGuid(), Metadata(
                     ("shoppingListId", shoppingListId),
                     ("name", "milk"))),
-                Event(householdId, UserEventActions.ShoppingListItemCreated, Guid.NewGuid(), Metadata(
+                Event(householdId, HouseholdEventActions.ShoppingListItemCreated, Guid.NewGuid(), Metadata(
                     ("shoppingListId", shoppingListId),
                     ("name", "MILK")))
             ]);
@@ -46,20 +46,20 @@ public sealed class InsightRuleTests
         var householdId = Guid.NewGuid();
         var shoppingListId = Guid.NewGuid();
         var now = DateTimeOffset.UtcNow;
-        var events = new List<UserEvent>
+        var events = new List<HouseholdEvent>
         {
-            Event(householdId, UserEventActions.ShoppingListCheckedItemsCleared, shoppingListId, "{}", now.AddMinutes(-10))
+            Event(householdId, HouseholdEventActions.ShoppingListCheckedItemsCleared, shoppingListId, "{}", now.AddMinutes(-10))
         };
         events.AddRange(Enumerable.Range(0, 5).Select(index =>
             Event(
                 householdId,
-                UserEventActions.ShoppingListItemChecked,
+                HouseholdEventActions.ShoppingListItemChecked,
                 Guid.NewGuid(),
                 Metadata(("shoppingListId", shoppingListId)),
                 now.AddMinutes(index))));
         events.Add(Event(
             householdId,
-            UserEventActions.ShoppingListItemChecked,
+            HouseholdEventActions.ShoppingListItemChecked,
             Guid.NewGuid(),
             Metadata(("shoppingListId", shoppingListId)),
             now.AddMinutes(-20)));
@@ -73,14 +73,14 @@ public sealed class InsightRuleTests
         Assert.Equal(5, candidate.Insight.Metadata["checkedCount"]);
     }
 
-    private static UserEvent Event(
+    private static HouseholdEvent Event(
         Guid householdId,
         string action,
         Guid? targetId,
         string metadataJson,
         DateTimeOffset? occurredAt = null)
     {
-        return new UserEvent(
+        return new HouseholdEvent(
             Guid.NewGuid(),
             occurredAt ?? DateTimeOffset.UtcNow,
             Guid.NewGuid(),

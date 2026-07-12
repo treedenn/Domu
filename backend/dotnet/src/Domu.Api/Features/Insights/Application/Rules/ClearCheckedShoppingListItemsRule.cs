@@ -21,7 +21,7 @@ public sealed class ClearCheckedShoppingListItemsRule : IInsightRule
         CancellationToken cancellationToken)
     {
         var clearedAtByList = context.Events
-            .Where(userEvent => userEvent.Action == UserEventActions.ShoppingListCheckedItemsCleared)
+            .Where(userEvent => userEvent.Action == HouseholdEventActions.ShoppingListCheckedItemsCleared)
             .Where(userEvent => userEvent.TargetId is not null)
             .GroupBy(userEvent => userEvent.TargetId!.Value)
             .ToDictionary(
@@ -29,7 +29,7 @@ public sealed class ClearCheckedShoppingListItemsRule : IInsightRule
                 group => group.Max(userEvent => userEvent.OccurredAt));
 
         var checkedByList = context.Events
-            .Where(userEvent => userEvent.Action == UserEventActions.ShoppingListItemChecked)
+            .Where(userEvent => userEvent.Action == HouseholdEventActions.ShoppingListItemChecked)
             .Select(userEvent => (Event: userEvent, ShoppingListId: new EventMetadataReader(userEvent).GetGuid("shoppingListId")))
             .Where(entry => entry.ShoppingListId is not null)
             .Where(entry => !clearedAtByList.TryGetValue(entry.ShoppingListId!.Value, out var clearedAt)

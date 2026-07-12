@@ -3,6 +3,7 @@ using Domu.Api.Features.Auth.Domain;
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.Households.Application.Households.Ports;
 using Domu.Api.Features.Households.Domain.Households;
+using Domu.Api.Features.Households.Domain.Members;
 
 namespace Domu.Tests.Features.Households.Application;
 
@@ -14,19 +15,22 @@ public sealed class CreateHouseholdUseCaseTests
         var repository = new FakeHouseholdRepository();
         var membershipRepository = new FakeHouseholdMembershipRepository();
         var useCase = new CreateHouseholdUseCase(repository, membershipRepository);
-        var ownerId = Guid.NewGuid();
+        var ownerMemberId = Guid.NewGuid();
 
         var result = await useCase.ExecuteAsync(
-            new CreateHouseholdCommand(new DomuActor(ownerId, DomuActorType.Zitadel), "Home", "Alex"),
+            new CreateHouseholdCommand(new DomuActor(ownerMemberId, DomuActorType.Zitadel), "Home", "Alex"),
             CancellationToken.None);
 
-        Assert.Equal(ownerId, result.OwnerId);
+        Assert.NotEqual(ownerMemberId, result.OwnerMemberId);
         Assert.Equal("Home", result.Name);
         Assert.Equal(HouseholdSubscriptionPlan.Free, result.SubscriptionPlan);
         Assert.Equal(HouseholdSubscriptionStatus.Active, result.SubscriptionStatus);
         Assert.Equal(result.Id, repository.StoredHouseholds.Single().Id);
         Assert.Equal(result.Id, membershipRepository.Members.Single().HouseholdId);
         Assert.Equal("Alex", membershipRepository.Members.Single().DisplayName);
+        Assert.Equal(ownerMemberId, membershipRepository.Members.Single().UserId);
+        Assert.Equal(result.OwnerMemberId, membershipRepository.Members.Single().Id);
+        Assert.Equal(HouseholdMemberRole.Owner, membershipRepository.Members.Single().Role);
         Assert.Equal(1, repository.AddCalls);
         Assert.Equal(1, repository.SaveChangesCalls);
     }
@@ -42,10 +46,10 @@ public sealed class CreateHouseholdUseCaseTests
             return Task.FromResult(StoredHouseholds.SingleOrDefault(household => household.Id == householdId));
         }
 
-        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken)
+        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerMemberId, CancellationToken cancellationToken)
         {
             return Task.FromResult<IReadOnlyList<Household>>(
-                StoredHouseholds.Where(household => household.OwnerId == ownerId).ToArray());
+                StoredHouseholds.Where(household => household.OwnerMemberId == ownerMemberId).ToArray());
         }
 
         public Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId, CancellationToken cancellationToken)

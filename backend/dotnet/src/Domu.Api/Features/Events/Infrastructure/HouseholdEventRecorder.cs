@@ -4,13 +4,14 @@ using Domu.Api.Features.Events.Application;
 using Domu.Api.Features.Events.Domain;
 using Domu.Api.Infrastructure.Database;
 using Domu.Api.Interface.RequestContext;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domu.Api.Features.Events.Infrastructure;
 
-public sealed class UserEventRecorder(
+public sealed class HouseholdEventRecorder(
     AppDbContext dbContext,
     IClientRequestContextAccessor clientRequestContextAccessor)
-    : IUserEventRecorder
+    : IHouseholdEventRecorder
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
@@ -18,7 +19,7 @@ public sealed class UserEventRecorder(
     };
 
     public async Task RecordAsync(
-        Guid actorUserId,
+        Guid actorMemberId,
         string action,
         string targetType,
         Guid? targetId,
@@ -26,11 +27,22 @@ public sealed class UserEventRecorder(
         EventMetadata? metadata,
         CancellationToken cancellationToken)
     {
+        if (householdId is null)
+            throw new ArgumentException("Household events require a household id.", nameof(householdId));
+
+        var actor = await dbContext.HouseholdMembers
+            .SingleOrDefaultAsync(
+                member => member.HouseholdId == householdId.Value
+                          && (member.Id == actorMemberId || member.UserId == actorMemberId),
+                cancellationToken)
+            ?? throw new KeyNotFoundException(
+                $"Actor '{actorMemberId}' is not a member of household '{householdId}'.");
+
         var client = clientRequestContextAccessor.Current;
-        var userEvent = new UserEvent(
+        var userEvent = new HouseholdEvent(
             Guid.CreateVersion7(),
             DateTimeOffset.UtcNow,
-            actorUserId,
+            actor.Id,
             action,
             targetType,
             targetId,
@@ -42,6 +54,6 @@ public sealed class UserEventRecorder(
             client.VersionRaw,
             client.Build);
 
-        await dbContext.UserEvents.AddAsync(new UserEventEntity(userEvent), cancellationToken);
+        await dbContext.HouseholdEvents.AddAsync(new HouseholdEventEntity(userEvent), cancellationToken);
     }
 }

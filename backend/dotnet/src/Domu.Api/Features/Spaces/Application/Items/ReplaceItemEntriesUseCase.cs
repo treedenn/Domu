@@ -8,10 +8,10 @@ namespace Domu.Api.Features.Spaces.Application.Items;
 public sealed class ReplaceItemEntriesUseCase(
     IItemRepository itemRepository,
     ISpaceAccessService spaceAccessService,
-    IUserEventRecorder? userEventRecorder = null)
+    IHouseholdEventRecorder? userEventRecorder = null)
     : IReplaceItemEntriesUseCase
 {
-    private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task<ItemView> ExecuteAsync(ReplaceItemEntriesCommand command, CancellationToken cancellationToken)
     {
@@ -32,8 +32,8 @@ public sealed class ReplaceItemEntriesUseCase(
         await itemRepository.UpdateAsync(item, cancellationToken);
         await _userEventRecorder.RecordAsync(
             command.Actor.ActorId,
-            UserEventActions.ItemEntriesReplaced,
-            UserEventTargetTypes.Item,
+            HouseholdEventActions.ItemEntriesReplaced,
+            HouseholdEventTargetTypes.Item,
             item.Id,
             command.HouseholdId,
             EventMetadata.From(("spaceId", command.SpaceId), ("entryCount", item.Entries.Count)),

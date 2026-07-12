@@ -3,7 +3,7 @@ using Domu.Api.Features.Events.Domain;
 
 namespace Domu.Api.Features.Insights.Application;
 
-internal sealed class EventMetadataReader(UserEvent userEvent)
+internal sealed class EventMetadataReader(HouseholdEvent userEvent)
 {
     private readonly JsonElement? _root = TryParse(userEvent.MetadataJson);
 

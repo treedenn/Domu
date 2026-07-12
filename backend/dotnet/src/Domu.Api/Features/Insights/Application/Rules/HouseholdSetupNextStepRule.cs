@@ -20,8 +20,8 @@ public sealed class HouseholdSetupNextStepRule : IInsightRule
         InsightContext context,
         CancellationToken cancellationToken)
     {
-        var householdCreated = context.Events.Any(userEvent => userEvent.Action == UserEventActions.HouseholdCreated);
-        var spaceCreated = context.Events.Any(userEvent => userEvent.Action == UserEventActions.SpaceCreated);
+        var householdCreated = context.Events.Any(userEvent => userEvent.Action == HouseholdEventActions.HouseholdCreated);
+        var spaceCreated = context.Events.Any(userEvent => userEvent.Action == HouseholdEventActions.SpaceCreated);
         if (!householdCreated || spaceCreated)
             return Task.FromResult<IReadOnlyList<HouseholdInsightCandidate>>([]);
 

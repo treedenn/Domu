@@ -21,7 +21,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ShoppingListItemEntity> ShoppingListItems => Set<ShoppingListItemEntity>();
     public DbSet<SpaceEntity> Spaces => Set<SpaceEntity>();
     public DbSet<UserEntity> Users => Set<UserEntity>();
-    public DbSet<UserEventEntity> UserEvents => Set<UserEventEntity>();
+    public DbSet<HouseholdEventEntity> HouseholdEvents => Set<HouseholdEventEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

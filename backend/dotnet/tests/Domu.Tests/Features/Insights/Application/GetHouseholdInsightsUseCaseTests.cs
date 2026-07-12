@@ -14,7 +14,7 @@ public sealed class GetHouseholdInsightsUseCaseTests
     {
         var householdId = Guid.NewGuid();
         var userId = Guid.NewGuid();
-        var queryService = new FakeUserEventQueryService();
+        var queryService = new FakeHouseholdEventQueryService();
         var useCase = new GetHouseholdInsightsUseCase(
             new FakeHouseholdAccessService(),
             queryService,
@@ -36,7 +36,7 @@ public sealed class GetHouseholdInsightsUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WhenAccessFails_DoesNotQueryEvents()
     {
-        var queryService = new FakeUserEventQueryService();
+        var queryService = new FakeHouseholdEventQueryService();
         var useCase = new GetHouseholdInsightsUseCase(
             new FakeHouseholdAccessService { DenyAccess = true },
             queryService,
@@ -98,19 +98,19 @@ public sealed class GetHouseholdInsightsUseCaseTests
         }
     }
 
-    private sealed class FakeUserEventQueryService : IUserEventQueryService
+    private sealed class FakeHouseholdEventQueryService : IHouseholdEventQueryService
     {
         public int Calls { get; private set; }
         public Guid? RequestedHouseholdId { get; private set; }
 
-        public Task<IReadOnlyList<UserEvent>> GetRecentHouseholdEventsAsync(
+        public Task<IReadOnlyList<HouseholdEvent>> GetRecentHouseholdEventsAsync(
             Guid householdId,
             DateTimeOffset since,
             CancellationToken cancellationToken)
         {
             Calls++;
             RequestedHouseholdId = householdId;
-            return Task.FromResult<IReadOnlyList<UserEvent>>([]);
+            return Task.FromResult<IReadOnlyList<HouseholdEvent>>([]);
         }
     }
 

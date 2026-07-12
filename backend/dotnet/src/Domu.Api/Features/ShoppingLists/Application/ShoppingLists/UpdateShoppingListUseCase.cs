@@ -9,9 +9,9 @@ namespace Domu.Api.Features.ShoppingLists.Application.ShoppingLists;
 public sealed class UpdateShoppingListUseCase(
     IShoppingListRepository shoppingListRepository,
     IHouseholdAccessService householdAccessService,
-    IUserEventRecorder? userEventRecorder = null)
+    IHouseholdEventRecorder? userEventRecorder = null)
 {
-    private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task<ShoppingListView> ExecuteAsync(UpdateShoppingListCommand command, CancellationToken cancellationToken)
     {
@@ -29,7 +29,7 @@ public sealed class UpdateShoppingListUseCase(
 
         await shoppingListRepository.UpdateAsync(list, cancellationToken);
         await _userEventRecorder.RecordAsync(
-            command.Actor.ActorId, UserEventActions.ShoppingListUpdated, UserEventTargetTypes.ShoppingList,
+            command.Actor.ActorId, HouseholdEventActions.ShoppingListUpdated, HouseholdEventTargetTypes.ShoppingList,
             list.Id, command.HouseholdId, EventMetadata.From(("name", list.Name)), cancellationToken);
         await shoppingListRepository.SaveChangesAsync(cancellationToken);
         return ShoppingListView.FromDomain(list);

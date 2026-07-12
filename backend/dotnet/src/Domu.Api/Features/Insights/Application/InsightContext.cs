@@ -8,4 +8,4 @@ public sealed record InsightContext(
     Guid HouseholdId,
     DomuActor Actor,
     DateTimeOffset Now,
-    IReadOnlyList<UserEvent> Events);
+    IReadOnlyList<HouseholdEvent> Events);

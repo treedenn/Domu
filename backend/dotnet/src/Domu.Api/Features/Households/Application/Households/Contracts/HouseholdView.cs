@@ -4,7 +4,7 @@ namespace Domu.Api.Features.Households.Application.Households.Contracts;
 
 public sealed record HouseholdView(
     Guid Id,
-    Guid OwnerId,
+    Guid OwnerMemberId,
     string Name,
     HouseholdSubscriptionPlan SubscriptionPlan,
     HouseholdSubscriptionStatus SubscriptionStatus,
@@ -17,7 +17,7 @@ public sealed record HouseholdView(
 
         return new HouseholdView(
             household.Id,
-            household.OwnerId,
+            household.OwnerMemberId ?? throw new InvalidOperationException("Household owner is not assigned."),
             household.Name,
             household.SubscriptionPlan,
             household.SubscriptionStatus,

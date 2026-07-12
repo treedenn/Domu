@@ -10,9 +10,9 @@ namespace Domu.Api.Features.ShoppingLists.Application.ShoppingLists;
 public sealed class CreateShoppingListUseCase(
     IShoppingListRepository shoppingListRepository,
     IHouseholdAccessService householdAccessService,
-    IUserEventRecorder? userEventRecorder = null)
+    IHouseholdEventRecorder? userEventRecorder = null)
 {
-    private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task<ShoppingListView> ExecuteAsync(CreateShoppingListCommand command, CancellationToken cancellationToken)
     {
@@ -25,7 +25,7 @@ public sealed class CreateShoppingListUseCase(
 
         await shoppingListRepository.AddAsync(shoppingList, cancellationToken);
         await _userEventRecorder.RecordAsync(
-            command.Actor.ActorId, UserEventActions.ShoppingListCreated, UserEventTargetTypes.ShoppingList,
+            command.Actor.ActorId, HouseholdEventActions.ShoppingListCreated, HouseholdEventTargetTypes.ShoppingList,
             shoppingList.Id, command.HouseholdId, EventMetadata.From(("name", shoppingList.Name)), cancellationToken);
         await shoppingListRepository.SaveChangesAsync(cancellationToken);
 

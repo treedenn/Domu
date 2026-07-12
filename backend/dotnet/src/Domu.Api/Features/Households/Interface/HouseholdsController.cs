@@ -23,7 +23,6 @@ public sealed class HouseholdsController(
     UpdateHouseholdUseCase updateHouseholdUseCase,
     DeleteHouseholdUseCase deleteHouseholdUseCase,
     GetHouseholdMembersUseCase getHouseholdMembersUseCase,
-    CreateHouseholdMemberUseCase createHouseholdMemberUseCase,
     UpdateHouseholdMemberUseCase updateHouseholdMemberUseCase,
     GetHouseholdInvitationsUseCase getHouseholdInvitationsUseCase,
     InviteHouseholdMemberUseCase inviteHouseholdMemberUseCase,
@@ -59,37 +58,6 @@ public sealed class HouseholdsController(
         catch (KeyNotFoundException)
         {
             return NotFound();
-        }
-    }
-
-    [HttpPost("{householdId:guid}/members")]
-    [ProducesResponseType(typeof(HouseholdMemberView), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<HouseholdMemberView>> CreateMember(
-        Guid householdId,
-        CreateHouseholdMemberRequest request,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            var member = await createHouseholdMemberUseCase.ExecuteAsync(
-                new CreateHouseholdMemberCommand(
-                    actorAccessor.DomuActor,
-                    householdId,
-                    request.DisplayName,
-                    request.Role),
-                cancellationToken);
-
-            return Created($"/api/v1/households/{householdId}/members/{member.Id}", member);
-        }
-        catch (KeyNotFoundException)
-        {
-            return NotFound();
-        }
-        catch (ArgumentException exception)
-        {
-            return BadRequest(new ProblemDetails { Title = "Invalid household member.", Detail = exception.Message });
         }
     }
 

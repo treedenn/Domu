@@ -11,7 +11,7 @@ public sealed class HouseholdMembershipRepository(AppDbContext dbContext) : IHou
     {
         return dbContext.HouseholdMembers
             .AsNoTracking()
-            .AnyAsync(member => member.HouseholdId == householdId && member.UserId == userId, cancellationToken);
+            .AnyAsync(member => member.HouseholdId == householdId && member.UserId == userId && !member.Archived, cancellationToken);
     }
 
     public async Task<HouseholdMember?> GetMemberAsync(
@@ -22,7 +22,7 @@ public sealed class HouseholdMembershipRepository(AppDbContext dbContext) : IHou
         var member = await dbContext.HouseholdMembers
             .AsNoTracking()
             .SingleOrDefaultAsync(
-                member => member.HouseholdId == householdId && member.UserId == userId,
+                member => member.HouseholdId == householdId && member.UserId == userId && !member.Archived,
                 cancellationToken);
 
         return member?.ToDomain();

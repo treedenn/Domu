@@ -2,17 +2,17 @@ using Domu.Api.Features.Events.Domain;
 
 namespace Domu.Api.Features.Events.Infrastructure;
 
-public sealed class UserEventEntity
+public sealed class HouseholdEventEntity
 {
-    private UserEventEntity()
+    private HouseholdEventEntity()
     {
     }
 
-    public UserEventEntity(UserEvent userEvent)
+    public HouseholdEventEntity(HouseholdEvent userEvent)
     {
         Id = userEvent.Id;
         OccurredAt = userEvent.OccurredAt;
-        ActorUserId = userEvent.ActorUserId;
+        ActorMemberId = userEvent.ActorMemberId;
         HouseholdId = userEvent.HouseholdId;
         Action = userEvent.Action;
         TargetType = userEvent.TargetType;
@@ -27,7 +27,7 @@ public sealed class UserEventEntity
 
     public Guid Id { get; private set; }
     public DateTimeOffset OccurredAt { get; private set; }
-    public Guid ActorUserId { get; private set; }
+    public Guid ActorMemberId { get; private set; }
     public Guid? HouseholdId { get; private set; }
     public string Action { get; private set; } = null!;
     public string TargetType { get; private set; } = null!;
@@ -39,12 +39,12 @@ public sealed class UserEventEntity
     public string? ClientVersion { get; private set; }
     public int? ClientBuild { get; private set; }
 
-    public UserEvent ToDomain()
+    public HouseholdEvent ToDomain()
     {
-        return new UserEvent(
+        return new HouseholdEvent(
             Id,
             OccurredAt,
-            ActorUserId,
+            ActorMemberId,
             Action,
             TargetType,
             TargetId,

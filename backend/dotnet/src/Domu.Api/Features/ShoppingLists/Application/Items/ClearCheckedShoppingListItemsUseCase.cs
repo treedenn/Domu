@@ -11,9 +11,9 @@ public sealed class ClearCheckedShoppingListItemsUseCase(
     IShoppingListRepository shoppingListRepository,
     IShoppingListItemRepository shoppingListItemRepository,
     IHouseholdAccessService householdAccessService,
-    IUserEventRecorder? userEventRecorder = null)
+    IHouseholdEventRecorder? userEventRecorder = null)
 {
-    private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task ExecuteAsync(ClearCheckedShoppingListItemsCommand command, CancellationToken cancellationToken)
     {
@@ -28,8 +28,8 @@ public sealed class ClearCheckedShoppingListItemsUseCase(
         await shoppingListItemRepository.DeleteCheckedAsync(command.ShoppingListId, cancellationToken);
         await _userEventRecorder.RecordAsync(
             command.Actor.ActorId,
-            UserEventActions.ShoppingListCheckedItemsCleared,
-            UserEventTargetTypes.ShoppingList,
+            HouseholdEventActions.ShoppingListCheckedItemsCleared,
+            HouseholdEventTargetTypes.ShoppingList,
             command.ShoppingListId,
             command.HouseholdId,
             EventMetadata.Empty(),

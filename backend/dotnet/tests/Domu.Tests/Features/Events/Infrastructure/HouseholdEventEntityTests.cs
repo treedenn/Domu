@@ -3,20 +3,20 @@ using Domu.Api.Features.Events.Infrastructure;
 
 namespace Domu.Tests.Features.Events.Infrastructure;
 
-public sealed class UserEventEntityTests
+public sealed class HouseholdEventEntityTests
 {
     [Fact]
     public void ToDomain_RoundTripsPersistedEventData()
     {
         var eventId = Guid.NewGuid();
-        var actorUserId = Guid.NewGuid();
+        var actorMemberId = Guid.NewGuid();
         var targetId = Guid.NewGuid();
         var householdId = Guid.NewGuid();
         var occurredAt = DateTimeOffset.UtcNow;
-        var userEvent = new UserEvent(
+        var userEvent = new HouseholdEvent(
             eventId,
             occurredAt,
-            actorUserId,
+            actorMemberId,
             "item.created",
             "item",
             targetId,
@@ -28,12 +28,12 @@ public sealed class UserEventEntityTests
             "1.2.3",
             42);
 
-        var entity = new UserEventEntity(userEvent);
+        var entity = new HouseholdEventEntity(userEvent);
         var roundTripped = entity.ToDomain();
 
         Assert.Equal(eventId, roundTripped.Id);
         Assert.Equal(occurredAt, roundTripped.OccurredAt);
-        Assert.Equal(actorUserId, roundTripped.ActorUserId);
+        Assert.Equal(actorMemberId, roundTripped.ActorMemberId);
         Assert.Equal("item.created", roundTripped.Action);
         Assert.Equal("item", roundTripped.TargetType);
         Assert.Equal(targetId, roundTripped.TargetId);

@@ -22,7 +22,7 @@ public sealed class HouseholdMemberConfiguration : IEntityTypeConfiguration<Hous
             .IsRequired();
 
         builder.Property(member => member.UserId)
-            .IsRequired(false);
+            .IsRequired();
 
         builder.Property(member => member.DisplayName)
             .HasMaxLength(HouseholdMember.DisplayNameMaxLength)
@@ -42,6 +42,6 @@ public sealed class HouseholdMemberConfiguration : IEntityTypeConfiguration<Hous
         builder.HasOne<UserEntity>()
             .WithMany()
             .HasForeignKey(member => member.UserId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

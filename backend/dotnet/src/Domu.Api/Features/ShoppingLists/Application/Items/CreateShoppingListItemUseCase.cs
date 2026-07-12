@@ -13,9 +13,9 @@ public sealed class CreateShoppingListItemUseCase(
     IShoppingListRepository shoppingListRepository,
     IShoppingListItemRepository shoppingListItemRepository,
     IHouseholdAccessService householdAccessService,
-    IUserEventRecorder? userEventRecorder = null)
+    IHouseholdEventRecorder? userEventRecorder = null)
 {
-    private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task<ShoppingListItemView> ExecuteAsync(
         CreateShoppingListItemCommand command,
@@ -58,8 +58,8 @@ public sealed class CreateShoppingListItemUseCase(
         await shoppingListItemRepository.AddAsync(item, cancellationToken);
         await _userEventRecorder.RecordAsync(
             command.Actor.ActorId,
-            UserEventActions.ShoppingListItemCreated,
-            UserEventTargetTypes.ShoppingListItem,
+            HouseholdEventActions.ShoppingListItemCreated,
+            HouseholdEventTargetTypes.ShoppingListItem,
             item.Id,
             command.HouseholdId,
             EventMetadata.From(

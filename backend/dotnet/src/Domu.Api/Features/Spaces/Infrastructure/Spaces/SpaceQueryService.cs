@@ -77,15 +77,15 @@ public sealed class SpaceQueryService(AppDbContext dbContext) : ISpaceQueryServi
         bool includeData,
         IReadOnlyDictionary<Guid, int> counts,
         IReadOnlyDictionary<Guid, IReadOnlyList<T>> data,
-        Guid ownerId)
+        Guid ownerMemberId)
     {
         if (!includeCount && !includeData)
             return null;
 
-        var collectionData = includeData ? data.GetValueOrDefault(ownerId, []) : null;
+        var collectionData = includeData ? data.GetValueOrDefault(ownerMemberId, []) : null;
         var count = includeData
             ? collectionData!.Count
-            : counts.GetValueOrDefault(ownerId);
+            : counts.GetValueOrDefault(ownerMemberId);
 
         return new CollectionView<T>(count, collectionData);
     }

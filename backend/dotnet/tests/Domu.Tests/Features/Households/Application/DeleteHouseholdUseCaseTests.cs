@@ -3,6 +3,7 @@ using Domu.Api.Features.Auth.Domain;
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.Households.Application.Households.Ports;
 using Domu.Api.Features.Households.Domain.Households;
+using Domu.Api.Features.Households.Domain.Members;
 
 namespace Domu.Tests.Features.Households.Application;
 
@@ -11,12 +12,15 @@ public sealed class DeleteHouseholdUseCaseTests
     [Fact]
     public async Task ExecuteAsync_DeletesExistingOwnedHousehold()
     {
-        var ownerId = Guid.NewGuid();
-        var household = new Household(Guid.NewGuid(), ownerId, "Home");
+        var ownerMemberId = Guid.NewGuid();
+        var ownerUserId = Guid.NewGuid();
+        var household = new Household(Guid.NewGuid(), ownerMemberId, "Home");
         var repository = new FakeHouseholdRepository(household);
-        var useCase = new DeleteHouseholdUseCase(repository);
+        var memberships = new FakeHouseholdMembershipRepository();
+        await memberships.AddMemberAsync(new HouseholdMember(ownerMemberId, household.Id, ownerUserId, "Owner", HouseholdMemberRole.Owner, DateTimeOffset.UtcNow), CancellationToken.None);
+        var useCase = new DeleteHouseholdUseCase(repository, memberships);
 
-        await useCase.ExecuteAsync(new DeleteHouseholdCommand(household.Id, new DomuActor(ownerId, DomuActorType.Zitadel)), CancellationToken.None);
+        await useCase.ExecuteAsync(new DeleteHouseholdCommand(household.Id, new DomuActor(ownerUserId, DomuActorType.Zitadel)), CancellationToken.None);
 
         Assert.Empty(repository.StoredHouseholds);
         Assert.Equal(1, repository.DeleteCalls);
@@ -28,7 +32,7 @@ public sealed class DeleteHouseholdUseCaseTests
     {
         var household = new Household(Guid.NewGuid(), Guid.NewGuid(), "Home");
         var repository = new FakeHouseholdRepository(household);
-        var useCase = new DeleteHouseholdUseCase(repository);
+        var useCase = new DeleteHouseholdUseCase(repository, new FakeHouseholdMembershipRepository());
 
         var action = () => useCase.ExecuteAsync(
             new DeleteHouseholdCommand(household.Id, new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel)),
@@ -50,10 +54,10 @@ public sealed class DeleteHouseholdUseCaseTests
             return Task.FromResult(StoredHouseholds.SingleOrDefault(household => household.Id == householdId));
         }
 
-        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken)
+        public Task<IReadOnlyList<Household>> GetByOwnerIdAsync(Guid ownerMemberId, CancellationToken cancellationToken)
         {
             return Task.FromResult<IReadOnlyList<Household>>(
-                StoredHouseholds.Where(household => household.OwnerId == ownerId).ToArray());
+                StoredHouseholds.Where(household => household.OwnerMemberId == ownerMemberId).ToArray());
         }
 
         public Task<IReadOnlyList<Household>> GetAccessibleByUserIdAsync(Guid userId, CancellationToken cancellationToken)

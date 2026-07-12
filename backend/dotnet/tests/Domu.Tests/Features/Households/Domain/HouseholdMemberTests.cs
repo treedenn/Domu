@@ -5,17 +5,18 @@ namespace Domu.Tests.Features.Households.Domain;
 public sealed class HouseholdMemberTests
 {
     [Fact]
-    public void Constructor_WithoutUserId_CreatesUnlinkedMember()
+    public void Constructor_WithUserId_CreatesLinkedMember()
     {
+        var userId = Guid.NewGuid();
         var member = new HouseholdMember(
             Guid.NewGuid(),
             Guid.NewGuid(),
-            null,
+            userId,
             "Alex",
             HouseholdMemberRole.Member,
             DateTimeOffset.UtcNow);
 
-        Assert.Null(member.UserId);
+        Assert.Equal(userId, member.UserId);
     }
 
     [Fact]

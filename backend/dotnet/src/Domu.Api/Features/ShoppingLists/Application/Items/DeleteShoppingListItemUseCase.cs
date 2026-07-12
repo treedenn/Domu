@@ -11,9 +11,9 @@ public sealed class DeleteShoppingListItemUseCase(
     IShoppingListRepository shoppingListRepository,
     IShoppingListItemRepository shoppingListItemRepository,
     IHouseholdAccessService householdAccessService,
-    IUserEventRecorder? userEventRecorder = null)
+    IHouseholdEventRecorder? userEventRecorder = null)
 {
-    private readonly IUserEventRecorder _userEventRecorder = userEventRecorder ?? NoOpUserEventRecorder.Instance;
+    private readonly IHouseholdEventRecorder _userEventRecorder = userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
 
     public async Task ExecuteAsync(DeleteShoppingListItemCommand command, CancellationToken cancellationToken)
     {
@@ -30,8 +30,8 @@ public sealed class DeleteShoppingListItemUseCase(
         await shoppingListItemRepository.DeleteAsync(command.ItemId, cancellationToken);
         await _userEventRecorder.RecordAsync(
             command.Actor.ActorId,
-            UserEventActions.ShoppingListItemDeleted,
-            UserEventTargetTypes.ShoppingListItem,
+            HouseholdEventActions.ShoppingListItemDeleted,
+            HouseholdEventTargetTypes.ShoppingListItem,
             command.ItemId,
             command.HouseholdId,
             EventMetadata.From(("shoppingListId", command.ShoppingListId), ("name", item.Name)),
