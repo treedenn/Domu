@@ -1,4 +1,4 @@
-using Domu.Api.Features.Events.Application;
+using Domu.Api.Features.Activities.Application;
 using Domu.Api.Features.Spaces.Application.Spaces.Contracts;
 using Domu.Api.Features.Spaces.Application.Spaces.Ports;
 
@@ -7,11 +7,11 @@ namespace Domu.Api.Features.Spaces.Application.Spaces;
 public sealed class MoveSpaceUseCase(
     ISpaceRepository spaceRepository,
     ISpaceAccessService spaceAccessService,
-    IHouseholdEventRecorder? userEventRecorder = null)
+    IHouseholdActivityRecorder? householdActivityRecorder = null)
     : IMoveSpaceUseCase
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder =
-        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdActivityRecorder _householdActivityRecorder =
+        householdActivityRecorder ?? NoOpHouseholdActivityRecorder.Instance;
 
     public async Task<SpaceView> ExecuteAsync(MoveSpaceCommand command, CancellationToken cancellationToken)
     {
@@ -34,13 +34,13 @@ public sealed class MoveSpaceUseCase(
         space.MoveTo(command.ParentId);
 
         await spaceRepository.UpdateAsync(space, cancellationToken);
-        await _userEventRecorder.RecordAsync(
-            command.Actor.ActorId,
-            HouseholdEventActions.SpaceMoved,
-            HouseholdEventTargetTypes.Space,
+        await _householdActivityRecorder.RecordAsync(
+            command.Actor,
+            HouseholdActivityActions.SpaceMoved,
+            HouseholdActivityTargetTypes.Space,
             space.Id,
             command.HouseholdId,
-            EventMetadata.From(("parentId", space.ParentId)),
+            ActivityMetadata.From(("parentId", space.ParentId)),
             cancellationToken);
         await spaceRepository.SaveChangesAsync(cancellationToken);
 

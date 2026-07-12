@@ -1,4 +1,4 @@
-using Domu.Api.Features.Events.Application;
+using Domu.Api.Features.Activities.Application;
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.ShoppingLists.Application.Items.Commands;
 using Domu.Api.Features.ShoppingLists.Application.Items.Contracts;
@@ -12,10 +12,10 @@ public sealed class SetShoppingListItemCheckedStateUseCase(
     IShoppingListRepository shoppingListRepository,
     IShoppingListItemRepository shoppingListItemRepository,
     IHouseholdAccessService householdAccessService,
-    IHouseholdEventRecorder? userEventRecorder = null)
+    IHouseholdActivityRecorder? householdActivityRecorder = null)
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder =
-        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdActivityRecorder _householdActivityRecorder =
+        householdActivityRecorder ?? NoOpHouseholdActivityRecorder.Instance;
 
     public async Task<ShoppingListItemView> ExecuteAsync(
         SetShoppingListItemCheckedStateCommand command,
@@ -29,9 +29,9 @@ public sealed class SetShoppingListItemCheckedStateUseCase(
             command.HouseholdId, command.ShoppingListId, command.ItemId, cancellationToken);
 
         var now = DateTimeOffset.UtcNow;
-        var eventAction = command.IsChecked
-            ? HouseholdEventActions.ShoppingListItemChecked
-            : HouseholdEventActions.ShoppingListItemUnchecked;
+        var activityAction = command.IsChecked
+            ? HouseholdActivityActions.ShoppingListItemChecked
+            : HouseholdActivityActions.ShoppingListItemUnchecked;
 
         if (command.IsChecked)
         {
@@ -45,13 +45,13 @@ public sealed class SetShoppingListItemCheckedStateUseCase(
         }
 
         await shoppingListItemRepository.UpdateAsync(item, cancellationToken);
-        await _userEventRecorder.RecordAsync(
-            command.Actor.ActorId,
-            eventAction,
-            HouseholdEventTargetTypes.ShoppingListItem,
+        await _householdActivityRecorder.RecordAsync(
+            command.Actor,
+            activityAction,
+            HouseholdActivityTargetTypes.ShoppingListItem,
             item.Id,
             command.HouseholdId,
-            EventMetadata.From(("shoppingListId", command.ShoppingListId)),
+            ActivityMetadata.From(("shoppingListId", command.ShoppingListId)),
             cancellationToken);
         await shoppingListItemRepository.SaveChangesAsync(cancellationToken);
 

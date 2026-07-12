@@ -1,4 +1,4 @@
-using Domu.Api.Features.Events.Application;
+using Domu.Api.Features.Activities.Application;
 using Domu.Api.Features.Spaces.Application.Spaces.Ports;
 
 namespace Domu.Api.Features.Spaces.Application.Spaces;
@@ -6,11 +6,11 @@ namespace Domu.Api.Features.Spaces.Application.Spaces;
 public sealed class DeleteSpaceUseCase(
     ISpaceRepository spaceRepository,
     ISpaceAccessService spaceAccessService,
-    IHouseholdEventRecorder? userEventRecorder = null)
+    IHouseholdActivityRecorder? householdActivityRecorder = null)
     : IDeleteSpaceUseCase
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder =
-        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdActivityRecorder _householdActivityRecorder =
+        householdActivityRecorder ?? NoOpHouseholdActivityRecorder.Instance;
 
     public async Task ExecuteAsync(DeleteSpaceCommand command, CancellationToken cancellationToken)
     {
@@ -22,13 +22,13 @@ public sealed class DeleteSpaceUseCase(
             cancellationToken);
 
         await spaceRepository.DeleteAsync(command.SpaceId, cancellationToken);
-        await _userEventRecorder.RecordAsync(
-            command.Actor.ActorId,
-            HouseholdEventActions.SpaceDeleted,
-            HouseholdEventTargetTypes.Space,
+        await _householdActivityRecorder.RecordAsync(
+            command.Actor,
+            HouseholdActivityActions.SpaceDeleted,
+            HouseholdActivityTargetTypes.Space,
             command.SpaceId,
             command.HouseholdId,
-            EventMetadata.Empty(),
+            ActivityMetadata.Empty(),
             cancellationToken);
         await spaceRepository.SaveChangesAsync(cancellationToken);
     }

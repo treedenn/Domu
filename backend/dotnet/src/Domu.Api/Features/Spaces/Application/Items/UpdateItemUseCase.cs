@@ -1,4 +1,4 @@
-using Domu.Api.Features.Events.Application;
+using Domu.Api.Features.Activities.Application;
 using Domu.Api.Features.Spaces.Application.Items.Contracts;
 using Domu.Api.Features.Spaces.Application.Items.Ports;
 using Domu.Api.Features.Spaces.Application.Spaces;
@@ -8,11 +8,11 @@ namespace Domu.Api.Features.Spaces.Application.Items;
 public sealed class UpdateItemUseCase(
     IItemRepository itemRepository,
     ISpaceAccessService spaceAccessService,
-    IHouseholdEventRecorder? userEventRecorder = null)
+    IHouseholdActivityRecorder? householdActivityRecorder = null)
     : IUpdateItemUseCase
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder =
-        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdActivityRecorder _householdActivityRecorder =
+        householdActivityRecorder ?? NoOpHouseholdActivityRecorder.Instance;
 
     public async Task<ItemView> ExecuteAsync(UpdateItemCommand command, CancellationToken cancellationToken)
     {
@@ -33,13 +33,13 @@ public sealed class UpdateItemUseCase(
         item.ChangeBarcode(command.Barcode);
 
         await itemRepository.UpdateAsync(item, cancellationToken);
-        await _userEventRecorder.RecordAsync(
-            command.Actor.ActorId,
-            HouseholdEventActions.ItemUpdated,
-            HouseholdEventTargetTypes.Item,
+        await _householdActivityRecorder.RecordAsync(
+            command.Actor,
+            HouseholdActivityActions.ItemUpdated,
+            HouseholdActivityTargetTypes.Item,
             item.Id,
             command.HouseholdId,
-            EventMetadata.From(
+            ActivityMetadata.From(
                 ("spaceId", command.SpaceId),
                 ("name", item.Name),
                 ("category", item.Category),

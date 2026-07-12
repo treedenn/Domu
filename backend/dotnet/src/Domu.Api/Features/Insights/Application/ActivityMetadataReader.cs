@@ -1,11 +1,11 @@
 using System.Text.Json;
-using Domu.Api.Features.Events.Domain;
+using Domu.Api.Features.Activities.Domain;
 
 namespace Domu.Api.Features.Insights.Application;
 
-internal sealed class EventMetadataReader(HouseholdEvent userEvent)
+internal sealed class ActivityMetadataReader(HouseholdActivity householdActivity)
 {
-    private readonly JsonElement? _root = TryParse(userEvent.MetadataJson);
+    private readonly JsonElement? _root = TryParse(householdActivity.MetadataJson);
 
     public string? GetString(string key)
     {

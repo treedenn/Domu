@@ -1,4 +1,4 @@
-using Domu.Api.Features.Events.Application;
+using Domu.Api.Features.Activities.Application;
 using Domu.Api.Features.Insights.Application.Contracts;
 
 namespace Domu.Api.Features.Insights.Application.Rules;
@@ -21,26 +21,26 @@ public sealed class RestockCandidateRule : IInsightRule
         InsightContext context,
         CancellationToken cancellationToken)
     {
-        var itemFacts = context.Events
-            .Where(userEvent =>
-                userEvent.Action is HouseholdEventActions.ShoppingListItemCreated
-                    or HouseholdEventActions.ShoppingListItemUpdated)
-            .Select(userEvent => (Event: userEvent, Metadata: new EventMetadataReader(userEvent)))
+        var itemFacts = context.Activities
+            .Where(householdActivity =>
+                householdActivity.Action is HouseholdActivityActions.ShoppingListItemCreated
+                    or HouseholdActivityActions.ShoppingListItemUpdated)
+            .Select(householdActivity => (Activity: householdActivity, Metadata: new ActivityMetadataReader(householdActivity)))
             .Select(entry => new ShoppingListItemFact(
-                entry.Event.TargetId,
+                entry.Activity.TargetId,
                 entry.Metadata.GetGuid("shoppingListId"),
                 entry.Metadata.GetString("name"),
                 entry.Metadata.GetGuid("itemId"),
-                entry.Event.OccurredAt))
+                entry.Activity.OccurredAt))
             .Where(fact => fact.ShoppingListItemId is not null)
             .GroupBy(fact => fact.ShoppingListItemId!.Value)
             .ToDictionary(
                 group => group.Key,
                 group => group.OrderByDescending(fact => fact.OccurredAt).First());
 
-        var checkedItems = context.Events
-            .Where(userEvent => userEvent.Action == HouseholdEventActions.ShoppingListItemChecked)
-            .Select(userEvent => itemFacts.TryGetValue(userEvent.TargetId ?? Guid.Empty, out var fact)
+        var checkedItems = context.Activities
+            .Where(householdActivity => householdActivity.Action == HouseholdActivityActions.ShoppingListItemChecked)
+            .Select(householdActivity => itemFacts.TryGetValue(householdActivity.TargetId ?? Guid.Empty, out var fact)
                 ? fact
                 : null)
             .Where(fact => fact is { Name: not null, ShoppingListId: not null })

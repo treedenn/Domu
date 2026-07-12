@@ -1,4 +1,4 @@
-using Domu.Api.Features.Events.Application;
+using Domu.Api.Features.Activities.Application;
 using Domu.Api.Features.Households.Application.Households.Contracts;
 using Domu.Api.Features.Households.Application.Households.Ports;
 using Domu.Api.Features.Households.Application.Members.Ports;
@@ -10,10 +10,10 @@ namespace Domu.Api.Features.Households.Application.Households;
 public sealed class CreateHouseholdUseCase(
     IHouseholdRepository householdRepository,
     IHouseholdMembershipRepository membershipRepository,
-    IHouseholdEventRecorder? userEventRecorder = null)
+    IHouseholdActivityRecorder? householdActivityRecorder = null)
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder =
-        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdActivityRecorder _householdActivityRecorder =
+        householdActivityRecorder ?? NoOpHouseholdActivityRecorder.Instance;
 
     public async Task<HouseholdView> ExecuteAsync(CreateHouseholdCommand command, CancellationToken cancellationToken)
     {
@@ -30,13 +30,13 @@ public sealed class CreateHouseholdUseCase(
 
         await householdRepository.AddAsync(household, cancellationToken);
         await membershipRepository.AddMemberAsync(ownerMember, cancellationToken);
-        await _userEventRecorder.RecordAsync(
-            ownerMember.Id,
-            HouseholdEventActions.HouseholdCreated,
-            HouseholdEventTargetTypes.Household,
+        await _householdActivityRecorder.RecordAsync(
+            command.Actor,
+            HouseholdActivityActions.HouseholdCreated,
+            HouseholdActivityTargetTypes.Household,
             household.Id,
             household.Id,
-            EventMetadata.From(("name", household.Name)),
+            ActivityMetadata.From(("name", household.Name)),
             cancellationToken);
         await householdRepository.SaveChangesAsync(cancellationToken);
 

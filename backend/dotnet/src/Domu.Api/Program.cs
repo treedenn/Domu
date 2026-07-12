@@ -2,8 +2,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Domu.Api.Features.Auth.Application;
 using Domu.Api.Features.Auth.Interface;
-using Domu.Api.Features.Events.Application;
-using Domu.Api.Features.Events.Infrastructure;
+using Domu.Api.Features.Activities.Application;
+using Domu.Api.Features.Activities.Infrastructure;
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.Households.Application.Households.Ports;
 using Domu.Api.Features.Households.Application.Members;
@@ -50,8 +50,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IClientRequestContextAccessor, ClientRequestContextAccessor>();
-builder.Services.AddScoped<IHouseholdEventRecorder, HouseholdEventRecorder>();
-builder.Services.AddScoped<IHouseholdEventQueryService, HouseholdEventQueryService>();
+builder.Services.AddScoped<IHouseholdActivityRecorder, HouseholdActivityRecorder>();
+builder.Services.AddScoped<IHouseholdActivityQueryService, HouseholdActivityQueryService>();
 builder.Services.AddScoped<IGetHouseholdInsightsUseCase, GetHouseholdInsightsUseCase>();
 builder.Services.AddScoped<IInsightRule, FrequentShoppingListItemRule>();
 builder.Services.AddScoped<IInsightRule, RestockCandidateRule>();

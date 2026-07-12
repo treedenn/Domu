@@ -1,21 +1,23 @@
-using Domu.Api.Features.Events.Domain;
-using Domu.Api.Features.Events.Infrastructure;
+using Domu.Api.Features.Activities.Domain;
+using Domu.Api.Features.Activities.Infrastructure;
 
-namespace Domu.Tests.Features.Events.Infrastructure;
+namespace Domu.Tests.Features.Activities.Infrastructure;
 
-public sealed class HouseholdEventEntityTests
+public sealed class HouseholdActivityEntityTests
 {
     [Fact]
-    public void ToDomain_RoundTripsPersistedEventData()
+    public void ToDomain_RoundTripsPersistedActivityData()
     {
-        var eventId = Guid.NewGuid();
+        var activityId = Guid.NewGuid();
+        var actorId = Guid.NewGuid();
         var actorMemberId = Guid.NewGuid();
         var targetId = Guid.NewGuid();
         var householdId = Guid.NewGuid();
         var occurredAt = DateTimeOffset.UtcNow;
-        var userEvent = new HouseholdEvent(
-            eventId,
+        var householdActivity = new HouseholdActivity(
+            activityId,
             occurredAt,
+            actorId,
             actorMemberId,
             "item.created",
             "item",
@@ -28,11 +30,12 @@ public sealed class HouseholdEventEntityTests
             "1.2.3",
             42);
 
-        var entity = new HouseholdEventEntity(userEvent);
+        var entity = new HouseholdActivityEntity(householdActivity);
         var roundTripped = entity.ToDomain();
 
-        Assert.Equal(eventId, roundTripped.Id);
+        Assert.Equal(activityId, roundTripped.Id);
         Assert.Equal(occurredAt, roundTripped.OccurredAt);
+        Assert.Equal(actorId, roundTripped.ActorId);
         Assert.Equal(actorMemberId, roundTripped.ActorMemberId);
         Assert.Equal("item.created", roundTripped.Action);
         Assert.Equal("item", roundTripped.TargetType);

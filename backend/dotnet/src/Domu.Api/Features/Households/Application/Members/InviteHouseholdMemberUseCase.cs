@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using Domu.Api.Features.Events.Application;
+using Domu.Api.Features.Activities.Application;
 using Domu.Api.Features.Households.Application.Households.Ports;
 using Domu.Api.Features.Households.Application.Members.Contracts;
 using Domu.Api.Features.Households.Application.Members.Ports;
@@ -11,10 +11,10 @@ public sealed class InviteHouseholdMemberUseCase(
     IHouseholdRepository householdRepository,
     IHouseholdMembershipRepository membershipRepository,
     IHouseholdInvitationSender invitationSender,
-    IHouseholdEventRecorder? userEventRecorder = null)
+    IHouseholdActivityRecorder? householdActivityRecorder = null)
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder =
-        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdActivityRecorder _householdActivityRecorder =
+        householdActivityRecorder ?? NoOpHouseholdActivityRecorder.Instance;
 
     public async Task<HouseholdInvitationView> ExecuteAsync(
         InviteHouseholdMemberCommand command,
@@ -60,13 +60,13 @@ public sealed class InviteHouseholdMemberUseCase(
             now.Add(HouseholdInvitation.DefaultLifetime));
 
         await membershipRepository.AddInvitationAsync(invitation, cancellationToken);
-        await _userEventRecorder.RecordAsync(
-            command.Actor.ActorId,
-            HouseholdEventActions.HouseholdMemberInvited,
-            HouseholdEventTargetTypes.HouseholdInvitation,
+        await _householdActivityRecorder.RecordAsync(
+            command.Actor,
+            HouseholdActivityActions.HouseholdMemberInvited,
+            HouseholdActivityTargetTypes.HouseholdInvitation,
             invitation.Id,
             command.HouseholdId,
-            EventMetadata.From(("email", invitation.Email), ("role", invitation.Role.ToString())),
+            ActivityMetadata.From(("email", invitation.Email), ("role", invitation.Role.ToString())),
             cancellationToken);
         await membershipRepository.SaveChangesAsync(cancellationToken);
         await invitationSender.SendAsync(invitation, cancellationToken);

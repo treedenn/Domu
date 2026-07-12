@@ -1,4 +1,4 @@
-using Domu.Api.Features.Events.Application;
+using Domu.Api.Features.Activities.Application;
 using Domu.Api.Features.Insights.Application.Contracts;
 
 namespace Domu.Api.Features.Insights.Application.Rules;
@@ -9,7 +9,7 @@ namespace Domu.Api.Features.Insights.Application.Rules;
 /// <remarks>
 ///     Purpose: make recurring manual shopping-list entries easier to add again.
 ///     Produces: <c>shopping_list.frequent_item</c> insights with a <c>shopping_list.add_item</c> action.
-///     Trigger: at least three recent <c>shopping_list_item.created</c> events with the same normalized name.
+///     Trigger: at least three recent <c>shopping_list_item.created</c> activities with the same normalized name.
 ///     Dedupe: shares <c>shopping_list.add_item:name:{normalizedName}</c> with other add-item suggestions.
 /// </remarks>
 public sealed class FrequentShoppingListItemRule : IInsightRule
@@ -20,14 +20,14 @@ public sealed class FrequentShoppingListItemRule : IInsightRule
         InsightContext context,
         CancellationToken cancellationToken)
     {
-        var candidates = context.Events
-            .Where(userEvent => userEvent.Action == HouseholdEventActions.ShoppingListItemCreated)
-            .Select(userEvent => (Event: userEvent, Metadata: new EventMetadataReader(userEvent)))
+        var candidates = context.Activities
+            .Where(householdActivity => householdActivity.Action == HouseholdActivityActions.ShoppingListItemCreated)
+            .Select(householdActivity => (Activity: householdActivity, Metadata: new ActivityMetadataReader(householdActivity)))
             .Select(entry => new
             {
                 Name = entry.Metadata.GetString("name"),
                 ShoppingListId = entry.Metadata.GetGuid("shoppingListId"),
-                entry.Event.OccurredAt
+                entry.Activity.OccurredAt
             })
             .Where(entry => !string.IsNullOrWhiteSpace(entry.Name) && entry.ShoppingListId is not null)
             .GroupBy(entry => InsightText.NormalizeName(entry.Name!), StringComparer.Ordinal)

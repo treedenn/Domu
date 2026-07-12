@@ -1,4 +1,4 @@
-using Domu.Api.Features.Events.Infrastructure;
+using Domu.Api.Features.Activities.Infrastructure;
 using Domu.Api.Features.Households.Infrastructure.Households;
 using Domu.Api.Features.Households.Infrastructure.Members;
 using Domu.Api.Features.ShoppingLists.Infrastructure.Items;
@@ -21,7 +21,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ShoppingListItemEntity> ShoppingListItems => Set<ShoppingListItemEntity>();
     public DbSet<SpaceEntity> Spaces => Set<SpaceEntity>();
     public DbSet<UserEntity> Users => Set<UserEntity>();
-    public DbSet<HouseholdEventEntity> HouseholdEvents => Set<HouseholdEventEntity>();
+    public DbSet<HouseholdActivityEntity> HouseholdActivities => Set<HouseholdActivityEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

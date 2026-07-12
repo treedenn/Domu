@@ -1,4 +1,4 @@
-using Domu.Api.Features.Events.Application;
+using Domu.Api.Features.Activities.Application;
 using Domu.Api.Features.Spaces.Application.Items.Contracts;
 using Domu.Api.Features.Spaces.Application.Items.Ports;
 using Domu.Api.Features.Spaces.Application.Spaces;
@@ -9,11 +9,11 @@ namespace Domu.Api.Features.Spaces.Application.Items;
 public sealed class CreateItemUseCase(
     IItemRepository itemRepository,
     ISpaceAccessService spaceAccessService,
-    IHouseholdEventRecorder? userEventRecorder = null)
+    IHouseholdActivityRecorder? householdActivityRecorder = null)
     : ICreateItemUseCase
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder =
-        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdActivityRecorder _householdActivityRecorder =
+        householdActivityRecorder ?? NoOpHouseholdActivityRecorder.Instance;
 
     public async Task<ItemView> ExecuteAsync(CreateItemCommand command, CancellationToken cancellationToken)
     {
@@ -30,13 +30,13 @@ public sealed class CreateItemUseCase(
         ItemEntryWriter.ReplaceEntries(item, command.Entries);
 
         await itemRepository.AddAsync(item, cancellationToken);
-        await _userEventRecorder.RecordAsync(
-            command.Actor.ActorId,
-            HouseholdEventActions.ItemCreated,
-            HouseholdEventTargetTypes.Item,
+        await _householdActivityRecorder.RecordAsync(
+            command.Actor,
+            HouseholdActivityActions.ItemCreated,
+            HouseholdActivityTargetTypes.Item,
             item.Id,
             command.HouseholdId,
-            EventMetadata.From(
+            ActivityMetadata.From(
                 ("spaceId", command.SpaceId),
                 ("name", item.Name),
                 ("category", item.Category),

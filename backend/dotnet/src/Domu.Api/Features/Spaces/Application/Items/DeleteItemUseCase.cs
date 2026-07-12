@@ -1,4 +1,4 @@
-using Domu.Api.Features.Events.Application;
+using Domu.Api.Features.Activities.Application;
 using Domu.Api.Features.Spaces.Application.Items.Ports;
 using Domu.Api.Features.Spaces.Application.Spaces;
 
@@ -7,11 +7,11 @@ namespace Domu.Api.Features.Spaces.Application.Items;
 public sealed class DeleteItemUseCase(
     IItemRepository itemRepository,
     ISpaceAccessService spaceAccessService,
-    IHouseholdEventRecorder? userEventRecorder = null)
+    IHouseholdActivityRecorder? householdActivityRecorder = null)
     : IDeleteItemUseCase
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder =
-        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdActivityRecorder _householdActivityRecorder =
+        householdActivityRecorder ?? NoOpHouseholdActivityRecorder.Instance;
 
     public async Task ExecuteAsync(DeleteItemCommand command, CancellationToken cancellationToken)
     {
@@ -28,13 +28,13 @@ public sealed class DeleteItemUseCase(
             throw new KeyNotFoundException($"Item '{command.ItemId}' was not found.");
 
         await itemRepository.DeleteAsync(command.ItemId, cancellationToken);
-        await _userEventRecorder.RecordAsync(
-            command.Actor.ActorId,
-            HouseholdEventActions.ItemDeleted,
-            HouseholdEventTargetTypes.Item,
+        await _householdActivityRecorder.RecordAsync(
+            command.Actor,
+            HouseholdActivityActions.ItemDeleted,
+            HouseholdActivityTargetTypes.Item,
             command.ItemId,
             command.HouseholdId,
-            EventMetadata.From(("spaceId", command.SpaceId), ("name", item.Name)),
+            ActivityMetadata.From(("spaceId", command.SpaceId), ("name", item.Name)),
             cancellationToken);
         await itemRepository.SaveChangesAsync(cancellationToken);
     }

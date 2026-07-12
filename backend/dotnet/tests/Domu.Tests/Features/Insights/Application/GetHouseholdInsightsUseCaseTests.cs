@@ -1,6 +1,6 @@
 using Domu.Api.Features.Auth.Domain;
-using Domu.Api.Features.Events.Application;
-using Domu.Api.Features.Events.Domain;
+using Domu.Api.Features.Activities.Application;
+using Domu.Api.Features.Activities.Domain;
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.Insights.Application;
 using Domu.Api.Features.Insights.Application.Contracts;
@@ -14,7 +14,7 @@ public sealed class GetHouseholdInsightsUseCaseTests
     {
         var householdId = Guid.NewGuid();
         var userId = Guid.NewGuid();
-        var queryService = new FakeHouseholdEventQueryService();
+        var queryService = new FakeHouseholdActivityQueryService();
         var useCase = new GetHouseholdInsightsUseCase(
             new FakeHouseholdAccessService(),
             queryService,
@@ -34,9 +34,9 @@ public sealed class GetHouseholdInsightsUseCaseTests
     }
 
     [Fact]
-    public async Task ExecuteAsync_WhenAccessFails_DoesNotQueryEvents()
+    public async Task ExecuteAsync_WhenAccessFails_DoesNotQueryActivities()
     {
-        var queryService = new FakeHouseholdEventQueryService();
+        var queryService = new FakeHouseholdActivityQueryService();
         var useCase = new GetHouseholdInsightsUseCase(
             new FakeHouseholdAccessService { DenyAccess = true },
             queryService,
@@ -98,19 +98,19 @@ public sealed class GetHouseholdInsightsUseCaseTests
         }
     }
 
-    private sealed class FakeHouseholdEventQueryService : IHouseholdEventQueryService
+    private sealed class FakeHouseholdActivityQueryService : IHouseholdActivityQueryService
     {
         public int Calls { get; private set; }
         public Guid? RequestedHouseholdId { get; private set; }
 
-        public Task<IReadOnlyList<HouseholdEvent>> GetRecentHouseholdEventsAsync(
+        public Task<IReadOnlyList<HouseholdActivity>> GetRecentHouseholdActivitiesAsync(
             Guid householdId,
             DateTimeOffset since,
             CancellationToken cancellationToken)
         {
             Calls++;
             RequestedHouseholdId = householdId;
-            return Task.FromResult<IReadOnlyList<HouseholdEvent>>([]);
+            return Task.FromResult<IReadOnlyList<HouseholdActivity>>([]);
         }
     }
 

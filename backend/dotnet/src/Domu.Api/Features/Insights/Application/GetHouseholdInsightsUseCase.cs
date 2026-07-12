@@ -1,4 +1,4 @@
-using Domu.Api.Features.Events.Application;
+using Domu.Api.Features.Activities.Application;
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.Insights.Application.Contracts;
 
@@ -6,7 +6,7 @@ namespace Domu.Api.Features.Insights.Application;
 
 public sealed class GetHouseholdInsightsUseCase(
     IHouseholdAccessService householdAccessService,
-    IHouseholdEventQueryService userEventQueryService,
+    IHouseholdActivityQueryService householdActivityQueryService,
     IEnumerable<IInsightRule> rules)
     : IGetHouseholdInsightsUseCase
 {
@@ -24,11 +24,11 @@ public sealed class GetHouseholdInsightsUseCase(
             cancellationToken);
 
         var now = DateTimeOffset.UtcNow;
-        var events = await userEventQueryService.GetRecentHouseholdEventsAsync(
+        var activities = await householdActivityQueryService.GetRecentHouseholdActivitiesAsync(
             query.HouseholdId,
             now.Subtract(Lookback),
             cancellationToken);
-        var context = new InsightContext(query.HouseholdId, query.Actor, now, events);
+        var context = new InsightContext(query.HouseholdId, query.Actor, now, activities);
 
         var candidates = new List<HouseholdInsightCandidate>();
         foreach (var rule in rules)

@@ -1,4 +1,4 @@
-using Domu.Api.Features.Events.Application;
+using Domu.Api.Features.Activities.Application;
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.ShoppingLists.Application.ShoppingLists.Commands;
 using Domu.Api.Features.ShoppingLists.Application.ShoppingLists.Contracts;
@@ -10,10 +10,10 @@ namespace Domu.Api.Features.ShoppingLists.Application.ShoppingLists;
 public sealed class CreateShoppingListUseCase(
     IShoppingListRepository shoppingListRepository,
     IHouseholdAccessService householdAccessService,
-    IHouseholdEventRecorder? userEventRecorder = null)
+    IHouseholdActivityRecorder? householdActivityRecorder = null)
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder =
-        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdActivityRecorder _householdActivityRecorder =
+        householdActivityRecorder ?? NoOpHouseholdActivityRecorder.Instance;
 
     public async Task<ShoppingListView> ExecuteAsync(CreateShoppingListCommand command,
         CancellationToken cancellationToken)
@@ -26,9 +26,9 @@ public sealed class CreateShoppingListUseCase(
             Guid.CreateVersion7(), command.HouseholdId, command.Name, memberId, now, now);
 
         await shoppingListRepository.AddAsync(shoppingList, cancellationToken);
-        await _userEventRecorder.RecordAsync(
-            command.Actor.ActorId, HouseholdEventActions.ShoppingListCreated, HouseholdEventTargetTypes.ShoppingList,
-            shoppingList.Id, command.HouseholdId, EventMetadata.From(("name", shoppingList.Name)), cancellationToken);
+        await _householdActivityRecorder.RecordAsync(
+            command.Actor, HouseholdActivityActions.ShoppingListCreated, HouseholdActivityTargetTypes.ShoppingList,
+            shoppingList.Id, command.HouseholdId, ActivityMetadata.From(("name", shoppingList.Name)), cancellationToken);
         await shoppingListRepository.SaveChangesAsync(cancellationToken);
 
         return ShoppingListView.FromDomain(shoppingList);

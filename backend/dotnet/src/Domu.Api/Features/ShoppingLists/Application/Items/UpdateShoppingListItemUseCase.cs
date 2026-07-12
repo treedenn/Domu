@@ -1,4 +1,4 @@
-using Domu.Api.Features.Events.Application;
+using Domu.Api.Features.Activities.Application;
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.ShoppingLists.Application.Items.Commands;
 using Domu.Api.Features.ShoppingLists.Application.Items.Contracts;
@@ -12,10 +12,10 @@ public sealed class UpdateShoppingListItemUseCase(
     IShoppingListRepository shoppingListRepository,
     IShoppingListItemRepository shoppingListItemRepository,
     IHouseholdAccessService householdAccessService,
-    IHouseholdEventRecorder? userEventRecorder = null)
+    IHouseholdActivityRecorder? householdActivityRecorder = null)
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder =
-        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdActivityRecorder _householdActivityRecorder =
+        householdActivityRecorder ?? NoOpHouseholdActivityRecorder.Instance;
 
     public async Task<ShoppingListItemView> ExecuteAsync(
         UpdateShoppingListItemCommand command,
@@ -52,13 +52,13 @@ public sealed class UpdateShoppingListItemUseCase(
             item.MoveTo(command.SortOrder.Value, now);
 
         await shoppingListItemRepository.UpdateAsync(item, cancellationToken);
-        await _userEventRecorder.RecordAsync(
-            command.Actor.ActorId,
-            HouseholdEventActions.ShoppingListItemUpdated,
-            HouseholdEventTargetTypes.ShoppingListItem,
+        await _householdActivityRecorder.RecordAsync(
+            command.Actor,
+            HouseholdActivityActions.ShoppingListItemUpdated,
+            HouseholdActivityTargetTypes.ShoppingListItem,
             item.Id,
             command.HouseholdId,
-            EventMetadata.From(
+            ActivityMetadata.From(
                 ("shoppingListId", command.ShoppingListId),
                 ("name", item.Name),
                 ("spaceId", item.SpaceId),

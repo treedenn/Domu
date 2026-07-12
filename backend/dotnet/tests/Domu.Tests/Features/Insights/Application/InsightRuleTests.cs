@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Domu.Api.Features.Auth.Domain;
-using Domu.Api.Features.Events.Application;
-using Domu.Api.Features.Events.Domain;
+using Domu.Api.Features.Activities.Application;
+using Domu.Api.Features.Activities.Domain;
 using Domu.Api.Features.Insights.Application;
 using Domu.Api.Features.Insights.Application.Rules;
 
@@ -19,13 +19,13 @@ public sealed class InsightRuleTests
             new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel),
             DateTimeOffset.UtcNow,
             [
-                Event(householdId, HouseholdEventActions.ShoppingListItemCreated, Guid.NewGuid(), Metadata(
+                Activity(householdId, HouseholdActivityActions.ShoppingListItemCreated, Guid.NewGuid(), Metadata(
                     ("shoppingListId", shoppingListId),
                     ("name", " Milk "))),
-                Event(householdId, HouseholdEventActions.ShoppingListItemCreated, Guid.NewGuid(), Metadata(
+                Activity(householdId, HouseholdActivityActions.ShoppingListItemCreated, Guid.NewGuid(), Metadata(
                     ("shoppingListId", shoppingListId),
                     ("name", "milk"))),
-                Event(householdId, HouseholdEventActions.ShoppingListItemCreated, Guid.NewGuid(), Metadata(
+                Activity(householdId, HouseholdActivityActions.ShoppingListItemCreated, Guid.NewGuid(), Metadata(
                     ("shoppingListId", shoppingListId),
                     ("name", "MILK")))
             ]);
@@ -46,27 +46,27 @@ public sealed class InsightRuleTests
         var householdId = Guid.NewGuid();
         var shoppingListId = Guid.NewGuid();
         var now = DateTimeOffset.UtcNow;
-        var events = new List<HouseholdEvent>
+        var activities = new List<HouseholdActivity>
         {
-            Event(householdId, HouseholdEventActions.ShoppingListCheckedItemsCleared, shoppingListId, "{}",
+            Activity(householdId, HouseholdActivityActions.ShoppingListCheckedItemsCleared, shoppingListId, "{}",
                 now.AddMinutes(-10))
         };
-        events.AddRange(Enumerable.Range(0, 5).Select(index =>
-            Event(
+        activities.AddRange(Enumerable.Range(0, 5).Select(index =>
+            Activity(
                 householdId,
-                HouseholdEventActions.ShoppingListItemChecked,
+                HouseholdActivityActions.ShoppingListItemChecked,
                 Guid.NewGuid(),
                 Metadata(("shoppingListId", shoppingListId)),
                 now.AddMinutes(index))));
-        events.Add(Event(
+        activities.Add(Activity(
             householdId,
-            HouseholdEventActions.ShoppingListItemChecked,
+            HouseholdActivityActions.ShoppingListItemChecked,
             Guid.NewGuid(),
             Metadata(("shoppingListId", shoppingListId)),
             now.AddMinutes(-20)));
 
         var context =
-            new InsightContext(householdId, new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), now, events);
+            new InsightContext(householdId, new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel), now, activities);
 
         var result = await new ClearCheckedShoppingListItemsRule().EvaluateAsync(context, CancellationToken.None);
 
@@ -75,16 +75,17 @@ public sealed class InsightRuleTests
         Assert.Equal(5, candidate.Insight.Metadata["checkedCount"]);
     }
 
-    private static HouseholdEvent Event(
+    private static HouseholdActivity Activity(
         Guid householdId,
         string action,
         Guid? targetId,
         string metadataJson,
         DateTimeOffset? occurredAt = null)
     {
-        return new HouseholdEvent(
+        return new HouseholdActivity(
             Guid.NewGuid(),
             occurredAt ?? DateTimeOffset.UtcNow,
+            Guid.NewGuid(),
             Guid.NewGuid(),
             action,
             "target",

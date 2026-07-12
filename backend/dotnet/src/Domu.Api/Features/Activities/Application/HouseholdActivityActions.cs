@@ -1,6 +1,6 @@
-namespace Domu.Api.Features.Events.Application;
+namespace Domu.Api.Features.Activities.Application;
 
-public static class HouseholdEventActions
+public static class HouseholdActivityActions
 {
     public const string HouseholdCreated = "household.created";
     public const string HouseholdUpdated = "household.updated";

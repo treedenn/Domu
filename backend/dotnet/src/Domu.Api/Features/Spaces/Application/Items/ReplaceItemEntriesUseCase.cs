@@ -1,4 +1,4 @@
-using Domu.Api.Features.Events.Application;
+using Domu.Api.Features.Activities.Application;
 using Domu.Api.Features.Spaces.Application.Items.Contracts;
 using Domu.Api.Features.Spaces.Application.Items.Ports;
 using Domu.Api.Features.Spaces.Application.Spaces;
@@ -8,11 +8,11 @@ namespace Domu.Api.Features.Spaces.Application.Items;
 public sealed class ReplaceItemEntriesUseCase(
     IItemRepository itemRepository,
     ISpaceAccessService spaceAccessService,
-    IHouseholdEventRecorder? userEventRecorder = null)
+    IHouseholdActivityRecorder? householdActivityRecorder = null)
     : IReplaceItemEntriesUseCase
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder =
-        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdActivityRecorder _householdActivityRecorder =
+        householdActivityRecorder ?? NoOpHouseholdActivityRecorder.Instance;
 
     public async Task<ItemView> ExecuteAsync(ReplaceItemEntriesCommand command, CancellationToken cancellationToken)
     {
@@ -31,13 +31,13 @@ public sealed class ReplaceItemEntriesUseCase(
         ItemEntryWriter.ReplaceEntries(item, command.Entries);
 
         await itemRepository.UpdateAsync(item, cancellationToken);
-        await _userEventRecorder.RecordAsync(
-            command.Actor.ActorId,
-            HouseholdEventActions.ItemEntriesReplaced,
-            HouseholdEventTargetTypes.Item,
+        await _householdActivityRecorder.RecordAsync(
+            command.Actor,
+            HouseholdActivityActions.ItemEntriesReplaced,
+            HouseholdActivityTargetTypes.Item,
             item.Id,
             command.HouseholdId,
-            EventMetadata.From(("spaceId", command.SpaceId), ("entryCount", item.Entries.Count)),
+            ActivityMetadata.From(("spaceId", command.SpaceId), ("entryCount", item.Entries.Count)),
             cancellationToken);
         await itemRepository.SaveChangesAsync(cancellationToken);
 

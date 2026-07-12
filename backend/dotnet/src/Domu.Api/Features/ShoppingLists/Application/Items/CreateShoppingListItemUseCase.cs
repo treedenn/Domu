@@ -1,4 +1,4 @@
-using Domu.Api.Features.Events.Application;
+using Domu.Api.Features.Activities.Application;
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.ShoppingLists.Application.Items.Commands;
 using Domu.Api.Features.ShoppingLists.Application.Items.Contracts;
@@ -13,10 +13,10 @@ public sealed class CreateShoppingListItemUseCase(
     IShoppingListRepository shoppingListRepository,
     IShoppingListItemRepository shoppingListItemRepository,
     IHouseholdAccessService householdAccessService,
-    IHouseholdEventRecorder? userEventRecorder = null)
+    IHouseholdActivityRecorder? householdActivityRecorder = null)
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder =
-        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdActivityRecorder _householdActivityRecorder =
+        householdActivityRecorder ?? NoOpHouseholdActivityRecorder.Instance;
 
     public async Task<ShoppingListItemView> ExecuteAsync(
         CreateShoppingListItemCommand command,
@@ -55,13 +55,13 @@ public sealed class CreateShoppingListItemUseCase(
         item.LinkItem(command.ItemId, now);
 
         await shoppingListItemRepository.AddAsync(item, cancellationToken);
-        await _userEventRecorder.RecordAsync(
-            command.Actor.ActorId,
-            HouseholdEventActions.ShoppingListItemCreated,
-            HouseholdEventTargetTypes.ShoppingListItem,
+        await _householdActivityRecorder.RecordAsync(
+            command.Actor,
+            HouseholdActivityActions.ShoppingListItemCreated,
+            HouseholdActivityTargetTypes.ShoppingListItem,
             item.Id,
             command.HouseholdId,
-            EventMetadata.From(
+            ActivityMetadata.From(
                 ("shoppingListId", command.ShoppingListId),
                 ("name", item.Name),
                 ("spaceId", item.SpaceId),

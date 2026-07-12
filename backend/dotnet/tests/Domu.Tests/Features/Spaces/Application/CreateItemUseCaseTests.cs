@@ -1,5 +1,5 @@
 using Domu.Api.Features.Auth.Domain;
-using Domu.Api.Features.Events.Application;
+using Domu.Api.Features.Activities.Application;
 using Domu.Api.Features.Spaces.Application.Items;
 using Domu.Api.Features.Spaces.Application.Items.Contracts;
 using Domu.Api.Features.Spaces.Application.Items.Ports;
@@ -13,8 +13,8 @@ public sealed class CreateItemUseCaseTests
     public async Task ExecuteAsync_CreatesItemAndPersistsIt()
     {
         var repository = new FakeItemRepository();
-        var eventRecorder = new FakeHouseholdEventRecorder();
-        var useCase = new CreateItemUseCase(repository, new FakeSpaceAccessService(), eventRecorder);
+        var activityRecorder = new FakeHouseholdActivityRecorder();
+        var useCase = new CreateItemUseCase(repository, new FakeSpaceAccessService(), activityRecorder);
         var userId = Guid.NewGuid();
         var householdId = Guid.NewGuid();
         var spaceId = Guid.NewGuid();
@@ -39,26 +39,26 @@ public sealed class CreateItemUseCaseTests
         Assert.Equal(spaceId, result.SpaceId);
         Assert.Equal(1, repository.AddCalls);
         Assert.Equal(1, repository.SaveChangesCalls);
-        var userEvent = Assert.Single(eventRecorder.Events);
-        Assert.Equal(userId, userEvent.ActorMemberId);
-        Assert.Equal(householdId, userEvent.HouseholdId);
-        Assert.Equal(HouseholdEventActions.ItemCreated, userEvent.Action);
-        Assert.Equal(HouseholdEventTargetTypes.Item, userEvent.TargetType);
-        Assert.Equal(result.Id, userEvent.TargetId);
-        Assert.Equal(spaceId, userEvent.Metadata["spaceId"]);
-        Assert.Equal("Milk", userEvent.Metadata["name"]);
-        Assert.Equal("Dairy", userEvent.Metadata["category"]);
-        Assert.Equal("123", userEvent.Metadata["barcode"]);
-        Assert.Equal(1, userEvent.Metadata["entryCount"]);
+        var householdActivity = Assert.Single(activityRecorder.Activities);
+        Assert.Equal(userId, householdActivity.Actor.ActorId);
+        Assert.Equal(householdId, householdActivity.HouseholdId);
+        Assert.Equal(HouseholdActivityActions.ItemCreated, householdActivity.Action);
+        Assert.Equal(HouseholdActivityTargetTypes.Item, householdActivity.TargetType);
+        Assert.Equal(result.Id, householdActivity.TargetId);
+        Assert.Equal(spaceId, householdActivity.Metadata["spaceId"]);
+        Assert.Equal("Milk", householdActivity.Metadata["name"]);
+        Assert.Equal("Dairy", householdActivity.Metadata["category"]);
+        Assert.Equal("123", householdActivity.Metadata["barcode"]);
+        Assert.Equal(1, householdActivity.Metadata["entryCount"]);
     }
 
     [Fact]
-    public async Task ExecuteAsync_WhenAccessFails_DoesNotRecordEvent()
+    public async Task ExecuteAsync_WhenAccessFails_DoesNotRecordActivity()
     {
         var repository = new FakeItemRepository();
-        var eventRecorder = new FakeHouseholdEventRecorder();
+        var activityRecorder = new FakeHouseholdActivityRecorder();
         var accessService = new FakeSpaceAccessService { DenyAccess = true };
-        var useCase = new CreateItemUseCase(repository, accessService, eventRecorder);
+        var useCase = new CreateItemUseCase(repository, accessService, activityRecorder);
 
         var action = () => useCase.ExecuteAsync(
             new CreateItemCommand(
@@ -71,7 +71,7 @@ public sealed class CreateItemUseCaseTests
             CancellationToken.None);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(action);
-        Assert.Empty(eventRecorder.Events);
+        Assert.Empty(activityRecorder.Activities);
         Assert.Equal(0, repository.SaveChangesCalls);
     }
 
@@ -117,35 +117,35 @@ public sealed class CreateItemUseCaseTests
         }
     }
 
-    private sealed class FakeHouseholdEventRecorder : IHouseholdEventRecorder
+    private sealed class FakeHouseholdActivityRecorder : IHouseholdActivityRecorder
     {
-        public List<RecordedEvent> Events { get; } = [];
+        public List<RecordedActivity> Activities { get; } = [];
 
         public Task RecordAsync(
-            Guid actorMemberId,
+            DomuActor actor,
             string action,
             string targetType,
             Guid? targetId,
-            Guid? householdId,
-            EventMetadata? metadata,
+            Guid householdId,
+            ActivityMetadata? metadata,
             CancellationToken cancellationToken)
         {
-            Events.Add(new RecordedEvent(
-                actorMemberId,
+            Activities.Add(new RecordedActivity(
+                actor,
                 action,
                 targetType,
                 targetId,
                 householdId,
-                metadata ?? EventMetadata.Empty()));
+                metadata ?? ActivityMetadata.Empty()));
             return Task.CompletedTask;
         }
     }
 
-    private sealed record RecordedEvent(
-        Guid ActorMemberId,
+    private sealed record RecordedActivity(
+        DomuActor Actor,
         string Action,
         string TargetType,
         Guid? TargetId,
-        Guid? HouseholdId,
-        EventMetadata Metadata);
+        Guid HouseholdId,
+        ActivityMetadata Metadata);
 }

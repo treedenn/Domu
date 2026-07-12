@@ -65,7 +65,7 @@ flowchart LR
     UseCase --> Port[Repository or invitation port]
     Port --> Infrastructure[Infrastructure implementation]
     Infrastructure --> Database[(PostgreSQL)]
-    UseCase --> Events[User event recorder]
+    UseCase --> Activities[Household activity recorder]
 
     Access[HouseholdAccessService] --> HouseholdPort[Household repository port]
     Access --> MemberPort[Membership repository port]
@@ -120,7 +120,7 @@ flowchart TD
     Infrastructure --> Domain
     Application --> Domain
     Interface --> Users[Users authentication contracts]
-    Application --> Events[Events application contracts]
+    Application --> Activities[Activities application contracts]
 ```
 
 Other features consume household authorization through

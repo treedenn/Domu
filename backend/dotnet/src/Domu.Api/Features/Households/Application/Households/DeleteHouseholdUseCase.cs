@@ -1,4 +1,4 @@
-using Domu.Api.Features.Events.Application;
+using Domu.Api.Features.Activities.Application;
 using Domu.Api.Features.Households.Application.Households.Ports;
 using Domu.Api.Features.Households.Application.Members.Ports;
 
@@ -7,10 +7,10 @@ namespace Domu.Api.Features.Households.Application.Households;
 public sealed class DeleteHouseholdUseCase(
     IHouseholdRepository householdRepository,
     IHouseholdMembershipRepository membershipRepository,
-    IHouseholdEventRecorder? userEventRecorder = null)
+    IHouseholdActivityRecorder? householdActivityRecorder = null)
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder =
-        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdActivityRecorder _householdActivityRecorder =
+        householdActivityRecorder ?? NoOpHouseholdActivityRecorder.Instance;
 
     public async Task ExecuteAsync(DeleteHouseholdCommand command, CancellationToken cancellationToken)
     {
@@ -23,13 +23,13 @@ public sealed class DeleteHouseholdUseCase(
             throw new KeyNotFoundException($"Household '{command.HouseholdId}' was not found.");
 
         await householdRepository.DeleteAsync(command.HouseholdId, cancellationToken);
-        await _userEventRecorder.RecordAsync(
-            command.Actor.ActorId,
-            HouseholdEventActions.HouseholdDeleted,
-            HouseholdEventTargetTypes.Household,
+        await _householdActivityRecorder.RecordAsync(
+            command.Actor,
+            HouseholdActivityActions.HouseholdDeleted,
+            HouseholdActivityTargetTypes.Household,
             command.HouseholdId,
             command.HouseholdId,
-            EventMetadata.Empty(),
+            ActivityMetadata.Empty(),
             cancellationToken);
         await householdRepository.SaveChangesAsync(cancellationToken);
     }

@@ -1,4 +1,4 @@
-using Domu.Api.Features.Events.Application;
+using Domu.Api.Features.Activities.Application;
 using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.ShoppingLists.Application.Items.Commands;
 using Domu.Api.Features.ShoppingLists.Application.Items.Ports;
@@ -11,10 +11,10 @@ public sealed class DeleteShoppingListItemUseCase(
     IShoppingListRepository shoppingListRepository,
     IShoppingListItemRepository shoppingListItemRepository,
     IHouseholdAccessService householdAccessService,
-    IHouseholdEventRecorder? userEventRecorder = null)
+    IHouseholdActivityRecorder? householdActivityRecorder = null)
 {
-    private readonly IHouseholdEventRecorder _userEventRecorder =
-        userEventRecorder ?? NoOpHouseholdEventRecorder.Instance;
+    private readonly IHouseholdActivityRecorder _householdActivityRecorder =
+        householdActivityRecorder ?? NoOpHouseholdActivityRecorder.Instance;
 
     public async Task ExecuteAsync(DeleteShoppingListItemCommand command, CancellationToken cancellationToken)
     {
@@ -26,13 +26,13 @@ public sealed class DeleteShoppingListItemUseCase(
             command.HouseholdId, command.ShoppingListId, command.ItemId, cancellationToken);
 
         await shoppingListItemRepository.DeleteAsync(command.ItemId, cancellationToken);
-        await _userEventRecorder.RecordAsync(
-            command.Actor.ActorId,
-            HouseholdEventActions.ShoppingListItemDeleted,
-            HouseholdEventTargetTypes.ShoppingListItem,
+        await _householdActivityRecorder.RecordAsync(
+            command.Actor,
+            HouseholdActivityActions.ShoppingListItemDeleted,
+            HouseholdActivityTargetTypes.ShoppingListItem,
             command.ItemId,
             command.HouseholdId,
-            EventMetadata.From(("shoppingListId", command.ShoppingListId), ("name", item.Name)),
+            ActivityMetadata.From(("shoppingListId", command.ShoppingListId), ("name", item.Name)),
             cancellationToken);
         await shoppingListItemRepository.SaveChangesAsync(cancellationToken);
     }

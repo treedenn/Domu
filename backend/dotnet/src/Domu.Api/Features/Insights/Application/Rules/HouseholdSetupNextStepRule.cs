@@ -1,4 +1,4 @@
-using Domu.Api.Features.Events.Application;
+using Domu.Api.Features.Activities.Application;
 using Domu.Api.Features.Insights.Application.Contracts;
 
 namespace Domu.Api.Features.Insights.Application.Rules;
@@ -9,7 +9,7 @@ namespace Domu.Api.Features.Insights.Application.Rules;
 /// <remarks>
 ///     Purpose: provide lightweight onboarding guidance from the household dashboard.
 ///     Produces: <c>household.setup_next_step</c> insights with a <c>space.create</c> action.
-///     Trigger: a recent <c>household.created</c> event exists and no <c>space.created</c> event exists.
+///     Trigger: a recent <c>household.created</c> activity exists and no <c>space.created</c> activity exists.
 ///     Dedupe: one setup prompt per household using <c>space.create:household:{householdId}</c>.
 /// </remarks>
 public sealed class HouseholdSetupNextStepRule : IInsightRule
@@ -21,8 +21,8 @@ public sealed class HouseholdSetupNextStepRule : IInsightRule
         CancellationToken cancellationToken)
     {
         var householdCreated =
-            context.Events.Any(userEvent => userEvent.Action == HouseholdEventActions.HouseholdCreated);
-        var spaceCreated = context.Events.Any(userEvent => userEvent.Action == HouseholdEventActions.SpaceCreated);
+            context.Activities.Any(householdActivity => householdActivity.Action == HouseholdActivityActions.HouseholdCreated);
+        var spaceCreated = context.Activities.Any(householdActivity => householdActivity.Action == HouseholdActivityActions.SpaceCreated);
         if (!householdCreated || spaceCreated)
             return Task.FromResult<IReadOnlyList<HouseholdInsightCandidate>>([]);
 

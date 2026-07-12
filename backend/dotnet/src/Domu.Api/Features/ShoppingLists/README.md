@@ -39,7 +39,7 @@ flowchart LR
     UseCase --> Port[Repository port]
     Port --> Repository[Infrastructure repository]
     Repository --> Database[(PostgreSQL)]
-    UseCase --> Events[User event recorder]
+    UseCase --> Activities[Household activity recorder]
 
     Policy --> HouseholdAccess[Household access service]
     Policy --> Port
@@ -96,11 +96,11 @@ flowchart TD
     Infrastructure --> Domain
     Application --> Domain
     Application --> Households[Households application contracts]
-    Application --> Events[Events application contracts]
+    Application --> Activities[Activities application contracts]
 ```
 
 The feature does not depend on another feature's infrastructure or interface.
-Household authorization and event recording are consumed through application
+Household authorization and activity recording are consumed through application
 contracts.
 
 ## Persistence note
