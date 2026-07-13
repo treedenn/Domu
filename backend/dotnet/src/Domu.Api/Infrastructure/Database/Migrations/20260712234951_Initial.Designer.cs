@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Domu.Api.Infrastructure.Database.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260710191024_Initial")]
+    [Migration("20260712234951_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -20,12 +20,12 @@ namespace Domu.Api.Infrastructure.Database.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.6")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Domu.Api.Features.Events.Infrastructure.UserEventEntity", b =>
+            modelBuilder.Entity("Domu.Api.Features.Activities.Infrastructure.HouseholdActivityEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -37,18 +37,18 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("action");
 
-                    b.Property<Guid>("ActorUserId")
+                    b.Property<Guid>("ActorId")
                         .HasColumnType("uuid")
-                        .HasColumnName("actor_user_id");
+                        .HasColumnName("actor_id");
+
+                    b.Property<Guid>("ActorMemberId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("actor_member_id");
 
                     b.Property<string>("ClientApp")
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)")
                         .HasColumnName("client_app");
-
-                    b.Property<int?>("ClientBuild")
-                        .HasColumnType("integer")
-                        .HasColumnName("client_build");
 
                     b.Property<string>("ClientPlatform")
                         .HasMaxLength(64)
@@ -60,7 +60,7 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         .HasColumnType("character varying(64)")
                         .HasColumnName("client_version");
 
-                    b.Property<Guid?>("HouseholdId")
+                    b.Property<Guid>("HouseholdId")
                         .HasColumnType("uuid")
                         .HasColumnName("household_id");
 
@@ -89,21 +89,24 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         .HasColumnName("target_type");
 
                     b.HasKey("Id")
-                        .HasName("pk_user_events");
+                        .HasName("pk_household_events");
 
                     b.HasIndex("OccurredAt")
-                        .HasDatabaseName("ix_user_events_occurred_at");
+                        .HasDatabaseName("ix_household_events_occurred_at");
 
-                    b.HasIndex("ActorUserId", "OccurredAt")
-                        .HasDatabaseName("ix_user_events_actor_user_id_occurred_at");
+                    b.HasIndex("ActorId", "OccurredAt")
+                        .HasDatabaseName("ix_household_events_actor_id_occurred_at");
+
+                    b.HasIndex("ActorMemberId", "OccurredAt")
+                        .HasDatabaseName("ix_household_events_actor_member_id_occurred_at");
 
                     b.HasIndex("HouseholdId", "OccurredAt")
-                        .HasDatabaseName("ix_user_events_household_id_occurred_at");
+                        .HasDatabaseName("ix_household_events_household_id_occurred_at");
 
                     b.HasIndex("TargetType", "TargetId")
-                        .HasDatabaseName("ix_user_events_target_type_target_id");
+                        .HasDatabaseName("ix_household_events_target_type_target_id");
 
-                    b.ToTable("user_events", (string)null);
+                    b.ToTable("household_events", (string)null);
                 });
 
             modelBuilder.Entity("Domu.Api.Features.Households.Infrastructure.Households.HouseholdEntity", b =>
@@ -117,10 +120,6 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("name");
-
-                    b.Property<Guid>("OwnerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("owner_id");
 
                     b.Property<DateTimeOffset?>("SubscriptionCancelledAt")
                         .HasColumnType("timestamp with time zone")
@@ -141,9 +140,6 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                     b.HasKey("Id")
                         .HasName("pk_households");
 
-                    b.HasIndex("OwnerId", "Name")
-                        .HasDatabaseName("ix_households_owner_id_name");
-
                     b.ToTable("households", (string)null);
                 });
 
@@ -157,10 +153,6 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("accepted_at");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -173,17 +165,13 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         .HasColumnType("character varying(320)")
                         .HasColumnName("email");
 
-                    b.Property<DateTimeOffset>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("expires_at");
-
                     b.Property<Guid>("HouseholdId")
                         .HasColumnType("uuid")
                         .HasColumnName("household_id");
 
-                    b.Property<Guid>("InvitedByUserId")
+                    b.Property<Guid>("InvitedByMemberId")
                         .HasColumnType("uuid")
-                        .HasColumnName("invited_by_user_id");
+                        .HasColumnName("invited_by_member_id");
 
                     b.Property<int>("Role")
                         .HasColumnType("integer")
@@ -202,8 +190,8 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                     b.HasKey("Id")
                         .HasName("pk_household_invitations");
 
-                    b.HasIndex("InvitedByUserId")
-                        .HasDatabaseName("ix_household_invitations_invited_by_user_id");
+                    b.HasIndex("InvitedByMemberId")
+                        .HasDatabaseName("ix_household_invitations_invited_by_member_id");
 
                     b.HasIndex("Token")
                         .IsUnique()
@@ -220,6 +208,10 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<bool>("Archived")
+                        .HasColumnType("boolean")
+                        .HasColumnName("archived");
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
@@ -239,7 +231,7 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("role");
 
-                    b.Property<Guid?>("UserId")
+                    b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
@@ -262,9 +254,9 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<Guid>("AddedByUserId")
+                    b.Property<Guid>("AddedByMemberId")
                         .HasColumnType("uuid")
-                        .HasColumnName("added_by_user_id");
+                        .HasColumnName("added_by_member_id");
 
                     b.Property<bool>("Checked")
                         .HasColumnType("boolean")
@@ -274,9 +266,9 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("checked_at");
 
-                    b.Property<Guid?>("CheckedByUserId")
+                    b.Property<Guid?>("CheckedByMemberId")
                         .HasColumnType("uuid")
-                        .HasColumnName("checked_by_user_id");
+                        .HasColumnName("checked_by_member_id");
 
                     b.Property<decimal?>("ContainerQuantity")
                         .HasColumnType("numeric")
@@ -339,6 +331,12 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                     b.HasKey("Id")
                         .HasName("pk_shopping_list_items");
 
+                    b.HasIndex("AddedByMemberId")
+                        .HasDatabaseName("ix_shopping_list_items_added_by_member_id");
+
+                    b.HasIndex("CheckedByMemberId")
+                        .HasDatabaseName("ix_shopping_list_items_checked_by_member_id");
+
                     b.HasIndex("HouseholdId")
                         .HasDatabaseName("ix_shopping_list_items_household_id");
 
@@ -374,9 +372,9 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<Guid>("CreatedByUserId")
+                    b.Property<Guid>("CreatedByMemberId")
                         .HasColumnType("uuid")
-                        .HasColumnName("created_by_user_id");
+                        .HasColumnName("created_by_member_id");
 
                     b.Property<Guid>("HouseholdId")
                         .HasColumnType("uuid")
@@ -399,13 +397,11 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                     b.HasKey("Id")
                         .HasName("pk_shopping_lists");
 
+                    b.HasIndex("CreatedByMemberId")
+                        .HasDatabaseName("ix_shopping_lists_created_by_member_id");
+
                     b.HasIndex("HouseholdId")
                         .HasDatabaseName("ix_shopping_lists_household_id");
-
-                    b.HasIndex("HouseholdId", "IsDefault")
-                        .IsUnique()
-                        .HasDatabaseName("ix_shopping_lists_household_id_active_default")
-                        .HasFilter("is_default = true AND archived_at IS NULL");
 
                     b.ToTable("shopping_lists", (string)null);
                 });
@@ -553,6 +549,16 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                     b.ToTable("users", (string)null);
                 });
 
+            modelBuilder.Entity("Domu.Api.Features.Activities.Infrastructure.HouseholdActivityEntity", b =>
+                {
+                    b.HasOne("Domu.Api.Features.Households.Infrastructure.Members.HouseholdMemberEntity", null)
+                        .WithMany()
+                        .HasForeignKey("ActorMemberId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_household_events_household_members_actor_member_id");
+                });
+
             modelBuilder.Entity("Domu.Api.Features.Households.Infrastructure.Members.HouseholdInvitationEntity", b =>
                 {
                     b.HasOne("Domu.Api.Features.Households.Infrastructure.Households.HouseholdEntity", null)
@@ -562,12 +568,12 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_household_invitations_households_household_id");
 
-                    b.HasOne("Domu.Api.Features.Users.Infrastructure.UserEntity", null)
+                    b.HasOne("Domu.Api.Features.Households.Infrastructure.Members.HouseholdMemberEntity", null)
                         .WithMany()
-                        .HasForeignKey("InvitedByUserId")
+                        .HasForeignKey("InvitedByMemberId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("fk_household_invitations_users_invited_by_user_id");
+                        .HasConstraintName("fk_household_invitations_household_members_invited_by_member_id");
                 });
 
             modelBuilder.Entity("Domu.Api.Features.Households.Infrastructure.Members.HouseholdMemberEntity", b =>
@@ -582,12 +588,26 @@ namespace Domu.Api.Infrastructure.Database.Migrations
                     b.HasOne("Domu.Api.Features.Users.Infrastructure.UserEntity", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.SetNull)
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
                         .HasConstraintName("fk_household_members_users_user_id");
                 });
 
             modelBuilder.Entity("Domu.Api.Features.ShoppingLists.Infrastructure.Items.ShoppingListItemEntity", b =>
                 {
+                    b.HasOne("Domu.Api.Features.Households.Infrastructure.Members.HouseholdMemberEntity", null)
+                        .WithMany()
+                        .HasForeignKey("AddedByMemberId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_shopping_list_items_household_members_added_by_member_id");
+
+                    b.HasOne("Domu.Api.Features.Households.Infrastructure.Members.HouseholdMemberEntity", null)
+                        .WithMany()
+                        .HasForeignKey("CheckedByMemberId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_shopping_list_items_household_members_checked_by_member_id");
+
                     b.HasOne("Domu.Api.Features.Households.Infrastructure.Households.HouseholdEntity", null)
                         .WithMany()
                         .HasForeignKey("HouseholdId")
@@ -617,6 +637,13 @@ namespace Domu.Api.Infrastructure.Database.Migrations
 
             modelBuilder.Entity("Domu.Api.Features.ShoppingLists.Infrastructure.ShoppingLists.ShoppingListEntity", b =>
                 {
+                    b.HasOne("Domu.Api.Features.Households.Infrastructure.Members.HouseholdMemberEntity", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByMemberId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_shopping_lists_household_members_created_by_member_id");
+
                     b.HasOne("Domu.Api.Features.Households.Infrastructure.Households.HouseholdEntity", null)
                         .WithMany()
                         .HasForeignKey("HouseholdId")

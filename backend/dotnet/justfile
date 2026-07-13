@@ -70,7 +70,10 @@ db-reset: db-drop-force db-update
 migration-add name:
     dotnet ef migrations add "{{name}}" \
         --project {{api}} \
-        --startup-project {{api}}
+        --startup-project {{api}} \
+        --context Domu.Api.Infrastructure.Database.AppDbContext \
+        --configuration Debug \
+        --output-dir "Infrastructure/Database/Migrations"
 
 # Remove the most recently added migration
 migration-remove:

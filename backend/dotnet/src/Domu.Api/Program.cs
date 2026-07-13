@@ -67,6 +67,7 @@ builder.Services.AddScoped<GetHouseholdsUseCase>();
 builder.Services.AddScoped<UpdateHouseholdUseCase>();
 builder.Services.AddScoped<DeleteHouseholdUseCase>();
 builder.Services.AddScoped<GetHouseholdMembersUseCase>();
+builder.Services.AddScoped<GetHouseholdMemberUseCase>();
 builder.Services.AddScoped<UpdateHouseholdMemberUseCase>();
 builder.Services.AddScoped<GetHouseholdInvitationsUseCase>();
 builder.Services.AddScoped<InviteHouseholdMemberUseCase>();

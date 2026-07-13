@@ -42,7 +42,7 @@ public sealed class HouseholdMemberEntity
 
     public HouseholdMember ToDomain()
     {
-        return new HouseholdMember(Id, HouseholdId, UserId, DisplayName, Role, JoinedAt, Archived);
+        return new HouseholdMember(Id, HouseholdId, UserId, DisplayName, Role,  JoinedAt, Archived);
     }
 
     public static HouseholdMemberEntity FromDomain(HouseholdMember member)

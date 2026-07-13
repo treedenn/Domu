@@ -32,6 +32,9 @@ public sealed class ShoppingListConfiguration : IEntityTypeConfiguration<Shoppin
 
         builder.Property(shoppingList => shoppingList.UpdatedAt)
             .IsRequired();
+        
+        builder.Property(shoppingList => shoppingList.ArchivedAt)
+            .IsRequired(false);
 
         builder.HasMany(shoppingList => shoppingList.Items)
             .WithOne()
@@ -52,13 +55,5 @@ public sealed class ShoppingListConfiguration : IEntityTypeConfiguration<Shoppin
             .UsePropertyAccessMode(PropertyAccessMode.Field);
 
         builder.HasIndex(shoppingList => shoppingList.HouseholdId);
-        builder.HasIndex(shoppingList => shoppingList.CreatedByMemberId);
-
-        builder.HasIndex(shoppingList => new { shoppingList.HouseholdId, shoppingList.IsDefault });
-
-        builder.HasIndex(shoppingList => new { shoppingList.HouseholdId, shoppingList.IsDefault })
-            .IsUnique()
-            .HasDatabaseName("ix_shopping_lists_household_id_active_default")
-            .HasFilter("is_default = true AND archived_at IS NULL");
     }
 }

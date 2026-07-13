@@ -20,6 +20,7 @@ public sealed class HouseholdsController(
     UpdateHouseholdUseCase updateHouseholdUseCase,
     DeleteHouseholdUseCase deleteHouseholdUseCase,
     GetHouseholdMembersUseCase getHouseholdMembersUseCase,
+    GetHouseholdMemberUseCase getHouseholdMemberUseCase,
     UpdateHouseholdMemberUseCase updateHouseholdMemberUseCase,
     GetHouseholdInvitationsUseCase getHouseholdInvitationsUseCase,
     InviteHouseholdMemberUseCase inviteHouseholdMemberUseCase,
@@ -47,7 +48,7 @@ public sealed class HouseholdsController(
         try
         {
             var members = await getHouseholdMembersUseCase.ExecuteAsync(
-                new GetHouseholdMembersQuery(householdId, actorAccessor.DomuActor),
+                new GetHouseholdMembersQuery(actorAccessor.DomuActor, householdId),
                 cancellationToken);
 
             return Ok(members);
@@ -57,6 +58,34 @@ public sealed class HouseholdsController(
             return NotFound();
         }
     }
+    
+    [HttpGet("{householdId:guid}/members/{memberId:guid}")]
+    [ProducesResponseType(typeof(HouseholdMemberView), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<HouseholdMemberView>> GetMember(
+        Guid householdId,
+        Guid memberId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var member = await getHouseholdMemberUseCase.ExecuteAsync(
+                new GetHouseholdMemberQuery(actorAccessor.DomuActor, householdId, memberId),
+                cancellationToken);
+
+            return Ok(member);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(new ProblemDetails { Title = "Invalid household member.", Detail = exception.Message });
+        }
+    }
+
 
     [HttpPut("{householdId:guid}/members/{memberId:guid}")]
     [ProducesResponseType(typeof(HouseholdMemberView), StatusCodes.Status200OK)]

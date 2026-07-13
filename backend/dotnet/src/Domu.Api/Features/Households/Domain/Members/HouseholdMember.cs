@@ -37,6 +37,7 @@ public sealed class HouseholdMember
     public string DisplayName { get; private set; } = null!;
 
     public HouseholdMemberRole Role { get; private set; }
+    public DateTimeOffset CreatedAt { get; }
     public DateTimeOffset JoinedAt { get; }
     public bool Archived { get; private set; }
 

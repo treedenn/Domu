@@ -57,9 +57,9 @@ public sealed class ShoppingList
         UpdatedAt = archivedAt;
     }
 
-    public void Unarchive()
+    public void Unarchive(DateTimeOffset updatedAt)
     {
         ArchivedAt = null;
-        UpdatedAt = DateTimeOffset.MinValue;
+        UpdatedAt = updatedAt;
     }
 }

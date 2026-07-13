@@ -24,7 +24,7 @@ public sealed class UpdateShoppingListUseCase(
         if (command.Archived)
             list.Archive(DateTimeOffset.UtcNow);
         else
-            list.Unarchive();
+            list.Unarchive(DateTimeOffset.UtcNow);
 
         await shoppingListRepository.UpdateAsync(list, cancellationToken);
         await _householdActivityRecorder.RecordAsync(
