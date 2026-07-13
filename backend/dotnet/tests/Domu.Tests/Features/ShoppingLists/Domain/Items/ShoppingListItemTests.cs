@@ -18,6 +18,17 @@ public sealed class ShoppingListItemTests
     }
 
     [Fact]
+    public void Rename_WithEmptyName_ThrowsItemSpecificError()
+    {
+        var item = CreateItem("Milk");
+
+        var action = () => item.Rename("  ", DateTimeOffset.UtcNow);
+
+        var exception = Assert.Throws<ArgumentException>(action);
+        Assert.Contains("Shopping list item name cannot be empty", exception.Message);
+    }
+
+    [Fact]
     public void ChangeQuantity_ToZero_Throws()
     {
         var item = CreateItem("Milk");

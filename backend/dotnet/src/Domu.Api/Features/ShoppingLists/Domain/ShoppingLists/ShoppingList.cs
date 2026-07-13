@@ -1,4 +1,4 @@
-using Domu.Api.Features.ShoppingLists.Domain.Items;
+using Domu.Api.Features.ShoppingLists.Domain;
 
 namespace Domu.Api.Features.ShoppingLists.Domain.ShoppingLists;
 
@@ -41,7 +41,10 @@ public sealed class ShoppingList
 
     public void Rename(string name, DateTimeOffset updatedAt)
     {
-        var cleanedName = ShoppingListText.CleanName(name);
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Shopping list name cannot be empty.", nameof(name));
+
+        var cleanedName = NameNormalizer.Clean(name);
         if (cleanedName.Length > NameMaxLength)
             throw new ArgumentException(
                 $"Shopping list name cannot be longer than {NameMaxLength} characters.",
