@@ -1,19 +1,28 @@
 import 'package:domu_mobile/app/router/app_router.dart';
 import 'package:domu_mobile/app/theme/app_theme.dart';
 import 'package:domu_mobile/features/auth/ui/auth_view_model.dart';
+import 'package:domu_mobile/features/households/ui/households_view_model.dart';
 import 'package:flutter/material.dart';
 
 class DomuApp extends StatefulWidget {
-  const DomuApp({super.key, required this.authViewModel});
+  const DomuApp({
+    super.key,
+    required this.authViewModel,
+    required this.householdsViewModel,
+  });
 
   final AuthViewModel authViewModel;
+  final HouseholdsViewModel householdsViewModel;
 
   @override
   State<DomuApp> createState() => _DomuAppState();
 }
 
 class _DomuAppState extends State<DomuApp> {
-  late final AppRouter _appRouter = AppRouter(widget.authViewModel);
+  late final AppRouter _appRouter = AppRouter(
+    widget.authViewModel,
+    householdsViewModel: widget.householdsViewModel,
+  );
 
   @override
   Widget build(BuildContext context) {

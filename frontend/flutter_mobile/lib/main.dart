@@ -1,9 +1,12 @@
 import 'package:domu_mobile/app/app.dart';
 import 'package:domu_mobile/app/config/auth_configuration.dart';
+import 'package:domu_mobile/core/api/api_client.dart';
 import 'package:domu_mobile/features/auth/data/flutter_oidc_client.dart';
 import 'package:domu_mobile/features/auth/data/secure_session_storage.dart';
 import 'package:domu_mobile/features/auth/data/zitadel_auth_repository.dart';
 import 'package:domu_mobile/features/auth/ui/auth_view_model.dart';
+import 'package:domu_mobile/features/households/data/api_household_repository.dart';
+import 'package:domu_mobile/features/households/ui/households_view_model.dart';
 import 'package:flutter/widgets.dart';
 
 void main() {
@@ -14,6 +17,19 @@ void main() {
     SecureSessionStorage(),
   );
   final authViewModel = AuthViewModel(repository);
+  final householdsViewModel = HouseholdsViewModel(
+    ApiHouseholdRepository(
+      ApiClient(
+        baseUrl: configuration.apiBaseUrl,
+        accessToken: authViewModel.validAccessToken,
+      ),
+    ),
+  );
   authViewModel.initialize();
-  runApp(DomuApp(authViewModel: authViewModel));
+  runApp(
+    DomuApp(
+      authViewModel: authViewModel,
+      householdsViewModel: householdsViewModel,
+    ),
+  );
 }
