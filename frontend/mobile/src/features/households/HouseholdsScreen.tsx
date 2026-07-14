@@ -84,10 +84,11 @@ export default function HouseholdsScreen() {
     loadHouseholds();
   }, [loadHouseholds]);
 
-  const submitHousehold = useCallback(async (name: string) => {
+  const submitHousehold = useCallback(async (name: string, ownerDisplayName: string) => {
     const trimmedName = name.trim();
+    const trimmedOwnerDisplayName = ownerDisplayName.trim();
 
-    if (!accessToken || !trimmedName) {
+    if (!accessToken || !trimmedName || !trimmedOwnerDisplayName) {
       return;
     }
 
@@ -95,7 +96,10 @@ export default function HouseholdsScreen() {
     setError(null);
 
     try {
-      const household = await createHousehold({ name: trimmedName }, { accessToken });
+      const household = await createHousehold(
+        { name: trimmedName, ownerDisplayName: trimmedOwnerDisplayName },
+        { accessToken },
+      );
       setHouseholds((currentHouseholds) => [household, ...currentHouseholds]);
       setFormResetKey((key) => key + 1);
     } catch (exception) {
@@ -181,7 +185,7 @@ function HouseholdsListHeader({
   householdCountLabel: string;
   loading: boolean;
   onSignInAgain: () => void;
-  onSubmitHousehold: (name: string) => void;
+  onSubmitHousehold: (name: string, ownerDisplayName: string) => void;
   resetKey: number;
   topBarActions: AppTopBarAction[];
 }) {

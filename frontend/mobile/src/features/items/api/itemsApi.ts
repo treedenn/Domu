@@ -1,29 +1,29 @@
-import { apiRequest, type ApiRequestOptions } from '@/core/http/apiClient';
+import { ApiError, apiRequest, type ApiRequestOptions } from '@/core/http/apiClient';
 
 export enum ItemUnit {
-  Unspecified = 0,
-  Piece = 1,
-  Milliliter = 100,
-  Liter = 101,
-  Gram = 200,
-  Kilogram = 201,
+  Unspecified = 'unspecified',
+  Piece = 'piece',
+  Milliliter = 'milliliter',
+  Liter = 'liter',
+  Gram = 'gram',
+  Kilogram = 'kilogram',
 }
 
 export enum ItemContainerType {
-  Unspecified = 0,
-  Bottle = 1,
-  Carton = 2,
-  Can = 3,
-  Jar = 4,
-  Pack = 5,
-  Box = 6,
-  Bag = 7,
+  Unspecified = 'unspecified',
+  Bottle = 'bottle',
+  Carton = 'carton',
+  Can = 'can',
+  Jar = 'jar',
+  Pack = 'pack',
+  Box = 'box',
+  Bag = 'bag',
 }
 
 export enum ConsumableState {
-  Unspecified = 0,
-  Unopened = 1,
-  Opened = 2,
+  Unspecified = 'unspecified',
+  Unopened = 'unopened',
+  Opened = 'opened',
 }
 
 export type ItemEntryRequest = {
@@ -74,13 +74,20 @@ export function getItems(householdId: string, spaceId: string, options?: ApiRequ
   return apiRequest<ItemView[]>(itemsPath(householdId, spaceId), options);
 }
 
-export function getItem(
+export async function getItem(
   householdId: string,
   spaceId: string,
   itemId: string,
   options?: ApiRequestOptions,
 ) {
-  return apiRequest<ItemView>(`${itemsPath(householdId, spaceId)}/${itemId}`, options);
+  const items = await getItems(householdId, spaceId, options);
+  const item = items.find((candidate) => candidate.id === itemId);
+
+  if (!item) {
+    throw new ApiError(`Item '${itemId}' was not found.`, 404);
+  }
+
+  return item;
 }
 
 export function createItem(
@@ -139,4 +146,3 @@ export function deleteItem(
 function itemsPath(householdId: string, spaceId: string) {
   return `/households/${householdId}/spaces/${spaceId}/items`;
 }
-

@@ -20,7 +20,6 @@ import {
   ConsumableState,
   deleteItem,
   getItem,
-  getItems,
   ItemContainerType,
   ItemUnit,
   replaceItemEntries,
@@ -36,7 +35,7 @@ import {
 } from '@/features/items/components/ItemIdentityForm';
 import {
   createShoppingListItem,
-  getDefaultShoppingList,
+  getOrCreatePrimaryShoppingList,
 } from '@/features/shopping-lists/api';
 import { AppTopBar, type AppTopBarAction } from '@/ui/AppTopBar';
 
@@ -412,7 +411,9 @@ export default function ItemDetailsScreen() {
       setError(null);
 
       try {
-        const shoppingList = await getDefaultShoppingList(resolvedHouseholdId, { accessToken });
+        const shoppingList = await getOrCreatePrimaryShoppingList(resolvedHouseholdId, {
+          accessToken,
+        });
         await createShoppingListItem(
           resolvedHouseholdId,
           shoppingList.id,
@@ -618,20 +619,7 @@ async function loadItemDetails(
   itemId: string,
   accessToken: string,
 ) {
-  try {
-    return await getItem(householdId, spaceId, itemId, { accessToken });
-  } catch (exception) {
-    if (exception instanceof ApiError && (exception.status === 404 || exception.status === 405)) {
-      const items = await getItems(householdId, spaceId, { accessToken });
-      const item = items.find((candidate) => candidate.id === itemId);
-
-      if (item) {
-        return item;
-      }
-    }
-
-    throw exception;
-  }
+  return getItem(householdId, spaceId, itemId, { accessToken });
 }
 
 function SummaryCard({

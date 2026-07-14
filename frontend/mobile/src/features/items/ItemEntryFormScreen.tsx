@@ -19,7 +19,6 @@ import { useAuthSession } from '@/features/auth/authSession';
 import {
   ConsumableState,
   getItem,
-  getItems,
   ItemContainerType,
   ItemUnit,
   replaceItemEntries,
@@ -539,20 +538,7 @@ async function loadItemDetails(
   itemId: string,
   accessToken: string,
 ) {
-  try {
-    return await getItem(householdId, spaceId, itemId, { accessToken });
-  } catch (exception) {
-    if (exception instanceof ApiError && (exception.status === 404 || exception.status === 405)) {
-      const items = await getItems(householdId, spaceId, { accessToken });
-      const item = items.find((candidate) => candidate.id === itemId);
-
-      if (item) {
-        return item;
-      }
-    }
-
-    throw exception;
-  }
+  return getItem(householdId, spaceId, itemId, { accessToken });
 }
 
 function toItemEntryRequest(entry: ItemEntryView): ItemEntryRequest {

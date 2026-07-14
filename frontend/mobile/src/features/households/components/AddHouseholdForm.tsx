@@ -12,7 +12,7 @@ import {
 type AddHouseholdFormProps = {
   canSubmit: boolean;
   creating: boolean;
-  onSubmit: (name: string) => void;
+  onSubmit: (name: string, ownerDisplayName: string) => void;
   resetKey: number;
 };
 
@@ -23,21 +23,37 @@ export const AddHouseholdForm = memo(function AddHouseholdForm({
   resetKey,
 }: AddHouseholdFormProps) {
   const [name, setName] = useState('');
-  const canCreate = canSubmit && Boolean(name.trim()) && !creating;
+  const [ownerDisplayName, setOwnerDisplayName] = useState('');
+  const canCreate = canSubmit && Boolean(name.trim()) && Boolean(ownerDisplayName.trim()) && !creating;
 
   useEffect(() => {
     setName('');
+    setOwnerDisplayName('');
   }, [resetKey]);
 
   const submit = useCallback(() => {
-    onSubmit(name);
-  }, [name, onSubmit]);
+    onSubmit(name, ownerDisplayName);
+  }, [name, onSubmit, ownerDisplayName]);
 
   return (
     <View style={styles.formPanel}>
       <View style={styles.formHeader}>
         <MaterialIcons color="#526049" name="add-home" size={22} />
         <Text style={styles.formTitle}>Add Household</Text>
+      </View>
+
+      <View style={styles.field}>
+        <Text style={styles.label}>Your display name</Text>
+        <TextInput
+          autoCapitalize="words"
+          onChangeText={setOwnerDisplayName}
+          onSubmitEditing={submit}
+          placeholder="Alex"
+          placeholderTextColor="#8c8a81"
+          returnKeyType="done"
+          style={styles.input}
+          value={ownerDisplayName}
+        />
       </View>
 
       <View style={styles.field}>

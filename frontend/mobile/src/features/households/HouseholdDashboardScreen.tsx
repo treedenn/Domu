@@ -18,7 +18,7 @@ import { AddSpaceForm } from '@/features/households/components/AddSpaceForm';
 import { DashboardSummaryMetrics } from '@/features/households/components/DashboardSummaryMetrics';
 import { SpacesList } from '@/features/households/components/SpacesList';
 import {
-  getDefaultShoppingList,
+  getOrCreatePrimaryShoppingList,
   getShoppingListItems,
   type ShoppingListView,
 } from '@/features/shopping-lists/api';
@@ -283,7 +283,7 @@ export default function HouseholdDashboardScreen() {
 }
 
 async function loadShoppingListSummary(householdId: string, accessToken: string) {
-  const shoppingList = await getDefaultShoppingList(householdId, { accessToken });
+  const shoppingList = await getOrCreatePrimaryShoppingList(householdId, { accessToken });
   const items = await getShoppingListItems(householdId, shoppingList.id, { accessToken });
 
   return {

@@ -4,8 +4,7 @@ export type ShoppingListView = {
   id: string;
   householdId: string;
   name: string;
-  isDefault: boolean;
-  createdByUserId: string;
+  createdByMemberId: string;
   createdAt: string;
   updatedAt: string;
   archivedAt: string | null;
@@ -23,10 +22,10 @@ export type ShoppingListItemView = {
   note: string | null;
   checked: boolean;
   checkedAt: string | null;
-  checkedByUserId: string | null;
+  checkedByMemberId: string | null;
   spaceId: string | null;
   itemId: string | null;
-  addedByUserId: string;
+  addedByMemberId: string;
   createdAt: string;
   updatedAt: string;
   sortOrder: number;
@@ -42,6 +41,15 @@ export type CreateShoppingListItemRequest = {
   itemId?: string | null;
 };
 
+export type CreateShoppingListRequest = {
+  name: string;
+};
+
+export type UpdateShoppingListRequest = {
+  name: string;
+  archived: boolean;
+};
+
 export type UpdateShoppingListItemRequest = {
   name?: string | null;
   quantity?: number | null;
@@ -53,8 +61,63 @@ export type UpdateShoppingListItemRequest = {
   sortOrder?: number | null;
 };
 
-export function getDefaultShoppingList(householdId: string, options?: ApiRequestOptions) {
-  return apiRequest<ShoppingListView>(`/households/${householdId}/shopping-list/default`, options);
+export function getShoppingLists(householdId: string, options?: ApiRequestOptions) {
+  return apiRequest<ShoppingListView[]>(shoppingListsPath(householdId), options);
+}
+
+export function getShoppingList(
+  householdId: string,
+  shoppingListId: string,
+  options?: ApiRequestOptions,
+) {
+  return apiRequest<ShoppingListView>(
+    `${shoppingListsPath(householdId)}/${shoppingListId}`,
+    options,
+  );
+}
+
+export function createShoppingList(
+  householdId: string,
+  request: CreateShoppingListRequest,
+  options?: ApiRequestOptions,
+) {
+  return apiRequest<ShoppingListView>(shoppingListsPath(householdId), {
+    ...options,
+    body: request,
+    method: 'POST',
+  });
+}
+
+export function updateShoppingList(
+  householdId: string,
+  shoppingListId: string,
+  request: UpdateShoppingListRequest,
+  options?: ApiRequestOptions,
+) {
+  return apiRequest<ShoppingListView>(`${shoppingListsPath(householdId)}/${shoppingListId}`, {
+    ...options,
+    body: request,
+    method: 'PUT',
+  });
+}
+
+export function deleteShoppingList(
+  householdId: string,
+  shoppingListId: string,
+  options?: ApiRequestOptions,
+) {
+  return apiRequest<void>(`${shoppingListsPath(householdId)}/${shoppingListId}`, {
+    ...options,
+    method: 'DELETE',
+  });
+}
+
+export async function getOrCreatePrimaryShoppingList(
+  householdId: string,
+  options?: ApiRequestOptions,
+) {
+  const lists = await getShoppingLists(householdId, options);
+  return lists[0] ?? createShoppingList(householdId, { name: 'Shopping list' }, options);
 }
 
 export function getShoppingListItems(
@@ -153,4 +216,8 @@ export function clearCheckedShoppingListItems(
 
 function shoppingListItemsPath(householdId: string, shoppingListId: string) {
   return `/households/${householdId}/shopping-lists/${shoppingListId}/items`;
+}
+
+function shoppingListsPath(householdId: string) {
+  return `/households/${householdId}/shopping-lists`;
 }

@@ -1,36 +1,35 @@
 import { apiRequest, type ApiRequestOptions } from '@/core/http/apiClient';
 
 export enum HouseholdSubscriptionPlan {
-  Unknown = 0,
-  Free = 1,
-  Premium = 2,
+  Unknown = 'unknown',
+  Free = 'free',
+  Premium = 'premium',
 }
 
 export enum HouseholdSubscriptionStatus {
-  Unknown = 0,
-  Active = 1,
-  CancellationScheduled = 2,
-  Expired = 3,
+  Unknown = 'unknown',
+  Active = 'active',
+  CancellationScheduled = 'cancellationScheduled',
+  Expired = 'expired',
 }
 
 export enum HouseholdMemberRole {
-  Unspecified = 0,
-  Owner = 1,
-  Admin = 2,
-  Member = 3,
+  Unspecified = 'unspecified',
+  Owner = 'owner',
+  Admin = 'admin',
+  Member = 'member',
 }
 
 export enum HouseholdInvitationStatus {
-  Unknown = 0,
-  Pending = 1,
-  Accepted = 2,
-  Cancelled = 3,
-  Expired = 4,
+  Unknown = 'unknown',
+  Pending = 'pending',
+  Accepted = 'accepted',
+  Cancelled = 'cancelled',
+  Expired = 'expired',
 }
 
 export type HouseholdView = {
   id: string;
-  ownerId: string;
   name: string;
   subscriptionPlan: HouseholdSubscriptionPlan;
   subscriptionStatus: HouseholdSubscriptionStatus;
@@ -41,16 +40,19 @@ export type HouseholdView = {
 export type HouseholdMemberView = {
   id: string;
   householdId: string;
-  userId: string;
+  userId: string | null;
+  displayName: string;
   role: HouseholdMemberRole;
   joinedAt: string;
+  archived: boolean;
 };
 
 export type HouseholdInvitationView = {
   id: string;
   householdId: string;
   email: string;
-  invitedByUserId: string;
+  displayName: string;
+  invitedByMemberId: string;
   role: HouseholdMemberRole;
   status: HouseholdInvitationStatus;
   createdAt: string;
@@ -60,13 +62,23 @@ export type HouseholdInvitationView = {
 
 export type CreateHouseholdRequest = {
   name: string;
+  ownerDisplayName: string;
 };
 
-export type UpdateHouseholdRequest = CreateHouseholdRequest;
+export type UpdateHouseholdRequest = {
+  name: string;
+};
 
 export type InviteHouseholdMemberRequest = {
   email: string;
+  displayName: string;
   role?: HouseholdMemberRole;
+};
+
+export type UpdateHouseholdMemberRequest = {
+  displayName: string;
+  role: HouseholdMemberRole;
+  archived: boolean;
 };
 
 export function getHouseholds(options?: ApiRequestOptions) {
@@ -108,6 +120,30 @@ export function getHouseholdMembers(householdId: string, options?: ApiRequestOpt
   return apiRequest<HouseholdMemberView[]>(`/households/${householdId}/members`, options);
 }
 
+export function getHouseholdMember(
+  householdId: string,
+  memberId: string,
+  options?: ApiRequestOptions,
+) {
+  return apiRequest<HouseholdMemberView>(
+    `/households/${householdId}/members/${memberId}`,
+    options,
+  );
+}
+
+export function updateHouseholdMember(
+  householdId: string,
+  memberId: string,
+  request: UpdateHouseholdMemberRequest,
+  options?: ApiRequestOptions,
+) {
+  return apiRequest<HouseholdMemberView>(`/households/${householdId}/members/${memberId}`, {
+    ...options,
+    body: request,
+    method: 'PUT',
+  });
+}
+
 export function getHouseholdInvitations(householdId: string, options?: ApiRequestOptions) {
   return apiRequest<HouseholdInvitationView[]>(`/households/${householdId}/invitations`, options);
 }
@@ -130,4 +166,3 @@ export function acceptHouseholdInvitation(token: string, options?: ApiRequestOpt
     method: 'POST',
   });
 }
-

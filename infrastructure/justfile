@@ -1,0 +1,45 @@
+compose := "docker compose -f container-compose.yaml"
+
+# Show available infrastructure commands
+default:
+    @just --list
+
+# Start the local infrastructure
+up:
+    {{ compose }} up -d
+
+# Start the local infrastructure with Redis
+up-cache:
+    {{ compose }} --profile cache up -d
+
+# Start the local infrastructure with observability services
+up-observability:
+    {{ compose }} --profile observability up -d
+
+# Start the local infrastructure with all optional services
+up-all:
+    {{ compose }} --profile cache --profile observability up -d
+
+# Stop the local infrastructure
+down:
+    {{ compose }} down
+
+# Restart all infrastructure services, or one named service
+restart service="":
+    {{ compose }} restart {{ service }}
+
+# Follow logs for all infrastructure services, or one named service
+logs service="":
+    {{ compose }} logs --follow {{ service }}
+
+# Show infrastructure service status
+status:
+    {{ compose }} ps
+
+# Pull the configured infrastructure images
+pull:
+    {{ compose }} pull
+
+# Validate the resolved Compose configuration
+config:
+    {{ compose }} config --quiet

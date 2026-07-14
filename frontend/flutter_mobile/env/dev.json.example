@@ -1,0 +1,8 @@
+{
+  "DOMU_OIDC_ISSUER": "http://localhost:8080",
+  "DOMU_OIDC_CLIENT_ID": "mobile-client-id",
+  "DOMU_OIDC_REDIRECT_URI": "domu://auth/callback",
+  "DOMU_API_AUDIENCE": "http://localhost:8080",
+  "DOMU_API_SCOPE": "",
+  "DOMU_API_BASE_URL": "http://localhost:5070",
+}

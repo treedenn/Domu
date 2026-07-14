@@ -5,7 +5,7 @@ name: zitadel
 services:
   proxy:
     image: ${TRAEFIK_IMAGE}
-    restart: unless-stopped
+    restart: "no"
     command:
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
@@ -32,7 +32,7 @@ services:
 
   zitadel-api:
     image: ghcr.io/zitadel/zitadel:${ZITADEL_VERSION}
-    restart: unless-stopped
+    restart: "no"
     user: "0"
     command: start-from-init --masterkey "${ZITADEL_MASTERKEY}"
     environment:
@@ -124,7 +124,7 @@ services:
 
   zitadel-login:
     image: ghcr.io/zitadel/zitadel-login:${ZITADEL_VERSION}
-    restart: unless-stopped
+    restart: "no"
     user: "0"
     environment:
       ZITADEL_API_URL: http://zitadel-api:8080
@@ -186,7 +186,7 @@ services:
 
   redis:
     image: ${REDIS_IMAGE}
-    restart: unless-stopped
+    restart: "no"
     profiles:
       - cache
     command:
@@ -199,7 +199,7 @@ services:
 
   otel-collector:
     image: ${OTEL_COLLECTOR_IMAGE}
-    restart: unless-stopped
+    restart: "no"
     profiles:
       - observability
     command:

@@ -21,7 +21,7 @@ import { getHousehold, type HouseholdView } from '@/features/households/api';
 import { getItems, type ItemView } from '@/features/items/api';
 import {
   createShoppingListItem,
-  getDefaultShoppingList,
+  getOrCreatePrimaryShoppingList,
 } from '@/features/shopping-lists/api';
 import {
   createSpace,
@@ -281,7 +281,9 @@ export default function SpaceOverviewScreen() {
       setError(null);
 
       try {
-        const shoppingList = await getDefaultShoppingList(resolvedHouseholdId, { accessToken });
+        const shoppingList = await getOrCreatePrimaryShoppingList(resolvedHouseholdId, {
+          accessToken,
+        });
         await createShoppingListItem(
           resolvedHouseholdId,
           shoppingList.id,

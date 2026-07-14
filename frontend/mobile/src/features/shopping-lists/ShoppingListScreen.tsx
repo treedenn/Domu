@@ -24,7 +24,7 @@ import {
   clearCheckedShoppingListItems,
   createShoppingListItem,
   deleteShoppingListItem,
-  getDefaultShoppingList,
+  getOrCreatePrimaryShoppingList,
   getShoppingListItems,
   type ShoppingListItemView,
   type ShoppingListView,
@@ -92,7 +92,7 @@ export default function ShoppingListScreen() {
       setError(null);
 
       try {
-        const nextList = await getDefaultShoppingList(resolvedHouseholdId, { accessToken });
+        const nextList = await getOrCreatePrimaryShoppingList(resolvedHouseholdId, { accessToken });
         const nextItems = await getShoppingListItems(resolvedHouseholdId, nextList.id, {
           accessToken,
         });

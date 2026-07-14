@@ -1,0 +1,9 @@
+{
+  "DOMU_OIDC_ISSUER": "http://localhost:8080",
+  "DOMU_OIDC_CLIENT_ID": "372813435810938885",
+  "DOMU_OIDC_REDIRECT_URI": "domu://auth/callback",
+  "DOMU_OIDC_ALLOW_HTTPS": "false",
+  "DOMU_API_AUDIENCE": "http://localhost:8080",
+  "DOMU_API_SCOPE": "",
+  "DOMU_API_BASE_URL": "http://localhost:5070"
+}

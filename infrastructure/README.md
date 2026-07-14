@@ -23,20 +23,30 @@ The current setup runs with Rancher Desktop and Docker Compose. Rancher Desktop 
 From this folder:
 
 ```powershell
-docker compose -f container-compose.yaml up -d
+just up
 ```
 
 To watch startup logs:
 
 ```powershell
-docker compose -f container-compose.yaml logs -f
+just logs
 ```
 
 To stop the stack:
 
 ```powershell
-docker compose -f container-compose.yaml down
+just down
 ```
+
+Run `just` to list the other infrastructure commands. From the repository root,
+the same recipes are available under the `infrastructure` module, for example:
+
+```powershell
+just infrastructure up
+```
+
+All services use `restart: "no"`, so enabling Docker at system startup does not
+start the Domu stack.
 
 ## Services
 
@@ -113,7 +123,7 @@ The Zitadel Compose file defines optional services behind profiles:
 Example:
 
 ```powershell
-docker compose -f container-compose.yaml --profile cache up -d
+just up-cache
 ```
 
 ## Persistent Volumes

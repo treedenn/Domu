@@ -1,7 +1,11 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import type { HouseholdView } from '@/features/households/api';
+import {
+  HouseholdSubscriptionPlan,
+  HouseholdSubscriptionStatus,
+  type HouseholdView,
+} from '@/features/households/api';
 
 type HouseholdsListItemProps = {
   household: HouseholdView;
@@ -29,8 +33,11 @@ export function HouseholdsListItem({ household, onPress }: HouseholdsListItemPro
 }
 
 function formatSubscription(household: HouseholdView) {
-  const plan = household.subscriptionPlan === 2 ? 'Premium' : 'Free';
-  const status = household.subscriptionStatus === 2 ? 'Cancellation scheduled' : 'Active';
+  const plan = household.subscriptionPlan === HouseholdSubscriptionPlan.Premium ? 'Premium' : 'Free';
+  const status =
+    household.subscriptionStatus === HouseholdSubscriptionStatus.CancellationScheduled
+      ? 'Cancellation scheduled'
+      : 'Active';
 
   return `${plan} plan - ${status}`;
 }
