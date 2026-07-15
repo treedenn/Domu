@@ -1,0 +1,15 @@
+import 'household_member.dart';
+
+class PendingInvitation {
+  const PendingInvitation({
+    required this.id,
+    required this.displayName,
+    required this.email,
+    required this.role,
+  });
+
+  final String id;
+  final String displayName;
+  final String email;
+  final HouseholdMemberRole role;
+}

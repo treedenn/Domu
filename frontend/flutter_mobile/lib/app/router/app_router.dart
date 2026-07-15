@@ -1,15 +1,26 @@
 import 'package:domu_mobile/features/auth/ui/auth_view_model.dart';
 import 'package:domu_mobile/features/auth/ui/login_view.dart';
 import 'package:domu_mobile/features/auth/ui/splash_view.dart';
+import 'package:domu_mobile/features/dashboard/ui/dashboard_view.dart';
 import 'package:domu_mobile/features/households/domain/household.dart';
 import 'package:domu_mobile/features/households/domain/household_repository.dart';
+import 'package:domu_mobile/features/households/ui/household_shell.dart';
 import 'package:domu_mobile/features/households/ui/households_view.dart';
 import 'package:domu_mobile/features/households/ui/households_view_model.dart';
+import 'package:domu_mobile/features/members/ui/members_view.dart';
+import 'package:domu_mobile/features/members/domain/household_member.dart';
+import 'package:domu_mobile/features/members/domain/members_repository.dart';
+import 'package:domu_mobile/features/members/domain/members_result.dart';
+import 'package:domu_mobile/features/members/domain/pending_invitation.dart';
+import 'package:domu_mobile/features/members/ui/members_view_model.dart';
+import 'package:domu_mobile/features/shopping_lists/ui/shopping_lists_view.dart';
+import 'package:domu_mobile/features/spaces/ui/spaces_view.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 abstract final class AppRoute {
-  static const dashboard = '/';
+  static const households = '/';
+  static const dashboard = households;
   static const splash = '/splash';
   static const login = '/login';
   static const notFound = '/not-found';
@@ -19,9 +30,12 @@ class AppRouter {
   AppRouter(
     AuthViewModel authViewModel, {
     HouseholdsViewModel? householdsViewModel,
+    MembersViewModel? membersViewModel,
   }) : _householdsViewModel =
            householdsViewModel ??
            HouseholdsViewModel(_UnavailableHouseholdRepository()) {
+    _membersViewModel =
+        membersViewModel ?? MembersViewModel(_UnavailableMembersRepository());
     router = GoRouter(
       initialLocation: AppRoute.dashboard,
       refreshListenable: authViewModel,
@@ -37,11 +51,43 @@ class AppRouter {
           builder: (_, _) => const UnknownRouteScreen(),
         ),
         GoRoute(
-          path: AppRoute.dashboard,
+          path: AppRoute.households,
           builder: (_, _) => HouseholdsView(
             viewModel: _householdsViewModel,
             onSignOut: authViewModel.signOut,
+            onHouseholdSelected: (household) =>
+                router.go('/households/${household.id}/dashboard'),
           ),
+        ),
+        ShellRoute(
+          builder: (_, state, child) => HouseholdShell(
+            key: ValueKey(state.pathParameters['householdId']),
+            householdId: state.pathParameters['householdId']!,
+            viewModel: _householdsViewModel,
+            onSignOut: authViewModel.signOut,
+            child: child,
+          ),
+          routes: [
+            GoRoute(
+              path: '/households/:householdId/dashboard',
+              builder: (_, _) => const DashboardView(),
+            ),
+            GoRoute(
+              path: '/households/:householdId/members',
+              builder: (_, state) => MembersView(
+                householdId: state.pathParameters['householdId']!,
+                viewModel: _membersViewModel,
+              ),
+            ),
+            GoRoute(
+              path: '/households/:householdId/shopping-lists',
+              builder: (_, _) => const ShoppingListsView(),
+            ),
+            GoRoute(
+              path: '/households/:householdId/spaces',
+              builder: (_, _) => const SpacesView(),
+            ),
+          ],
         ),
         GoRoute(
           path: '/:unknown(.*)',
@@ -53,6 +99,7 @@ class AppRouter {
 
   late final GoRouter router;
   final HouseholdsViewModel _householdsViewModel;
+  late final MembersViewModel _membersViewModel;
 
   static String? _redirect(AuthViewModel auth, GoRouterState state) {
     final location = state.uri.toString();
@@ -98,6 +145,38 @@ class AppRouter {
     final uri = Uri.tryParse(value);
     return uri != null && !uri.hasScheme && uri.host.isEmpty ? value : null;
   }
+}
+
+class _UnavailableMembersRepository implements MembersRepository {
+  @override
+  Future<void> archiveMember({
+    required String householdId,
+    required HouseholdMember member,
+  }) => Future<void>.error(
+    const MembersRepositoryException('Members are unavailable.'),
+  );
+
+  @override
+  Future<PendingInvitation> createInvitation({
+    required String householdId,
+    required String displayName,
+    required String email,
+    required HouseholdMemberRole role,
+  }) => Future<PendingInvitation>.error(
+    const MembersRepositoryException('Members are unavailable.'),
+  );
+
+  @override
+  Future<MembersResult> getMembers(String householdId) =>
+      Future<MembersResult>.error(
+        const MembersRepositoryException('Members are unavailable.'),
+      );
+
+  @override
+  Future<List<PendingInvitation>> getPendingInvitations(String householdId) =>
+      Future<List<PendingInvitation>>.error(
+        const MembersRepositoryException('Members are unavailable.'),
+      );
 }
 
 class _UnavailableHouseholdRepository implements HouseholdRepository {

@@ -4,10 +4,16 @@ import '../domain/household.dart';
 import 'households_view_model.dart';
 
 class HouseholdsView extends StatefulWidget {
-  const HouseholdsView({super.key, required this.viewModel, this.onSignOut});
+  const HouseholdsView({
+    super.key,
+    required this.viewModel,
+    this.onSignOut,
+    this.onHouseholdSelected,
+  });
 
   final HouseholdsViewModel viewModel;
   final Future<void> Function()? onSignOut;
+  final void Function(Household household)? onHouseholdSelected;
 
   @override
   State<HouseholdsView> createState() => _HouseholdsViewState();
@@ -113,7 +119,10 @@ class _HouseholdsViewState extends State<HouseholdsView> {
             leading: Icon(selected ? Icons.check_circle : Icons.home_outlined),
             title: Text(household.name),
             subtitle: selected ? const Text('Selected for this session') : null,
-            onTap: () => viewModel.selectHousehold(household),
+            onTap: () {
+              viewModel.selectHousehold(household);
+              widget.onHouseholdSelected?.call(household);
+            },
             trailing: PopupMenuButton<_HouseholdAction>(
               tooltip: 'Household actions',
               onSelected: (action) => switch (action) {

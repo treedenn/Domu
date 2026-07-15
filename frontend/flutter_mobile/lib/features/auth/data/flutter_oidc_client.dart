@@ -48,6 +48,7 @@ class FlutterOidcClient implements OidcClient {
             '${_configuration.issuer}/.well-known/openid-configuration',
         refreshToken: refreshToken,
         scopes: _configuration.scopes,
+        allowInsecureConnections: _configuration.https,
       ),
     );
     return OidcTokens(

@@ -28,6 +28,18 @@ void main() {
 
     expect(viewModel.errorMessage, 'Could not load households.');
   });
+
+  test('clears the selection when it disappears during refresh', () async {
+    final repository = _FakeRepository();
+    final viewModel = HouseholdsViewModel(repository);
+    await viewModel.load();
+    viewModel.selectHousehold(viewModel.households.single);
+
+    repository.removeAll();
+    await viewModel.refresh();
+
+    expect(viewModel.selectedHouseholdId, isNull);
+  });
 }
 
 class _FakeRepository implements HouseholdRepository {
@@ -61,6 +73,8 @@ class _FakeRepository implements HouseholdRepository {
     }
     return List.of(_households);
   }
+
+  void removeAll() => _households.clear();
 
   @override
   Future<Household> updateHousehold({
