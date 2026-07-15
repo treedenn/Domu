@@ -1,6 +1,7 @@
 using Domu.Api.Features.Auth.Application;
 using Domu.Api.Features.Spaces.Application.Items;
 using Domu.Api.Features.Spaces.Application.Items.Contracts;
+using Domu.Api.Interface.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,9 +21,9 @@ public sealed class ItemsController(
     : ControllerBase
 {
     [HttpGet]
-    [ProducesResponseType(typeof(IReadOnlyList<ItemView>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<ItemView>>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IReadOnlyList<ItemView>>> GetItems(
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<ItemView>>>> GetItems(
         Guid householdId,
         Guid spaceId,
         CancellationToken cancellationToken)
@@ -32,7 +33,7 @@ public sealed class ItemsController(
             var items = await getSpaceItemsUseCase.ExecuteAsync(
                 new GetSpaceItemsQuery(actorAccessor.DomuActor, householdId, spaceId),
                 cancellationToken);
-            return Ok(items);
+            return Ok(new ApiResponse<IReadOnlyList<ItemView>>(items));
         }
         catch (KeyNotFoundException)
         {
@@ -41,10 +42,10 @@ public sealed class ItemsController(
     }
 
     [HttpPost]
-    [ProducesResponseType(typeof(ItemView), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse<ItemView>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ItemView>> CreateItem(
+    public async Task<ActionResult<ApiResponse<ItemView>>> CreateItem(
         Guid householdId,
         Guid spaceId,
         CreateItemRequest request,
@@ -63,7 +64,7 @@ public sealed class ItemsController(
                     request.Entries?.Select(entry => entry.ToDraft()).ToArray()),
                 cancellationToken);
 
-            return CreatedAtAction(nameof(GetItems), new { householdId, spaceId }, item);
+            return CreatedAtAction(nameof(GetItems), new { householdId, spaceId }, new ApiResponse<ItemView>(item));
         }
         catch (KeyNotFoundException)
         {
@@ -76,10 +77,10 @@ public sealed class ItemsController(
     }
 
     [HttpPut("{itemId:guid}")]
-    [ProducesResponseType(typeof(ItemView), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<ItemView>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ItemView>> UpdateItem(
+    public async Task<ActionResult<ApiResponse<ItemView>>> UpdateItem(
         Guid householdId,
         Guid spaceId,
         Guid itemId,
@@ -99,7 +100,7 @@ public sealed class ItemsController(
                     request.Barcode),
                 cancellationToken);
 
-            return Ok(item);
+            return Ok(new ApiResponse<ItemView>(item));
         }
         catch (KeyNotFoundException)
         {
@@ -112,10 +113,10 @@ public sealed class ItemsController(
     }
 
     [HttpPut("{itemId:guid}/entries")]
-    [ProducesResponseType(typeof(ItemView), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<ItemView>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ItemView>> ReplaceItemEntries(
+    public async Task<ActionResult<ApiResponse<ItemView>>> ReplaceItemEntries(
         Guid householdId,
         Guid spaceId,
         Guid itemId,
@@ -133,7 +134,7 @@ public sealed class ItemsController(
                     request.Entries.Select(entry => entry.ToDraft()).ToArray()),
                 cancellationToken);
 
-            return Ok(item);
+            return Ok(new ApiResponse<ItemView>(item));
         }
         catch (KeyNotFoundException)
         {

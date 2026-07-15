@@ -1,6 +1,7 @@
 using Domu.Api.Features.Auth.Application;
 using Domu.Api.Features.Spaces.Application.Spaces;
 using Domu.Api.Features.Spaces.Application.Spaces.Contracts;
+using Domu.Api.Interface.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,9 +22,9 @@ public sealed class SpacesController(
     : ControllerBase
 {
     [HttpGet]
-    [ProducesResponseType(typeof(SpacePage), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<SpacePage>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<SpacePage>> GetSpaces(
+    public async Task<ActionResult<ApiResponse<SpacePage>>> GetSpaces(
         Guid householdId,
         [FromQuery] Guid? parentId,
         [FromQuery] int pageNumber = 1,
@@ -47,7 +48,7 @@ public sealed class SpacesController(
                     ResolveChildrenProjection(includeChildSpaces, includeChildSpaceCount)),
                 cancellationToken);
 
-            return Ok(page);
+            return Ok(new ApiResponse<SpacePage>(page));
         }
         catch (KeyNotFoundException)
         {
@@ -60,9 +61,9 @@ public sealed class SpacesController(
     }
 
     [HttpGet("{spaceId:guid}")]
-    [ProducesResponseType(typeof(SpaceView), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<SpaceView>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<SpaceView>> GetSpace(
+    public async Task<ActionResult<ApiResponse<SpaceView>>> GetSpace(
         Guid householdId,
         Guid spaceId,
         CancellationToken cancellationToken)
@@ -73,7 +74,7 @@ public sealed class SpacesController(
                 new GetSpaceQuery(actorAccessor.DomuActor, householdId, spaceId),
                 cancellationToken);
 
-            return Ok(space);
+            return Ok(new ApiResponse<SpaceView>(space));
         }
         catch (KeyNotFoundException)
         {
@@ -82,10 +83,10 @@ public sealed class SpacesController(
     }
 
     [HttpPost]
-    [ProducesResponseType(typeof(SpaceView), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse<SpaceView>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<SpaceView>> CreateSpace(
+    public async Task<ActionResult<ApiResponse<SpaceView>>> CreateSpace(
         Guid householdId,
         CreateSpaceRequest request,
         CancellationToken cancellationToken)
@@ -97,7 +98,7 @@ public sealed class SpacesController(
                     request.ParentId),
                 cancellationToken);
 
-            return CreatedAtAction(nameof(GetSpace), new { householdId, spaceId = space.Id }, space);
+            return CreatedAtAction(nameof(GetSpace), new { householdId, spaceId = space.Id }, new ApiResponse<SpaceView>(space));
         }
         catch (KeyNotFoundException)
         {
@@ -110,10 +111,10 @@ public sealed class SpacesController(
     }
 
     [HttpPut("{spaceId:guid}")]
-    [ProducesResponseType(typeof(SpaceView), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<SpaceView>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<SpaceView>> UpdateSpace(
+    public async Task<ActionResult<ApiResponse<SpaceView>>> UpdateSpace(
         Guid householdId,
         Guid spaceId,
         UpdateSpaceRequest request,
@@ -126,7 +127,7 @@ public sealed class SpacesController(
                     request.Description),
                 cancellationToken);
 
-            return Ok(space);
+            return Ok(new ApiResponse<SpaceView>(space));
         }
         catch (KeyNotFoundException)
         {
@@ -139,10 +140,10 @@ public sealed class SpacesController(
     }
 
     [HttpPut("{spaceId:guid}/parent")]
-    [ProducesResponseType(typeof(SpaceView), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<SpaceView>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<SpaceView>> MoveSpace(
+    public async Task<ActionResult<ApiResponse<SpaceView>>> MoveSpace(
         Guid householdId,
         Guid spaceId,
         MoveSpaceRequest request,
@@ -154,7 +155,7 @@ public sealed class SpacesController(
                 new MoveSpaceCommand(actorAccessor.DomuActor, householdId, spaceId, request.ParentId),
                 cancellationToken);
 
-            return Ok(space);
+            return Ok(new ApiResponse<SpaceView>(space));
         }
         catch (KeyNotFoundException)
         {

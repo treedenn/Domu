@@ -1,6 +1,7 @@
 using Domu.Api.Features.Auth.Application;
 using Domu.Api.Features.Insights.Application;
 using Domu.Api.Features.Insights.Application.Contracts;
+using Domu.Api.Interface.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,9 +17,9 @@ public sealed class HouseholdInsightsController(
     : ControllerBase
 {
     [HttpGet]
-    [ProducesResponseType(typeof(HouseholdInsightsView), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<HouseholdInsightsView>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<HouseholdInsightsView>> GetInsights(
+    public async Task<ActionResult<ApiResponse<HouseholdInsightsView>>> GetInsights(
         Guid householdId,
         CancellationToken cancellationToken)
     {
@@ -28,7 +29,7 @@ public sealed class HouseholdInsightsController(
                 new GetHouseholdInsightsQuery(householdId, actorAccessor.DomuActor),
                 cancellationToken);
 
-            return Ok(insights);
+            return Ok(new ApiResponse<HouseholdInsightsView>(insights));
         }
         catch (KeyNotFoundException)
         {

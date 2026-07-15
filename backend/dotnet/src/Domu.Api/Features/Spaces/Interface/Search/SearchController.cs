@@ -1,6 +1,7 @@
 using Domu.Api.Features.Auth.Application;
 using Domu.Api.Features.Spaces.Application.Search;
 using Domu.Api.Features.Spaces.Application.Search.Contracts;
+using Domu.Api.Interface.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,10 +17,10 @@ public sealed class SearchController(
     : ControllerBase
 {
     [HttpGet]
-    [ProducesResponseType(typeof(SearchResultsView), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<SearchResultsView>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<SearchResultsView>> Search(
+    public async Task<ActionResult<ApiResponse<SearchResultsView>>> Search(
         Guid householdId,
         [FromQuery] string? text,
         [FromQuery] int? expiringWithinDays,
@@ -32,7 +33,7 @@ public sealed class SearchController(
                 new SearchSpacesAndItemsQuery(actorAccessor.DomuActor, householdId, text, expiringWithinDays, limit),
                 cancellationToken);
 
-            return Ok(results);
+            return Ok(new ApiResponse<SearchResultsView>(results));
         }
         catch (KeyNotFoundException)
         {

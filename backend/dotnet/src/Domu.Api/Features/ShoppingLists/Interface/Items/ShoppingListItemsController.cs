@@ -3,6 +3,7 @@ using Domu.Api.Features.ShoppingLists.Application.Items;
 using Domu.Api.Features.ShoppingLists.Application.Items.Commands;
 using Domu.Api.Features.ShoppingLists.Application.Items.Contracts;
 using Domu.Api.Features.ShoppingLists.Application.Items.Queries;
+using Domu.Api.Interface.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,9 +24,9 @@ public sealed class ShoppingListItemsController(
     : ControllerBase
 {
     [HttpGet]
-    [ProducesResponseType(typeof(IReadOnlyList<ShoppingListItemView>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<ShoppingListItemView>>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IReadOnlyList<ShoppingListItemView>>> GetItems(
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<ShoppingListItemView>>>> GetItems(
         Guid householdId,
         Guid shoppingListId,
         CancellationToken cancellationToken)
@@ -36,7 +37,7 @@ public sealed class ShoppingListItemsController(
                 new GetShoppingListItemsQuery(actorAccessor.DomuActor, householdId, shoppingListId),
                 cancellationToken);
 
-            return Ok(items);
+            return Ok(new ApiResponse<IReadOnlyList<ShoppingListItemView>>(items));
         }
         catch (KeyNotFoundException)
         {
@@ -45,10 +46,10 @@ public sealed class ShoppingListItemsController(
     }
 
     [HttpPost]
-    [ProducesResponseType(typeof(ShoppingListItemView), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse<ShoppingListItemView>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ShoppingListItemView>> CreateItem(
+    public async Task<ActionResult<ApiResponse<ShoppingListItemView>>> CreateItem(
         Guid householdId,
         Guid shoppingListId,
         CreateShoppingListItemRequest request,
@@ -70,7 +71,7 @@ public sealed class ShoppingListItemsController(
                     request.ItemId),
                 cancellationToken);
 
-            return CreatedAtAction(nameof(GetItems), new { householdId, shoppingListId }, item);
+            return CreatedAtAction(nameof(GetItems), new { householdId, shoppingListId }, new ApiResponse<ShoppingListItemView>(item));
         }
         catch (KeyNotFoundException)
         {
@@ -83,10 +84,10 @@ public sealed class ShoppingListItemsController(
     }
 
     [HttpPatch("{itemId:guid}")]
-    [ProducesResponseType(typeof(ShoppingListItemView), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<ShoppingListItemView>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ShoppingListItemView>> UpdateItem(
+    public async Task<ActionResult<ApiResponse<ShoppingListItemView>>> UpdateItem(
         Guid householdId,
         Guid shoppingListId,
         Guid itemId,
@@ -111,7 +112,7 @@ public sealed class ShoppingListItemsController(
                     request.SortOrder),
                 cancellationToken);
 
-            return Ok(item);
+            return Ok(new ApiResponse<ShoppingListItemView>(item));
         }
         catch (KeyNotFoundException)
         {
@@ -124,9 +125,9 @@ public sealed class ShoppingListItemsController(
     }
 
     [HttpPost("{itemId:guid}/check")]
-    [ProducesResponseType(typeof(ShoppingListItemView), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<ShoppingListItemView>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public Task<ActionResult<ShoppingListItemView>> CheckItem(
+    public Task<ActionResult<ApiResponse<ShoppingListItemView>>> CheckItem(
         Guid householdId,
         Guid shoppingListId,
         Guid itemId,
@@ -141,9 +142,9 @@ public sealed class ShoppingListItemsController(
     }
 
     [HttpPost("{itemId:guid}/uncheck")]
-    [ProducesResponseType(typeof(ShoppingListItemView), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<ShoppingListItemView>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public Task<ActionResult<ShoppingListItemView>> UncheckItem(
+    public Task<ActionResult<ApiResponse<ShoppingListItemView>>> UncheckItem(
         Guid householdId,
         Guid shoppingListId,
         Guid itemId,
@@ -202,7 +203,7 @@ public sealed class ShoppingListItemsController(
         }
     }
 
-    private async Task<ActionResult<ShoppingListItemView>> UpdateCheckedStateAsync(
+    private async Task<ActionResult<ApiResponse<ShoppingListItemView>>> UpdateCheckedStateAsync(
         Guid householdId,
         Guid shoppingListId,
         Guid itemId,
@@ -220,7 +221,7 @@ public sealed class ShoppingListItemsController(
                     isChecked),
                 cancellationToken);
 
-            return Ok(item);
+            return Ok(new ApiResponse<ShoppingListItemView>(item));
         }
         catch (KeyNotFoundException)
         {

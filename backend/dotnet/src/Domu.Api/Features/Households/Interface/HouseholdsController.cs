@@ -3,6 +3,7 @@ using Domu.Api.Features.Households.Application.Households;
 using Domu.Api.Features.Households.Application.Households.Contracts;
 using Domu.Api.Features.Households.Application.Members;
 using Domu.Api.Features.Households.Application.Members.Contracts;
+using Domu.Api.Interface.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,20 +29,20 @@ public sealed class HouseholdsController(
     : ControllerBase
 {
     [HttpGet]
-    [ProducesResponseType(typeof(IReadOnlyList<HouseholdView>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<HouseholdView>>> GetHouseholds(CancellationToken cancellationToken)
+    [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<HouseholdView>>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<HouseholdView>>>> GetHouseholds(CancellationToken cancellationToken)
     {
         var households = await getHouseholdsUseCase.ExecuteAsync(
             new GetHouseholdsQuery(actorAccessor.DomuActor),
             cancellationToken);
 
-        return Ok(households);
+        return Ok(new ApiResponse<IReadOnlyList<HouseholdView>>(households));
     }
 
     [HttpGet("{householdId:guid}/members")]
-    [ProducesResponseType(typeof(IReadOnlyList<HouseholdMemberView>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<HouseholdMemberView>>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IReadOnlyList<HouseholdMemberView>>> GetMembers(
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<HouseholdMemberView>>>> GetMembers(
         Guid householdId,
         CancellationToken cancellationToken)
     {
@@ -51,7 +52,7 @@ public sealed class HouseholdsController(
                 new GetHouseholdMembersQuery(actorAccessor.DomuActor, householdId),
                 cancellationToken);
 
-            return Ok(members);
+            return Ok(new ApiResponse<IReadOnlyList<HouseholdMemberView>>(members));
         }
         catch (KeyNotFoundException)
         {
@@ -60,10 +61,10 @@ public sealed class HouseholdsController(
     }
     
     [HttpGet("{householdId:guid}/members/{memberId:guid}")]
-    [ProducesResponseType(typeof(HouseholdMemberView), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<HouseholdMemberView>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<HouseholdMemberView>> GetMember(
+    public async Task<ActionResult<ApiResponse<HouseholdMemberView>>> GetMember(
         Guid householdId,
         Guid memberId,
         CancellationToken cancellationToken)
@@ -74,7 +75,7 @@ public sealed class HouseholdsController(
                 new GetHouseholdMemberQuery(actorAccessor.DomuActor, householdId, memberId),
                 cancellationToken);
 
-            return Ok(member);
+            return Ok(new ApiResponse<HouseholdMemberView>(member));
         }
         catch (KeyNotFoundException)
         {
@@ -88,10 +89,10 @@ public sealed class HouseholdsController(
 
 
     [HttpPut("{householdId:guid}/members/{memberId:guid}")]
-    [ProducesResponseType(typeof(HouseholdMemberView), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<HouseholdMemberView>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<HouseholdMemberView>> UpdateMember(
+    public async Task<ActionResult<ApiResponse<HouseholdMemberView>>> UpdateMember(
         Guid householdId,
         Guid memberId,
         UpdateHouseholdMemberRequest request,
@@ -109,7 +110,7 @@ public sealed class HouseholdsController(
                     request.Archived),
                 cancellationToken);
 
-            return Ok(member);
+            return Ok(new ApiResponse<HouseholdMemberView>(member));
         }
         catch (KeyNotFoundException)
         {
@@ -122,9 +123,9 @@ public sealed class HouseholdsController(
     }
 
     [HttpGet("{householdId:guid}/invitations")]
-    [ProducesResponseType(typeof(IReadOnlyList<HouseholdInvitationView>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<HouseholdInvitationView>>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IReadOnlyList<HouseholdInvitationView>>> GetInvitations(
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<HouseholdInvitationView>>>> GetInvitations(
         Guid householdId,
         CancellationToken cancellationToken)
     {
@@ -134,7 +135,7 @@ public sealed class HouseholdsController(
                 new GetHouseholdInvitationsQuery(householdId, actorAccessor.DomuActor),
                 cancellationToken);
 
-            return Ok(invitations);
+            return Ok(new ApiResponse<IReadOnlyList<HouseholdInvitationView>>(invitations));
         }
         catch (KeyNotFoundException)
         {
@@ -143,10 +144,10 @@ public sealed class HouseholdsController(
     }
 
     [HttpPost("{householdId:guid}/invitations")]
-    [ProducesResponseType(typeof(HouseholdInvitationView), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse<HouseholdInvitationView>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<HouseholdInvitationView>> InviteMember(
+    public async Task<ActionResult<ApiResponse<HouseholdInvitationView>>> InviteMember(
         Guid householdId,
         InviteHouseholdMemberRequest request,
         CancellationToken cancellationToken)
@@ -158,7 +159,7 @@ public sealed class HouseholdsController(
                     request.DisplayName, request.Role),
                 cancellationToken);
 
-            return Created($"/api/v1/households/{householdId}/invitations/{invitation.Id}", invitation);
+            return Created($"/api/v1/households/{householdId}/invitations/{invitation.Id}", new ApiResponse<HouseholdInvitationView>(invitation));
         }
         catch (KeyNotFoundException)
         {
@@ -171,10 +172,10 @@ public sealed class HouseholdsController(
     }
 
     [HttpPost("invitations/{token}/accept")]
-    [ProducesResponseType(typeof(HouseholdMemberView), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<HouseholdMemberView>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<HouseholdMemberView>> AcceptInvitation(
+    public async Task<ActionResult<ApiResponse<HouseholdMemberView>>> AcceptInvitation(
         string token,
         CancellationToken cancellationToken)
     {
@@ -184,7 +185,7 @@ public sealed class HouseholdsController(
                 new AcceptHouseholdInvitationCommand(actorAccessor.DomuActor, token),
                 cancellationToken);
 
-            return Ok(member);
+            return Ok(new ApiResponse<HouseholdMemberView>(member));
         }
         catch (KeyNotFoundException)
         {
@@ -201,9 +202,9 @@ public sealed class HouseholdsController(
     }
 
     [HttpGet("{householdId:guid}")]
-    [ProducesResponseType(typeof(HouseholdView), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<HouseholdView>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<HouseholdView>> GetHousehold(
+    public async Task<ActionResult<ApiResponse<HouseholdView>>> GetHousehold(
         Guid householdId,
         CancellationToken cancellationToken)
     {
@@ -213,7 +214,7 @@ public sealed class HouseholdsController(
                 new GetHouseholdQuery(householdId, actorAccessor.DomuActor),
                 cancellationToken);
 
-            return Ok(household);
+            return Ok(new ApiResponse<HouseholdView>(household));
         }
         catch (KeyNotFoundException)
         {
@@ -222,9 +223,9 @@ public sealed class HouseholdsController(
     }
 
     [HttpPost]
-    [ProducesResponseType(typeof(HouseholdView), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse<HouseholdView>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<HouseholdView>> CreateHousehold(
+    public async Task<ActionResult<ApiResponse<HouseholdView>>> CreateHousehold(
         CreateHouseholdRequest request,
         CancellationToken cancellationToken)
     {
@@ -234,7 +235,7 @@ public sealed class HouseholdsController(
                 new CreateHouseholdCommand(actorAccessor.DomuActor, request.Name, request.OwnerDisplayName),
                 cancellationToken);
 
-            return CreatedAtAction(nameof(GetHousehold), new { householdId = household.Id }, household);
+            return CreatedAtAction(nameof(GetHousehold), new { householdId = household.Id }, new ApiResponse<HouseholdView>(household));
         }
         catch (ArgumentException exception)
         {
@@ -243,10 +244,10 @@ public sealed class HouseholdsController(
     }
 
     [HttpPut("{householdId:guid}")]
-    [ProducesResponseType(typeof(HouseholdView), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<HouseholdView>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<HouseholdView>> UpdateHousehold(
+    public async Task<ActionResult<ApiResponse<HouseholdView>>> UpdateHousehold(
         Guid householdId,
         UpdateHouseholdRequest request,
         CancellationToken cancellationToken)
@@ -257,7 +258,7 @@ public sealed class HouseholdsController(
                 new UpdateHouseholdCommand(householdId, actorAccessor.DomuActor, request.Name),
                 cancellationToken);
 
-            return Ok(household);
+            return Ok(new ApiResponse<HouseholdView>(household));
         }
         catch (KeyNotFoundException)
         {
