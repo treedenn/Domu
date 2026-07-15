@@ -8,7 +8,7 @@ public sealed class GetHouseholdMembersUseCase(
     IHouseholdRepository householdRepository,
     IHouseholdMembershipRepository membershipRepository)
 {
-    public async Task<IReadOnlyList<HouseholdMemberView>> ExecuteAsync(
+    public async Task<HouseholdMembersView> ExecuteAsync(
         GetHouseholdMembersQuery query,
         CancellationToken cancellationToken)
     {
@@ -21,7 +21,16 @@ public sealed class GetHouseholdMembersUseCase(
             throw new KeyNotFoundException($"Household '{query.HouseholdId}' was not found.");
 
         var members = await membershipRepository.GetMembersAsync(query.HouseholdId, cancellationToken);
+        var canManageMembers = await membershipRepository.IsOwnerAsync(
+            household,
+            query.Actor.ActorId,
+            cancellationToken);
 
-        return members.Select(HouseholdMemberView.FromDomain).ToArray();
+        return new HouseholdMembersView(
+            members
+                .Where(member => !member.Archived)
+                .Select(HouseholdMemberView.FromDomain)
+                .ToArray(),
+            canManageMembers);
     }
 }

@@ -40,9 +40,9 @@ public sealed class HouseholdsController(
     }
 
     [HttpGet("{householdId:guid}/members")]
-    [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<HouseholdMemberView>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(HouseholdMembersResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<IReadOnlyList<HouseholdMemberView>>>> GetMembers(
+    public async Task<ActionResult<HouseholdMembersResponse>> GetMembers(
         Guid householdId,
         CancellationToken cancellationToken)
     {
@@ -52,7 +52,9 @@ public sealed class HouseholdsController(
                 new GetHouseholdMembersQuery(actorAccessor.DomuActor, householdId),
                 cancellationToken);
 
-            return Ok(new ApiResponse<IReadOnlyList<HouseholdMemberView>>(members));
+            return Ok(new HouseholdMembersResponse(
+                members.Members,
+                members.CanManageMembers));
         }
         catch (KeyNotFoundException)
         {
