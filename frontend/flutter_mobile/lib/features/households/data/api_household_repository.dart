@@ -15,13 +15,17 @@ class ApiHouseholdRepository implements HouseholdRepository {
   Future<List<Household>> getHouseholds() async {
     final response = await _request(() => _client.get(_path));
     final json = _decode(response.body);
-    if (json is! List) {
+    if (json is! Map) {
       throw const HouseholdRepositoryException(
         'Domu returned an invalid household list.',
       );
     }
     try {
-      return json
+      final data = _asMap(json)['data'];
+      if (data is! List) {
+        throw const FormatException('Invalid household list.');
+      }
+      return data
           .map((item) => HouseholdDto.fromJson(_asMap(item)).toDomain())
           .toList(growable: false);
     } on FormatException {
@@ -59,7 +63,8 @@ class ApiHouseholdRepository implements HouseholdRepository {
   ) async {
     final response = await _request(action);
     try {
-      return HouseholdDto.fromJson(_asMap(_decode(response.body))).toDomain();
+      final envelope = _asMap(_decode(response.body));
+      return HouseholdDto.fromJson(_asMap(envelope['data'])).toDomain();
     } on FormatException {
       throw const HouseholdRepositoryException(
         'Domu returned an invalid household response.',

@@ -25,7 +25,12 @@ void main() {
         accessToken: () async => 'token',
         httpClient: MockClient((value) async {
           request = value;
-          return http.Response(jsonEncode([household]), 200);
+          return http.Response(
+            jsonEncode({
+              'data': [household],
+            }),
+            200,
+          );
         }),
       ),
     );
@@ -49,7 +54,7 @@ void main() {
         accessToken: () async => 'token',
         httpClient: MockClient((value) async {
           request = value;
-          return http.Response(jsonEncode(household), 201);
+          return http.Response(jsonEncode({'data': household}), 201);
         }),
       ),
     );

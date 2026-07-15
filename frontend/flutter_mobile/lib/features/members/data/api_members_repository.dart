@@ -20,14 +20,8 @@ class ApiMembersRepository implements MembersRepository {
     );
     try {
       final json = _decode(response.body);
-      if (json is List) {
-        return MembersResult(
-          members: _membersFromJson(json),
-          canManageMembers: false,
-        );
-      }
       final envelope = _asMap(json);
-      final rawMembers = envelope['members'];
+      final rawMembers = envelope['data'];
       final canManageMembers = envelope['canManageMembers'];
       if (rawMembers is! List || canManageMembers is! bool) {
         throw const FormatException('Invalid member list.');
@@ -52,10 +46,14 @@ class ApiMembersRepository implements MembersRepository {
     );
     try {
       final json = _decode(response.body);
-      if (json is! List) {
+      if (json is! Map) {
         throw const FormatException('Invalid invitation list.');
       }
-      return json
+      final data = _asMap(json)['data'];
+      if (data is! List) {
+        throw const FormatException('Invalid invitation list.');
+      }
+      return data
           .map((item) => PendingInvitationDto.fromJson(_asMap(item)).toDomain())
           .toList(growable: false);
     } on FormatException {
@@ -79,9 +77,8 @@ class ApiMembersRepository implements MembersRepository {
       ),
     );
     try {
-      return PendingInvitationDto.fromJson(
-        _asMap(_decode(response.body)),
-      ).toDomain();
+      final envelope = _asMap(_decode(response.body));
+      return PendingInvitationDto.fromJson(_asMap(envelope['data'])).toDomain();
     } on FormatException {
       throw const MembersRepositoryException(
         'Domu returned an invalid invitation response.',

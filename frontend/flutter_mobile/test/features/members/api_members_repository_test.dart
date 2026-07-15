@@ -25,7 +25,7 @@ void main() {
           expect(request.url.path, '/api/v1/households/home/members');
           return http.Response(
             jsonEncode({
-              'members': [
+              'data': [
                 member,
                 {...member, 'id': 'member-2', 'archived': true},
               ],
@@ -45,26 +45,6 @@ void main() {
   });
 
   test(
-    'accepts the legacy member-list response without management controls',
-    () async {
-      final repository = ApiMembersRepository(
-        ApiClient(
-          baseUrl: 'https://api.example.test',
-          accessToken: () async => 'token',
-          httpClient: MockClient(
-            (_) async => http.Response(jsonEncode([member]), 200),
-          ),
-        ),
-      );
-
-      final result = await repository.getMembers('home');
-
-      expect(result.members.single.displayName, 'Ada');
-      expect(result.canManageMembers, isFalse);
-    },
-  );
-
-  test(
     'serializes invitations and member archives with API payloads',
     () async {
       final requests = <http.Request>[];
@@ -77,10 +57,12 @@ void main() {
             if (request.method == 'POST') {
               return http.Response(
                 jsonEncode({
-                  'id': 'invitation-1',
-                  'displayName': 'Grace',
-                  'email': 'grace@example.test',
-                  'role': 'admin',
+                  'data': {
+                    'id': 'invitation-1',
+                    'displayName': 'Grace',
+                    'email': 'grace@example.test',
+                    'role': 'admin',
+                  },
                 }),
                 201,
               );
