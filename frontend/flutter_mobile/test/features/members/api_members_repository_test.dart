@@ -103,6 +103,37 @@ void main() {
     },
   );
 
+  test('parses pending invitations from the data envelope', () async {
+    final repository = ApiMembersRepository(
+      ApiClient(
+        baseUrl: 'https://api.example.test',
+        accessToken: () async => 'token',
+        httpClient: MockClient((request) async {
+          expect(request.url.path, '/api/v1/households/home/invitations');
+          return http.Response(
+            jsonEncode({
+              'data': [
+                {
+                  'id': 'invitation-1',
+                  'displayName': 'Grace',
+                  'email': 'grace@example.test',
+                  'role': 'admin',
+                },
+              ],
+            }),
+            200,
+          );
+        }),
+      ),
+    );
+
+    final invitations = await repository.getPendingInvitations('home');
+
+    expect(invitations, hasLength(1));
+    expect(invitations.single.displayName, 'Grace');
+    expect(invitations.single.role, HouseholdMemberRole.admin);
+  });
+
   test('maps API failures to a members repository exception', () async {
     final repository = ApiMembersRepository(
       ApiClient(

@@ -44,11 +44,33 @@ void main() {
     expect(repository.archivedMemberId, 'admin');
     expect(viewModel.message, 'Ada removed.');
   });
+
+  test(
+    'keeps members visible when pending invitations cannot be loaded',
+    () async {
+      final repository = _FakeMembersRepository()
+        ..pendingInvitationsError = const MembersRepositoryException(
+          'Unable to complete that request. Please try again.',
+        );
+      final viewModel = MembersViewModel(repository);
+
+      await viewModel.load('home');
+
+      expect(viewModel.errorMessage, isNull);
+      expect(viewModel.members, isNotEmpty);
+      expect(viewModel.pendingInvitations, isEmpty);
+      expect(
+        viewModel.message,
+        'Unable to complete that request. Please try again.',
+      );
+    },
+  );
 }
 
 class _FakeMembersRepository implements MembersRepository {
   bool invited = false;
   String? archivedMemberId;
+  MembersRepositoryException? pendingInvitationsError;
 
   @override
   Future<void> archiveMember({
@@ -103,12 +125,16 @@ class _FakeMembersRepository implements MembersRepository {
   @override
   Future<List<PendingInvitation>> getPendingInvitations(
     String householdId,
-  ) async => const [
-    PendingInvitation(
-      id: 'pending',
-      displayName: 'Lin',
-      email: 'lin@example.test',
-      role: HouseholdMemberRole.member,
-    ),
-  ];
+  ) async {
+    final error = pendingInvitationsError;
+    if (error != null) throw error;
+    return const [
+      PendingInvitation(
+        id: 'pending',
+        displayName: 'Lin',
+        email: 'lin@example.test',
+        role: HouseholdMemberRole.member,
+      ),
+    ];
+  }
 }

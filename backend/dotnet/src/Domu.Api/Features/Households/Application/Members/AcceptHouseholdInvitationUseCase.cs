@@ -1,4 +1,5 @@
 using Domu.Api.Features.Activities.Application;
+using Domu.Api.Features.Auth.Domain;
 using Domu.Api.Features.Households.Application.Members.Contracts;
 using Domu.Api.Features.Households.Application.Members.Ports;
 using Domu.Api.Features.Households.Domain.Members;
@@ -18,6 +19,8 @@ public sealed class AcceptHouseholdInvitationUseCase(
     {
         ArgumentNullException.ThrowIfNull(command);
         ArgumentException.ThrowIfNullOrWhiteSpace(command.Token);
+        if (command.Actor.ActorType != DomuActorType.Zitadel)
+            throw new InvalidOperationException("Only an authenticated user can accept a household invitation.");
 
         var invitation = await membershipRepository.GetInvitationByTokenAsync(command.Token, cancellationToken)
                          ?? throw new KeyNotFoundException("Household invitation was not found.");

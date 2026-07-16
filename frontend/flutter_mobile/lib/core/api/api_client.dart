@@ -23,6 +23,9 @@ class ApiClient {
   Future<ApiResponse> put(String path, {Object? body}) =>
       _send('PUT', path, body: body);
 
+  Future<ApiResponse> patch(String path, {Object? body}) =>
+      _send('PATCH', path, body: body);
+
   Future<ApiResponse> delete(String path) => _send('DELETE', path);
 
   Future<ApiResponse> _send(String method, String path, {Object? body}) async {

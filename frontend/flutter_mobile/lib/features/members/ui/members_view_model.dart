@@ -60,9 +60,7 @@ class MembersViewModel extends ChangeNotifier {
       final result = await _repository.getMembers(householdId);
       _members = _sortMembers(result.members);
       _canManageMembers = result.canManageMembers;
-      _pendingInvitations = result.canManageMembers
-          ? await _repository.getPendingInvitations(householdId)
-          : const [];
+      await _loadPendingInvitations(householdId);
     } on MembersRepositoryException catch (error) {
       _errorMessage = error.message;
     } catch (_) {
@@ -124,9 +122,25 @@ class MembersViewModel extends ChangeNotifier {
     final result = await _repository.getMembers(householdId);
     _members = _sortMembers(result.members);
     _canManageMembers = result.canManageMembers;
-    _pendingInvitations = result.canManageMembers
-        ? await _repository.getPendingInvitations(householdId)
-        : const [];
+    await _loadPendingInvitations(householdId);
+  }
+
+  Future<void> _loadPendingInvitations(String householdId) async {
+    if (!_canManageMembers) {
+      _pendingInvitations = const [];
+      return;
+    }
+    try {
+      _pendingInvitations = await _repository.getPendingInvitations(
+        householdId,
+      );
+    } on MembersRepositoryException catch (error) {
+      _pendingInvitations = const [];
+      _message = error.message;
+    } catch (_) {
+      _pendingInvitations = const [];
+      _message = 'Unable to load pending invitations. Please try again.';
+    }
   }
 
   static List<HouseholdMember> _sortMembers(List<HouseholdMember> members) {

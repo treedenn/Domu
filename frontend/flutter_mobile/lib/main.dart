@@ -9,6 +9,11 @@ import 'package:domu_mobile/features/households/data/api_household_repository.da
 import 'package:domu_mobile/features/households/ui/households_view_model.dart';
 import 'package:domu_mobile/features/members/data/api_members_repository.dart';
 import 'package:domu_mobile/features/members/ui/members_view_model.dart';
+import 'package:domu_mobile/features/shopping_lists/data/api_shopping_lists_repository.dart';
+import 'package:domu_mobile/features/shopping_lists/ui/shopping_list_detail_view_model.dart';
+import 'package:domu_mobile/features/shopping_lists/ui/shopping_lists_view_model.dart';
+import 'package:domu_mobile/features/spaces/data/api_spaces_repository.dart';
+import 'package:domu_mobile/features/spaces/ui/spaces_view_model.dart';
 import 'package:flutter/widgets.dart';
 
 void main() {
@@ -35,12 +40,29 @@ void main() {
       ),
     ),
   );
+  final shoppingListsRepository = ApiShoppingListsRepository(
+    ApiClient(
+      baseUrl: configuration.apiBaseUrl,
+      accessToken: authViewModel.validAccessToken,
+    ),
+  );
+  final spacesRepository = ApiSpacesRepository(
+    ApiClient(
+      baseUrl: configuration.apiBaseUrl,
+      accessToken: authViewModel.validAccessToken,
+    ),
+  );
   authViewModel.initialize();
   runApp(
     DomuApp(
       authViewModel: authViewModel,
       householdsViewModel: householdsViewModel,
       membersViewModel: membersViewModel,
+      shoppingListsViewModel: ShoppingListsViewModel(shoppingListsRepository),
+      shoppingListDetailViewModel: ShoppingListDetailViewModel(
+        shoppingListsRepository,
+      ),
+      spacesViewModel: SpacesViewModel(spacesRepository),
     ),
   );
 }

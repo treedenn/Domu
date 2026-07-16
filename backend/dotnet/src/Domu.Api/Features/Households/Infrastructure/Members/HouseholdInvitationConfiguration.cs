@@ -35,6 +35,15 @@ public sealed class HouseholdInvitationConfiguration : IEntityTypeConfiguration<
         builder.Property(invitation => invitation.Status)
             .HasConversion<int>()
             .IsRequired();
+        
+        builder.Property(invitation => invitation.CreatedAt)
+            .IsRequired();
+        
+        builder.Property(invitation => invitation.ExpiresAt)
+            .IsRequired();
+        
+        builder.Property(invitation => invitation.AcceptedAt)
+            .IsRequired(false);
 
         builder.HasIndex(invitation => invitation.Token)
             .IsUnique();

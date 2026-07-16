@@ -63,5 +63,38 @@ public sealed class AcceptHouseholdInvitationUseCaseTests
             CancellationToken.None);
 
         await Assert.ThrowsAsync<InvalidOperationException>(action);
+        Assert.Empty(repository.Members);
+        Assert.Equal(HouseholdInvitationStatus.Pending, repository.Invitations.Single().Status);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenActorIsNotAnAuthenticatedUser_DoesNotAcceptOrCreateMember()
+    {
+        var repository = new FakeHouseholdMembershipRepository();
+        var now = DateTimeOffset.UtcNow;
+        await repository.AddInvitationAsync(
+            new HouseholdInvitation(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                "person@example.com",
+                "Alex",
+                Guid.NewGuid(),
+                HouseholdMemberRole.Member,
+                "token",
+                now,
+                now.AddDays(1)),
+            CancellationToken.None);
+        var useCase = new AcceptHouseholdInvitationUseCase(repository);
+
+        var action = () => useCase.ExecuteAsync(
+            new AcceptHouseholdInvitationCommand(
+                new DomuActor(Guid.NewGuid(), DomuActorType.HouseholdMember),
+                "token"),
+            CancellationToken.None);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(action);
+
+        Assert.Empty(repository.Members);
+        Assert.Equal(HouseholdInvitationStatus.Pending, repository.Invitations.Single().Status);
     }
 }

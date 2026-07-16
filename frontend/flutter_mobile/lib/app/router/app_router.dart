@@ -14,7 +14,15 @@ import 'package:domu_mobile/features/members/domain/members_result.dart';
 import 'package:domu_mobile/features/members/domain/pending_invitation.dart';
 import 'package:domu_mobile/features/members/ui/members_view_model.dart';
 import 'package:domu_mobile/features/shopping_lists/ui/shopping_lists_view.dart';
+import 'package:domu_mobile/features/shopping_lists/ui/shopping_lists_view_model.dart';
+import 'package:domu_mobile/features/shopping_lists/ui/shopping_list_detail_view.dart';
+import 'package:domu_mobile/features/shopping_lists/ui/shopping_list_detail_view_model.dart';
+import 'package:domu_mobile/features/shopping_lists/domain/shopping_lists_repository.dart';
+import 'package:domu_mobile/features/shopping_lists/domain/shopping_list.dart';
 import 'package:domu_mobile/features/spaces/ui/spaces_view.dart';
+import 'package:domu_mobile/features/spaces/ui/spaces_view_model.dart';
+import 'package:domu_mobile/features/spaces/domain/spaces_repository.dart';
+import 'package:domu_mobile/features/spaces/domain/space.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -31,11 +39,22 @@ class AppRouter {
     AuthViewModel authViewModel, {
     HouseholdsViewModel? householdsViewModel,
     MembersViewModel? membersViewModel,
+    ShoppingListsViewModel? shoppingListsViewModel,
+    ShoppingListDetailViewModel? shoppingListDetailViewModel,
+    SpacesViewModel? spacesViewModel,
   }) : _householdsViewModel =
            householdsViewModel ??
            HouseholdsViewModel(_UnavailableHouseholdRepository()) {
     _membersViewModel =
         membersViewModel ?? MembersViewModel(_UnavailableMembersRepository());
+    _shoppingListsViewModel =
+        shoppingListsViewModel ??
+        ShoppingListsViewModel(_UnavailableShoppingListsRepository());
+    _shoppingListDetailViewModel =
+        shoppingListDetailViewModel ??
+        ShoppingListDetailViewModel(_UnavailableShoppingListsRepository());
+    _spacesViewModel =
+        spacesViewModel ?? SpacesViewModel(_UnavailableSpacesRepository());
     router = GoRouter(
       initialLocation: AppRoute.dashboard,
       refreshListenable: authViewModel,
@@ -81,11 +100,33 @@ class AppRouter {
             ),
             GoRoute(
               path: '/households/:householdId/shopping-lists',
-              builder: (_, _) => const ShoppingListsView(),
+              builder: (_, state) => ShoppingListsView(
+                householdId: state.pathParameters['householdId']!,
+                viewModel: _shoppingListsViewModel,
+              ),
+            ),
+            GoRoute(
+              path: '/households/:householdId/shopping-lists/:shoppingListId',
+              builder: (_, state) => ShoppingListDetailView(
+                householdId: state.pathParameters['householdId']!,
+                shoppingListId: state.pathParameters['shoppingListId']!,
+                viewModel: _shoppingListDetailViewModel,
+              ),
             ),
             GoRoute(
               path: '/households/:householdId/spaces',
-              builder: (_, _) => const SpacesView(),
+              builder: (_, state) => SpacesView(
+                householdId: state.pathParameters['householdId']!,
+                viewModel: _spacesViewModel,
+              ),
+            ),
+            GoRoute(
+              path: '/households/:householdId/spaces/:spaceId',
+              builder: (_, state) => SpacesView(
+                householdId: state.pathParameters['householdId']!,
+                spaceId: state.pathParameters['spaceId']!,
+                viewModel: _spacesViewModel,
+              ),
             ),
           ],
         ),
@@ -100,6 +141,9 @@ class AppRouter {
   late final GoRouter router;
   final HouseholdsViewModel _householdsViewModel;
   late final MembersViewModel _membersViewModel;
+  late final ShoppingListsViewModel _shoppingListsViewModel;
+  late final ShoppingListDetailViewModel _shoppingListDetailViewModel;
+  late final SpacesViewModel _spacesViewModel;
 
   static String? _redirect(AuthViewModel auth, GoRouterState state) {
     final location = state.uri.toString();
@@ -145,6 +189,147 @@ class AppRouter {
     final uri = Uri.tryParse(value);
     return uri != null && !uri.hasScheme && uri.host.isEmpty ? value : null;
   }
+}
+
+class _UnavailableShoppingListsRepository implements ShoppingListsRepository {
+  Never _error() => throw const ShoppingListsRepositoryException(
+    'Shopping lists are unavailable.',
+  );
+  @override
+  Future<void> archiveShoppingList({
+    required String householdId,
+    required ShoppingList list,
+  }) async => _error();
+  @override
+  Future<void> clearCompleted({
+    required String householdId,
+    required String shoppingListId,
+  }) async => _error();
+  @override
+  Future<ShoppingListItem> createItem({
+    required String householdId,
+    required String shoppingListId,
+    required String name,
+    String? note,
+  }) async => _error();
+  @override
+  Future<ShoppingListItem> updateItem({
+    required String householdId,
+    required String shoppingListId,
+    required ShoppingListItem item,
+    required String name,
+    String? note,
+  }) async => _error();
+  @override
+  Future<ShoppingList> createShoppingList({
+    required String householdId,
+    required String name,
+  }) async => _error();
+  @override
+  Future<void> deleteItem({
+    required String householdId,
+    required String shoppingListId,
+    required String itemId,
+  }) async => _error();
+  @override
+  Future<List<ShoppingListItem>> getItems({
+    required String householdId,
+    required String shoppingListId,
+  }) async => _error();
+  @override
+  Future<List<ShoppingList>> getShoppingLists(String householdId) async =>
+      _error();
+  @override
+  Future<ShoppingList> renameShoppingList({
+    required String householdId,
+    required ShoppingList list,
+    required String name,
+  }) async => _error();
+  @override
+  Future<void> setItemChecked({
+    required String householdId,
+    required String shoppingListId,
+    required String itemId,
+    required bool checked,
+  }) async => _error();
+}
+
+class _UnavailableSpacesRepository implements SpacesRepository {
+  Never _error() =>
+      throw const SpacesRepositoryException('Spaces are unavailable.');
+  @override
+  Future<void> deleteItem({
+    required String householdId,
+    required String spaceId,
+    required String itemId,
+  }) async => _error();
+  @override
+  Future<void> deleteSpace({
+    required String householdId,
+    required String spaceId,
+  }) async => _error();
+  @override
+  Future<SpaceItem> createItem({
+    required String householdId,
+    required String spaceId,
+    required String name,
+    String? category,
+    String? barcode,
+    List<ItemEntry>? entries,
+  }) async => _error();
+  @override
+  Future<Space> createSpace({
+    required String householdId,
+    required String name,
+    String? description,
+    String? parentId,
+  }) async => _error();
+  @override
+  Future<List<SpaceItem>> getItems({
+    required String householdId,
+    required String spaceId,
+  }) async => _error();
+  @override
+  Future<Space> getSpace({
+    required String householdId,
+    required String spaceId,
+  }) async => _error();
+  @override
+  Future<SpacePage> getSpaces({
+    required String householdId,
+    String? parentId,
+    int pageNumber = 1,
+    int pageSize = 20,
+  }) async => _error();
+  @override
+  Future<Space> moveSpace({
+    required String householdId,
+    required String spaceId,
+    String? parentId,
+  }) async => _error();
+  @override
+  Future<SpaceItem> replaceItemEntries({
+    required String householdId,
+    required String spaceId,
+    required String itemId,
+    required List<ItemEntry> entries,
+  }) async => _error();
+  @override
+  Future<SpaceItem> updateItem({
+    required String householdId,
+    required String spaceId,
+    required String itemId,
+    required String name,
+    String? category,
+    String? barcode,
+  }) async => _error();
+  @override
+  Future<Space> updateSpace({
+    required String householdId,
+    required String spaceId,
+    required String name,
+    String? description,
+  }) async => _error();
 }
 
 class _UnavailableMembersRepository implements MembersRepository {

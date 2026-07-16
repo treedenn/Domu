@@ -158,7 +158,10 @@ extension on HouseholdSection {
 
 HouseholdSection _sectionForLocation(String location) =>
     HouseholdSection.values.firstWhere(
-      (section) => location.endsWith('/${section.path}'),
+      (section) =>
+          location.endsWith('/${section.path}') ||
+          (section == HouseholdSection.shoppingLists &&
+              location.contains('/shopping-lists/')),
       orElse: () => HouseholdSection.dashboard,
     );
 
