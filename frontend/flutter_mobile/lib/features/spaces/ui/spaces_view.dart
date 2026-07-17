@@ -556,7 +556,7 @@ class _ItemDialogState extends State<_ItemDialog> {
               for (var i = 0; i < entries.length; i++)
                 ListTile(
                   title: Text(
-                    '${entries[i].currentQuantity}/${entries[i].initialQuantity} ${entries[i].unit.name}',
+                    '${entries[i].currentQuantity}/${entries[i].originalQuantity} ${entries[i].unit.name}',
                   ),
                   subtitle: Text(entries[i].state.name),
                   trailing: IconButton(
@@ -607,7 +607,7 @@ class _EntryDialog extends StatefulWidget {
 }
 
 class _EntryDialogState extends State<_EntryDialog> {
-  final initial = TextEditingController(text: '1');
+  final original = TextEditingController(text: '1');
   final current = TextEditingController(text: '1');
   ItemUnit unit = ItemUnit.piece;
   ConsumableState state = ConsumableState.unspecified;
@@ -616,7 +616,7 @@ class _EntryDialogState extends State<_EntryDialog> {
   final key = GlobalKey<FormState>();
   @override
   void dispose() {
-    initial.dispose();
+    original.dispose();
     current.dispose();
     super.dispose();
   }
@@ -630,9 +630,9 @@ class _EntryDialogState extends State<_EntryDialog> {
         mainAxisSize: MainAxisSize.min,
         children: [
           TextFormField(
-            controller: initial,
+            controller: original,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(labelText: 'Initial quantity'),
+            decoration: const InputDecoration(labelText: 'Original quantity'),
             validator: _quantity,
           ),
           TextFormField(
@@ -684,13 +684,13 @@ class _EntryDialogState extends State<_EntryDialog> {
       FilledButton(
         onPressed: () {
           if (!key.currentState!.validate()) return;
-          final i = num.parse(initial.text);
+          final originalQuantity = num.parse(original.text);
           final c = num.parse(current.text);
-          if (c > i) return;
+          if (c > originalQuantity) return;
           Navigator.pop(
             context,
             ItemEntry(
-              initialQuantity: i,
+              originalQuantity: originalQuantity,
               currentQuantity: c,
               unit: unit,
               state: state,

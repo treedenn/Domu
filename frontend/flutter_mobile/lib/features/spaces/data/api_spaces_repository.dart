@@ -170,7 +170,7 @@ class ApiSpacesRepository implements SpacesRepository {
 
   Map<String, Object?> _entry(ItemEntry entry) => {
     'id': entry.id,
-    'initialQuantity': entry.initialQuantity,
+    'originalQuantity': entry.originalQuantity,
     'currentQuantity': entry.currentQuantity,
     'unit': entry.unit.name,
     'state': entry.state.name,

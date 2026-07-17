@@ -144,7 +144,7 @@ public sealed class SpacesAndItemsSearchService(AppDbContext dbContext) : ISpace
                 entry.ItemId,
                 View = new ItemEntryView(
                     entry.Id,
-                    entry.InitialQuantity,
+                    entry.OriginalQuantity,
                     entry.CurrentQuantity,
                     entry.Unit,
                     entry.State,

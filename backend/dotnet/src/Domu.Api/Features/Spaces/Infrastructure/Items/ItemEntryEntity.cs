@@ -11,7 +11,7 @@ public sealed class ItemEntryEntity
     public ItemEntryEntity(
         Guid id,
         Guid itemId,
-        decimal initialQuantity,
+        decimal originalQuantity,
         decimal currentQuantity,
         ItemUnit unit,
         ConsumableState state,
@@ -24,18 +24,18 @@ public sealed class ItemEntryEntity
         ItemId = itemId == Guid.Empty
             ? throw new ArgumentException("Item id cannot be empty.", nameof(itemId))
             : itemId;
-        if (initialQuantity < 0)
-            throw new ArgumentOutOfRangeException(nameof(initialQuantity), "Item entry initial quantity must be >= 0.");
+        if (originalQuantity < 0)
+            throw new ArgumentOutOfRangeException(nameof(originalQuantity), "Item entry original quantity must be >= 0.");
         if (currentQuantity < 0)
             throw new ArgumentOutOfRangeException(nameof(currentQuantity), "Item entry current quantity must be >= 0.");
-        if (currentQuantity > initialQuantity)
-            throw new ArgumentException("Item entry current quantity cannot be greater than initial quantity.");
+        if (currentQuantity > originalQuantity)
+            throw new ArgumentException("Item entry current quantity cannot be greater than original quantity.");
         if (!Enum.IsDefined(unit))
             throw new ArgumentException("Item unit is invalid.", nameof(unit));
         if (acquisitionDate is not null && expirationDate is not null && acquisitionDate > expirationDate)
             throw new ArgumentException("Item entry acquisition date cannot be after expiration date.");
 
-        InitialQuantity = initialQuantity;
+        OriginalQuantity = originalQuantity;
         CurrentQuantity = currentQuantity;
         Unit = unit;
         State = state;
@@ -45,7 +45,7 @@ public sealed class ItemEntryEntity
 
     public Guid Id { get; }
     public Guid ItemId { get; private set; }
-    public decimal InitialQuantity { get; private set; }
+    public decimal OriginalQuantity { get; private set; }
     public decimal CurrentQuantity { get; private set; }
     public ItemUnit Unit { get; private set; } = ItemUnit.Piece;
     public ConsumableState State { get; private set; }
@@ -56,7 +56,7 @@ public sealed class ItemEntryEntity
     {
         var entry = new ItemEntry(Id, ItemId);
         entry.SetDates(AcquisitionDate, ExpirationDate);
-        entry.SetQuantities(InitialQuantity, CurrentQuantity);
+        entry.SetQuantities(OriginalQuantity, CurrentQuantity);
         entry.SetUnit(Unit);
         entry.ChangeState(State);
         return entry;
@@ -69,7 +69,7 @@ public sealed class ItemEntryEntity
         return new ItemEntryEntity(
             entry.Id,
             entry.ItemId,
-            entry.InitialQuantity,
+            entry.OriginalQuantity,
             entry.CurrentQuantity,
             entry.Unit,
             entry.State,
@@ -84,7 +84,7 @@ public sealed class ItemEntryEntity
             throw new ArgumentException("Cannot update item entry entity from a different entry.", nameof(entry));
 
         ItemId = entry.ItemId;
-        InitialQuantity = entry.InitialQuantity;
+        OriginalQuantity = entry.OriginalQuantity;
         CurrentQuantity = entry.CurrentQuantity;
         Unit = entry.Unit;
         State = entry.State;

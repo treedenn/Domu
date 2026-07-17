@@ -7,7 +7,7 @@ namespace Domu.Api.Features.Spaces.Interface.Items;
 public sealed record ItemEntryRequest(
     Guid? Id,
     [Range(typeof(decimal), "0", "79228162514264337593543950335")]
-    decimal InitialQuantity,
+    decimal OriginalQuantity,
     [Range(typeof(decimal), "0", "79228162514264337593543950335")]
     decimal CurrentQuantity,
     ItemUnit? Unit,
@@ -19,7 +19,7 @@ public sealed record ItemEntryRequest(
     {
         return new ItemEntryDraft(
             Id,
-            InitialQuantity,
+            OriginalQuantity,
             CurrentQuantity,
             Unit ?? ItemUnit.Piece,
             State,

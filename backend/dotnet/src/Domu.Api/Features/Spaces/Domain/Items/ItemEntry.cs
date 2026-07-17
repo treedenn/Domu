@@ -20,7 +20,7 @@ public sealed class ItemEntry
 
     public DateTimeOffset? ExpirationDate { get; private set; }
 
-    public decimal InitialQuantity { get; private set; }
+    public decimal OriginalQuantity { get; private set; }
 
     public decimal CurrentQuantity { get; private set; }
 
@@ -37,16 +37,16 @@ public sealed class ItemEntry
         ExpirationDate = expirationDate;
     }
 
-    public void SetQuantities(decimal initialQuantity, decimal currentQuantity)
+    public void SetQuantities(decimal originalQuantity, decimal currentQuantity)
     {
-        if (initialQuantity < 0)
-            throw new ArgumentException("Item entry initial quantity must be >= 0.", nameof(initialQuantity));
+        if (originalQuantity < 0)
+            throw new ArgumentException("Item entry original quantity must be >= 0.", nameof(originalQuantity));
         if (currentQuantity < 0)
             throw new ArgumentException("Item entry current quantity must be >= 0.", nameof(currentQuantity));
-        if (currentQuantity > initialQuantity)
-            throw new ArgumentException("Item entry current quantity cannot be greater than initial quantity.");
+        if (currentQuantity > originalQuantity)
+            throw new ArgumentException("Item entry current quantity cannot be greater than original quantity.");
 
-        InitialQuantity = initialQuantity;
+        OriginalQuantity = originalQuantity;
         CurrentQuantity = currentQuantity;
     }
 

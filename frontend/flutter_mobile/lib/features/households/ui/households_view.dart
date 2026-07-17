@@ -197,63 +197,15 @@ class _HouseholdsViewState extends State<HouseholdsView> {
     required String title,
     String initialName = '',
     bool includeOwner = false,
-  }) async {
-    final name = TextEditingController(text: initialName);
-    final owner = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-    final result = await showDialog<_HouseholdForm>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: name,
-                autofocus: true,
-                decoration: const InputDecoration(labelText: 'Household name'),
-                validator: _required,
-              ),
-              if (includeOwner) ...[
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: owner,
-                  decoration: const InputDecoration(
-                    labelText: 'Your display name',
-                  ),
-                  validator: _required,
-                ),
-              ],
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (!(formKey.currentState?.validate() ?? false)) return;
-              Navigator.pop(
-                context,
-                _HouseholdForm(
-                  name.text.trim(),
-                  includeOwner ? owner.text.trim() : null,
-                ),
-              );
-            },
-            child: Text(includeOwner ? 'Create' : 'Save'),
-          ),
-        ],
-      ),
-    );
-    name.dispose();
-    owner.dispose();
-    return result;
-  }
+  }) => showDialog<_HouseholdForm>(
+    context: context,
+    builder: (_) => _HouseholdDialog(
+      title: title,
+      initialName: initialName,
+      includeOwner: includeOwner,
+      validator: _required,
+    ),
+  );
 
   String? _required(String? value) =>
       value == null || value.trim().isEmpty ? 'Required' : null;
@@ -265,4 +217,80 @@ class _HouseholdForm {
   const _HouseholdForm(this.name, this.ownerDisplayName);
   final String name;
   final String? ownerDisplayName;
+}
+
+class _HouseholdDialog extends StatefulWidget {
+  const _HouseholdDialog({
+    required this.title,
+    required this.initialName,
+    required this.includeOwner,
+    required this.validator,
+  });
+
+  final String title;
+  final String initialName;
+  final bool includeOwner;
+  final String? Function(String?) validator;
+
+  @override
+  State<_HouseholdDialog> createState() => _HouseholdDialogState();
+}
+
+class _HouseholdDialogState extends State<_HouseholdDialog> {
+  late final name = TextEditingController(text: widget.initialName);
+  final owner = TextEditingController();
+  final formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    name.dispose();
+    owner.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(widget.title),
+    content: Form(
+      key: formKey,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextFormField(
+            controller: name,
+            autofocus: true,
+            decoration: const InputDecoration(labelText: 'Household name'),
+            validator: widget.validator,
+          ),
+          if (widget.includeOwner) ...[
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: owner,
+              decoration: const InputDecoration(labelText: 'Your display name'),
+              validator: widget.validator,
+            ),
+          ],
+        ],
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cancel'),
+      ),
+      FilledButton(
+        onPressed: () {
+          if (!(formKey.currentState?.validate() ?? false)) return;
+          Navigator.pop(
+            context,
+            _HouseholdForm(
+              name.text.trim(),
+              widget.includeOwner ? owner.text.trim() : null,
+            ),
+          );
+        },
+        child: Text(widget.includeOwner ? 'Create' : 'Save'),
+      ),
+    ],
+  );
 }

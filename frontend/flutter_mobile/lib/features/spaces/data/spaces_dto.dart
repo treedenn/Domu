@@ -38,7 +38,7 @@ class ItemEntryDto {
   final Map<String, dynamic> json;
   ItemEntry toDomain() => ItemEntry(
     id: json['id'] as String?,
-    initialQuantity: json['initialQuantity'] as num,
+    originalQuantity: json['originalQuantity'] as num,
     currentQuantity: json['currentQuantity'] as num,
     unit: ItemUnit.values.byName(json['unit'] as String),
     state: ConsumableState.values.byName(json['state'] as String),

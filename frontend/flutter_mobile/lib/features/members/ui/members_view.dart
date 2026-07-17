@@ -193,82 +193,11 @@ class _MembersViewState extends State<MembersView> {
     );
   }
 
-  Future<_InvitationForm?> _showInviteForm() async {
-    final displayName = TextEditingController();
-    final email = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-    var role = HouseholdMemberRole.member;
-    final result = await showDialog<_InvitationForm>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Add member'),
-          content: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: displayName,
-                  autofocus: true,
-                  decoration: const InputDecoration(labelText: 'Display name'),
-                  validator: _required,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: email,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(labelText: 'Email'),
-                  validator: _email,
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<HouseholdMemberRole>(
-                  initialValue: role,
-                  decoration: const InputDecoration(labelText: 'Role'),
-                  items: const [
-                    DropdownMenuItem(
-                      value: HouseholdMemberRole.member,
-                      child: Text('Member'),
-                    ),
-                    DropdownMenuItem(
-                      value: HouseholdMemberRole.admin,
-                      child: Text('Admin'),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) setDialogState(() => role = value);
-                  },
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () {
-                if (!(formKey.currentState?.validate() ?? false)) return;
-                Navigator.pop(
-                  context,
-                  _InvitationForm(
-                    displayName.text.trim(),
-                    email.text.trim(),
-                    role,
-                  ),
-                );
-              },
-              child: const Text('Send invitation'),
-            ),
-          ],
-        ),
-      ),
-    );
-    displayName.dispose();
-    email.dispose();
-    return result;
-  }
+  Future<_InvitationForm?> _showInviteForm() => showDialog<_InvitationForm>(
+    context: context,
+    builder: (_) =>
+        _InviteDialog(requiredValidator: _required, emailValidator: _email),
+  );
 
   String? _required(String? value) =>
       value == null || value.trim().isEmpty ? 'Required' : null;
@@ -287,4 +216,91 @@ class _InvitationForm {
   final String displayName;
   final String email;
   final HouseholdMemberRole role;
+}
+
+class _InviteDialog extends StatefulWidget {
+  const _InviteDialog({
+    required this.requiredValidator,
+    required this.emailValidator,
+  });
+
+  final String? Function(String?) requiredValidator;
+  final String? Function(String?) emailValidator;
+
+  @override
+  State<_InviteDialog> createState() => _InviteDialogState();
+}
+
+class _InviteDialogState extends State<_InviteDialog> {
+  final displayName = TextEditingController();
+  final email = TextEditingController();
+  final formKey = GlobalKey<FormState>();
+  var role = HouseholdMemberRole.member;
+
+  @override
+  void dispose() {
+    displayName.dispose();
+    email.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Add member'),
+    content: Form(
+      key: formKey,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextFormField(
+            controller: displayName,
+            autofocus: true,
+            decoration: const InputDecoration(labelText: 'Display name'),
+            validator: widget.requiredValidator,
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: email,
+            keyboardType: TextInputType.emailAddress,
+            decoration: const InputDecoration(labelText: 'Email'),
+            validator: widget.emailValidator,
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<HouseholdMemberRole>(
+            initialValue: role,
+            decoration: const InputDecoration(labelText: 'Role'),
+            items: const [
+              DropdownMenuItem(
+                value: HouseholdMemberRole.member,
+                child: Text('Member'),
+              ),
+              DropdownMenuItem(
+                value: HouseholdMemberRole.admin,
+                child: Text('Admin'),
+              ),
+            ],
+            onChanged: (value) {
+              if (value != null) setState(() => role = value);
+            },
+          ),
+        ],
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cancel'),
+      ),
+      FilledButton(
+        onPressed: () {
+          if (!(formKey.currentState?.validate() ?? false)) return;
+          Navigator.pop(
+            context,
+            _InvitationForm(displayName.text.trim(), email.text.trim(), role),
+          );
+        },
+        child: const Text('Send invitation'),
+      ),
+    ],
+  );
 }

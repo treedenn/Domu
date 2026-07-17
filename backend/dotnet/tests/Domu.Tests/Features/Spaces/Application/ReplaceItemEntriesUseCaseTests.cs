@@ -28,7 +28,7 @@ public sealed class ReplaceItemEntriesUseCaseTests
             CancellationToken.None);
 
         var entry = Assert.Single(result.Entries);
-        Assert.Equal(3, entry.InitialQuantity);
+        Assert.Equal(3, entry.OriginalQuantity);
         Assert.Equal(1.5m, entry.CurrentQuantity);
         Assert.Equal(ItemUnit.Liter, entry.Unit);
         Assert.Equal(ConsumableState.Unopened, entry.State);

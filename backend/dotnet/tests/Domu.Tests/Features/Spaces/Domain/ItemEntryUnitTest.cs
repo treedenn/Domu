@@ -25,7 +25,7 @@ public sealed class ItemEntryUnitTest
         var action = () => entry.SetQuantities(-1, 0);
 
         var exception = Assert.Throws<ArgumentException>(action);
-        Assert.Contains("initial quantity must be >= 0", exception.Message);
+        Assert.Contains("original quantity must be >= 0", exception.Message);
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public sealed class ItemEntryUnitTest
 
         entry.SetQuantities(2.5m, 1.25m);
 
-        Assert.Equal(2.5m, entry.InitialQuantity);
+        Assert.Equal(2.5m, entry.OriginalQuantity);
         Assert.Equal(1.25m, entry.CurrentQuantity);
     }
 
@@ -47,7 +47,7 @@ public sealed class ItemEntryUnitTest
         var action = () => entry.SetQuantities(1, 2);
 
         var exception = Assert.Throws<ArgumentException>(action);
-        Assert.Contains("current quantity cannot be greater than initial quantity", exception.Message);
+        Assert.Contains("current quantity cannot be greater than original quantity", exception.Message);
     }
 
     [Fact]

@@ -82,7 +82,7 @@ void main() {
         name: 'Rice',
         entries: const [
           ItemEntry(
-            initialQuantity: 1,
+            originalQuantity: 1,
             currentQuantity: 1,
             unit: ItemUnit.kilogram,
             state: ConsumableState.unopened,
@@ -90,6 +90,8 @@ void main() {
         ],
       );
       final body = jsonDecode(request.body) as Map<String, dynamic>;
+      expect(body['entries'][0]['originalQuantity'], 1);
+      expect(body['entries'][0], isNot(contains('initialQuantity')));
       expect(body['entries'][0]['unit'], 'kilogram');
       expect(body['entries'][0]['state'], 'unopened');
       expect(body['entries'][0], isNot(contains('containerType')));

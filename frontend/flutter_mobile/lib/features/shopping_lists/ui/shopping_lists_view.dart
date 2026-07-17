@@ -153,42 +153,15 @@ class _ShoppingListsViewState extends State<ShoppingListsView> {
     required String title,
     required String action,
     String initial = '',
-  }) async {
-    final controller = TextEditingController(text: initial);
-    final key = GlobalKey<FormState>();
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Form(
-          key: key,
-          child: TextFormField(
-            controller: controller,
-            autofocus: true,
-            maxLength: 120,
-            decoration: const InputDecoration(labelText: 'Name'),
-            validator: _nameValidator,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (key.currentState!.validate()) {
-                Navigator.pop(context, controller.text.trim());
-              }
-            },
-            child: Text(action),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
-    return result;
-  }
+  }) => showDialog<String>(
+    context: context,
+    builder: (_) => _ListNameDialog(
+      title: title,
+      action: action,
+      initial: initial,
+      validator: _nameValidator,
+    ),
+  );
 
   String? _nameValidator(String? value) {
     final name = value?.trim() ?? '';
@@ -199,3 +172,60 @@ class _ShoppingListsViewState extends State<ShoppingListsView> {
 }
 
 enum _ListAction { rename, delete }
+
+class _ListNameDialog extends StatefulWidget {
+  const _ListNameDialog({
+    required this.title,
+    required this.action,
+    required this.initial,
+    required this.validator,
+  });
+
+  final String title;
+  final String action;
+  final String initial;
+  final String? Function(String?) validator;
+
+  @override
+  State<_ListNameDialog> createState() => _ListNameDialogState();
+}
+
+class _ListNameDialogState extends State<_ListNameDialog> {
+  late final controller = TextEditingController(text: widget.initial);
+  final key = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(widget.title),
+    content: Form(
+      key: key,
+      child: TextFormField(
+        controller: controller,
+        autofocus: true,
+        maxLength: 120,
+        decoration: const InputDecoration(labelText: 'Name'),
+        validator: widget.validator,
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cancel'),
+      ),
+      FilledButton(
+        onPressed: () {
+          if (key.currentState!.validate()) {
+            Navigator.pop(context, controller.text.trim());
+          }
+        },
+        child: Text(widget.action),
+      ),
+    ],
+  );
+}

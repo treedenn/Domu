@@ -60,7 +60,7 @@ class SpaceItem {
 class ItemEntry {
   const ItemEntry({
     this.id,
-    required this.initialQuantity,
+    required this.originalQuantity,
     required this.currentQuantity,
     required this.unit,
     required this.state,
@@ -69,7 +69,7 @@ class ItemEntry {
   });
 
   final String? id;
-  final num initialQuantity;
+  final num originalQuantity;
   final num currentQuantity;
   final ItemUnit unit;
   final ConsumableState state;
