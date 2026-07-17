@@ -35,6 +35,31 @@ public sealed class ReplaceItemEntriesUseCaseTests
         Assert.Equal(1, repository.SaveChangesCalls);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_NormalizesEntryDatesToUtc()
+    {
+        var item = new Item(Guid.NewGuid(), "Milk", Guid.NewGuid());
+        var repository = new FakeItemRepository(item);
+        var useCase = new ReplaceItemEntriesUseCase(repository, new FakeSpaceAccessService());
+        var acquisitionDate = new DateTimeOffset(2026, 7, 17, 9, 0, 0, TimeSpan.FromHours(2));
+        var expirationDate = new DateTimeOffset(2026, 7, 24, 9, 0, 0, TimeSpan.FromHours(2));
+
+        var result = await useCase.ExecuteAsync(
+            new ReplaceItemEntriesCommand(new DomuActor(Guid.NewGuid(), DomuActorType.Zitadel),
+                Guid.NewGuid(),
+                item.SpaceId,
+                item.Id,
+                [new ItemEntryDraft(null, 1, 1, ItemUnit.Piece, ConsumableState.Unopened, acquisitionDate,
+                    expirationDate)]),
+            CancellationToken.None);
+
+        var entry = Assert.Single(result.Entries);
+        Assert.Equal(TimeSpan.Zero, entry.AcquisitionDate!.Value.Offset);
+        Assert.Equal(acquisitionDate.UtcDateTime, entry.AcquisitionDate.Value.UtcDateTime);
+        Assert.Equal(TimeSpan.Zero, entry.ExpirationDate!.Value.Offset);
+        Assert.Equal(expirationDate.UtcDateTime, entry.ExpirationDate.Value.UtcDateTime);
+    }
+
     private sealed class FakeItemRepository(params Item[] seededItems) : IItemRepository
     {
         public List<Item> StoredItems { get; } = seededItems.ToList();

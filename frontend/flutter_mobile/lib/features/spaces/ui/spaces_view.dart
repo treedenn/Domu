@@ -28,8 +28,9 @@ class _SpacesViewState extends State<SpacesView> {
   @override
   void didUpdateWidget(covariant SpacesView old) {
     super.didUpdateWidget(old);
-    if (old.householdId != widget.householdId || old.spaceId != widget.spaceId)
+    if (old.householdId != widget.householdId || old.spaceId != widget.spaceId) {
       _scheduleLoad();
+    }
   }
 
   void _scheduleLoad() {

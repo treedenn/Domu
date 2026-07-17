@@ -33,8 +33,8 @@ public sealed class ItemEntry
         if (acquisitionDate > expirationDate)
             throw new ArgumentException("Item entry acquisition date cannot be after expiration date.");
 
-        AcquisitionDate = acquisitionDate;
-        ExpirationDate = expirationDate;
+        AcquisitionDate = acquisitionDate?.ToUniversalTime();
+        ExpirationDate = expirationDate?.ToUniversalTime();
     }
 
     public void SetQuantities(decimal originalQuantity, decimal currentQuantity)
