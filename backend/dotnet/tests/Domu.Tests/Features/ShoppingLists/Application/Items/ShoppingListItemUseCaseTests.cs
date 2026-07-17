@@ -26,10 +26,7 @@ public sealed class ShoppingListItemUseCaseTests
                 "Milk",
                 null,
                 null,
-                null,
-                null,
-                Guid.NewGuid(),
-                null),
+                Guid.NewGuid()),
             CancellationToken.None);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(action);
@@ -51,19 +48,17 @@ public sealed class ShoppingListItemUseCaseTests
                 householdId,
                 shoppingList.Id,
                 "  Milk   chocolate ",
-                2,
-                1,
-                " l ",
                 "  chilled  ",
                 spaceId,
-                itemId),
+                itemId,
+                2),
             CancellationToken.None);
 
         Assert.Equal("Milk chocolate", result.Name);
         Assert.Equal("milk chocolate", result.NormalizedName);
-        Assert.Equal(2, result.Quantity);
-        Assert.Equal(1, result.ContainerQuantity);
-        Assert.Equal("l", result.ContainerUnit);
+        Assert.Equal(2, result.Count);
+        Assert.Null(result.PlannedAmountPerUnit);
+        Assert.Null(result.PlannedUnit);
         Assert.Equal("chilled", result.Note);
         Assert.Equal(spaceId, result.SpaceId);
         Assert.Equal(itemId, result.ItemId);

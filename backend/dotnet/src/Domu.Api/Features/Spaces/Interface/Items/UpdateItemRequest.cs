@@ -8,4 +8,7 @@ public sealed record UpdateItemRequest(
     [MaxLength(Item.NameMaxLength)]
     string Name,
     [MaxLength(Item.CategoryMaxLength)] string? Category,
-    [MaxLength(Item.BarcodeMaxLength)] string? Barcode);
+    [MaxLength(Item.BarcodeMaxLength)] string? Barcode,
+    int? DefaultPurchaseCount = null,
+    decimal? DefaultPurchaseAmountPerUnit = null,
+    ItemUnit? DefaultPurchaseUnit = null);

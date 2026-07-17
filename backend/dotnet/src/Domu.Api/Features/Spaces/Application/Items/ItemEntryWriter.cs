@@ -30,9 +30,17 @@ internal static class ItemEntryWriter
                 item.AddEntry(entry);
             }
 
+            if (entryInput.OriginalAmountPerUnit.HasValue)
+            {
+                entry.SetBatch(entryInput.Count, entryInput.OriginalAmountPerUnit, entryInput.CurrentAmountPerUnit);
+                entry.SetUnit(entryInput.Unit);
+            }
+            else
+            {
+                entry.SetUnit(entryInput.Unit);
+                entry.SetBatch(entryInput.Count, null, null);
+            }
             entry.SetDates(entryInput.AcquisitionDate, entryInput.ExpirationDate);
-            entry.SetQuantities(entryInput.OriginalQuantity, entryInput.CurrentQuantity);
-            entry.SetUnit(entryInput.Unit);
             entry.ChangeState(entryInput.State);
         }
     }

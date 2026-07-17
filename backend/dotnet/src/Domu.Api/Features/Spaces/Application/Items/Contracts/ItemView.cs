@@ -8,8 +8,11 @@ public sealed record ItemView(
     string Name,
     string? Category,
     string? Barcode,
-    decimal TotalQuantity,
-    IReadOnlyList<ItemEntryView> Entries)
+    int TotalCount,
+    IReadOnlyList<ItemEntryView> Entries,
+    int? DefaultPurchaseCount = null,
+    decimal? DefaultPurchaseAmountPerUnit = null,
+    ItemUnit? DefaultPurchaseUnit = null)
 {
     public static ItemView FromDomain(Item item)
     {
@@ -21,9 +24,12 @@ public sealed record ItemView(
             item.Name,
             item.Category,
             item.Barcode,
-            item.TotalQuantity,
+            item.TotalCount,
             item.Entries
                 .Select(ItemEntryView.FromDomain)
-                .ToArray());
+                .ToArray(),
+            item.DefaultPurchaseCount,
+            item.DefaultPurchaseAmountPerUnit,
+            item.DefaultPurchaseUnit);
     }
 }

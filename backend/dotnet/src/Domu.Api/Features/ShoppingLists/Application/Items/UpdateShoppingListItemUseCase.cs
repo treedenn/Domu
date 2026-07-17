@@ -43,11 +43,10 @@ public sealed class UpdateShoppingListItemUseCase(
         var now = DateTimeOffset.UtcNow;
         if (command.Name is not null)
             item.Rename(command.Name, now);
-        item.ChangeQuantity(command.Quantity, now);
-        item.ChangeContainer(command.ContainerQuantity, command.ContainerUnit, now);
         item.ChangeNote(command.Note, now);
         item.LinkSpace(command.SpaceId, now);
         item.LinkItem(command.ItemIdLink, now);
+        item.SetPlannedBatch(command.Count, command.PlannedAmountPerUnit, command.PlannedUnit, now);
         if (command.SortOrder.HasValue)
             item.MoveTo(command.SortOrder.Value, now);
 

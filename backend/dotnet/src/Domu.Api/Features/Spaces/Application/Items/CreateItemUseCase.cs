@@ -27,6 +27,7 @@ public sealed class CreateItemUseCase(
         var item = new Item(Guid.CreateVersion7(), command.Name, command.SpaceId);
         item.ChangeCategory(command.Category);
         item.ChangeBarcode(command.Barcode);
+        item.SetDefaultPurchase(command.DefaultPurchaseCount, command.DefaultPurchaseAmountPerUnit, command.DefaultPurchaseUnit);
         ItemEntryWriter.ReplaceEntries(item, command.Entries);
 
         await itemRepository.AddAsync(item, cancellationToken);

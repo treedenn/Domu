@@ -10,7 +10,7 @@ public sealed class ItemEntity
     {
     }
 
-    public ItemEntity(Guid id, Guid spaceId, string name, string? category, string? barcode)
+    public ItemEntity(Guid id, Guid spaceId, string name, string? category, string? barcode, int? defaultPurchaseCount = null, decimal? defaultPurchaseAmountPerUnit = null, ItemUnit? defaultPurchaseUnit = null)
     {
         Id = id == Guid.Empty
             ? throw new ArgumentException("Item id cannot be empty.", nameof(id))
@@ -23,6 +23,9 @@ public sealed class ItemEntity
             : name;
         Category = category;
         Barcode = barcode;
+        DefaultPurchaseCount = defaultPurchaseCount;
+        DefaultPurchaseAmountPerUnit = defaultPurchaseAmountPerUnit;
+        DefaultPurchaseUnit = defaultPurchaseUnit;
     }
 
     public Guid Id { get; }
@@ -30,6 +33,9 @@ public sealed class ItemEntity
     public string Name { get; private set; } = null!;
     public string? Category { get; private set; }
     public string? Barcode { get; private set; }
+    public int? DefaultPurchaseCount { get; private set; }
+    public decimal? DefaultPurchaseAmountPerUnit { get; private set; }
+    public ItemUnit? DefaultPurchaseUnit { get; private set; }
     public IReadOnlyCollection<ItemEntryEntity> Entries => _entries;
 
     public Item ToDomain()
@@ -37,6 +43,7 @@ public sealed class ItemEntity
         var item = new Item(Id, Name, SpaceId);
         item.ChangeCategory(Category);
         item.ChangeBarcode(Barcode);
+        item.SetDefaultPurchase(DefaultPurchaseCount, DefaultPurchaseAmountPerUnit, DefaultPurchaseUnit);
 
         foreach (var entry in _entries.Select(entry => entry.ToDomain()))
             item.AddEntry(entry);
@@ -48,7 +55,7 @@ public sealed class ItemEntity
     {
         ArgumentNullException.ThrowIfNull(item);
 
-        var entity = new ItemEntity(item.Id, item.SpaceId, item.Name, item.Category, item.Barcode);
+        var entity = new ItemEntity(item.Id, item.SpaceId, item.Name, item.Category, item.Barcode, item.DefaultPurchaseCount, item.DefaultPurchaseAmountPerUnit, item.DefaultPurchaseUnit);
         foreach (var entry in item.Entries.OrderBy(entry => entry.Id))
             entity._entries.Add(ItemEntryEntity.FromDomain(entry));
 
@@ -65,6 +72,9 @@ public sealed class ItemEntity
         Name = item.Name;
         Category = item.Category;
         Barcode = item.Barcode;
+        DefaultPurchaseCount = item.DefaultPurchaseCount;
+        DefaultPurchaseAmountPerUnit = item.DefaultPurchaseAmountPerUnit;
+        DefaultPurchaseUnit = item.DefaultPurchaseUnit;
 
         var entriesById = _entries.ToDictionary(entry => entry.Id);
         var desiredEntryIds = item.Entries.Select(entry => entry.Id).ToHashSet();

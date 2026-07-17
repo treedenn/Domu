@@ -119,8 +119,8 @@ public sealed class SpaceQueryService(AppDbContext dbContext) : ISpaceQueryServi
                 .Select(item => item.Id)
                 .Contains(entry.ItemId))
             .GroupBy(entry => entry.ItemId)
-            .Select(group => new { ItemId = group.Key, TotalQuantity = group.Sum(entry => entry.CurrentQuantity) })
-            .ToDictionaryAsync(entry => entry.ItemId, entry => entry.TotalQuantity, cancellationToken);
+            .Select(group => new { ItemId = group.Key, TotalCount = group.Sum(entry => entry.Count) })
+            .ToDictionaryAsync(entry => entry.ItemId, entry => entry.TotalCount, cancellationToken);
 
         var items = await dbContext.Items
             .AsNoTracking()
@@ -145,7 +145,7 @@ public sealed class SpaceQueryService(AppDbContext dbContext) : ISpaceQueryServi
             .ToDictionary(
                 group => group.Key,
                 group => (IReadOnlyList<SpaceItemView>)group
-                    .Select(item => item.View with { TotalQuantity = itemTotals.GetValueOrDefault(item.View.Id) })
+                    .Select(item => item.View with { TotalCount = itemTotals.GetValueOrDefault(item.View.Id) })
                     .ToArray());
     }
 

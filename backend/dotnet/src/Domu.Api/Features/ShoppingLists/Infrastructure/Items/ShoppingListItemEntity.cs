@@ -1,4 +1,5 @@
 using Domu.Api.Features.ShoppingLists.Domain.Items;
+using Domu.Api.Features.Spaces.Domain.Items;
 
 namespace Domu.Api.Features.ShoppingLists.Infrastructure.Items;
 
@@ -14,9 +15,6 @@ public sealed class ShoppingListItemEntity
         Guid shoppingListId,
         string name,
         string normalizedName,
-        decimal? quantity,
-        decimal? containerQuantity,
-        string? containerUnit,
         string? note,
         bool @checked,
         DateTimeOffset? checkedAt,
@@ -26,16 +24,18 @@ public sealed class ShoppingListItemEntity
         Guid addedByMemberId,
         DateTimeOffset createdAt,
         DateTimeOffset updatedAt,
-        decimal sortOrder)
+        decimal sortOrder,
+        int count = 1,
+        decimal? plannedAmountPerUnit = null,
+        ItemUnit? plannedUnit = null,
+        DateTimeOffset? submittedToInventoryAt = null,
+        Guid? createdInventoryEntryId = null)
     {
         Id = id;
         HouseholdId = householdId;
         ShoppingListId = shoppingListId;
         Name = name;
         NormalizedName = normalizedName;
-        Quantity = quantity;
-        ContainerQuantity = containerQuantity;
-        ContainerUnit = containerUnit;
         Note = note;
         Checked = @checked;
         CheckedAt = checkedAt;
@@ -46,6 +46,8 @@ public sealed class ShoppingListItemEntity
         CreatedAt = createdAt;
         UpdatedAt = updatedAt;
         SortOrder = sortOrder;
+        Count = count; PlannedAmountPerUnit = plannedAmountPerUnit; PlannedUnit = plannedUnit;
+        SubmittedToInventoryAt = submittedToInventoryAt; CreatedInventoryEntryId = createdInventoryEntryId;
     }
 
     public Guid Id { get; }
@@ -53,9 +55,6 @@ public sealed class ShoppingListItemEntity
     public Guid ShoppingListId { get; private set; }
     public string Name { get; private set; } = null!;
     public string NormalizedName { get; private set; } = null!;
-    public decimal? Quantity { get; private set; }
-    public decimal? ContainerQuantity { get; private set; }
-    public string? ContainerUnit { get; private set; }
     public string? Note { get; private set; }
     public bool Checked { get; private set; }
     public DateTimeOffset? CheckedAt { get; private set; }
@@ -66,6 +65,11 @@ public sealed class ShoppingListItemEntity
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
     public decimal SortOrder { get; private set; }
+    public int Count { get; private set; }
+    public decimal? PlannedAmountPerUnit { get; private set; }
+    public ItemUnit? PlannedUnit { get; private set; }
+    public DateTimeOffset? SubmittedToInventoryAt { get; private set; }
+    public Guid? CreatedInventoryEntryId { get; private set; }
 
     public ShoppingListItem ToDomain()
     {
@@ -79,14 +83,15 @@ public sealed class ShoppingListItemEntity
             UpdatedAt,
             SortOrder);
 
-        item.ChangeQuantity(Quantity, UpdatedAt);
-        item.ChangeContainer(ContainerQuantity, ContainerUnit, UpdatedAt);
         item.ChangeNote(Note, UpdatedAt);
         item.LinkSpace(SpaceId, UpdatedAt);
         item.LinkItem(ItemId, UpdatedAt);
+        item.SetPlannedBatch(Count, PlannedAmountPerUnit, PlannedUnit, UpdatedAt);
 
         if (Checked)
             item.Check(CheckedByMemberId ?? AddedByMemberId, CheckedAt ?? UpdatedAt);
+        if (SubmittedToInventoryAt is not null && CreatedInventoryEntryId is not null)
+            item.MarkSubmittedToInventory(CreatedInventoryEntryId.Value, SubmittedToInventoryAt.Value);
 
         return item;
     }
@@ -101,9 +106,6 @@ public sealed class ShoppingListItemEntity
             item.ShoppingListId,
             item.Name,
             item.NormalizedName,
-            item.Quantity,
-            item.ContainerQuantity,
-            item.ContainerUnit,
             item.Note,
             item.Checked,
             item.CheckedAt,
@@ -113,7 +115,7 @@ public sealed class ShoppingListItemEntity
             item.AddedByMemberId,
             item.CreatedAt,
             item.UpdatedAt,
-            item.SortOrder);
+            item.SortOrder, item.Count, item.PlannedAmountPerUnit, item.PlannedUnit, item.SubmittedToInventoryAt, item.CreatedInventoryEntryId);
     }
 
     public void UpdateFromDomain(ShoppingListItem item)
@@ -126,9 +128,6 @@ public sealed class ShoppingListItemEntity
         ShoppingListId = item.ShoppingListId;
         Name = item.Name;
         NormalizedName = item.NormalizedName;
-        Quantity = item.Quantity;
-        ContainerQuantity = item.ContainerQuantity;
-        ContainerUnit = item.ContainerUnit;
         Note = item.Note;
         Checked = item.Checked;
         CheckedAt = item.CheckedAt;
@@ -139,5 +138,7 @@ public sealed class ShoppingListItemEntity
         CreatedAt = item.CreatedAt;
         UpdatedAt = item.UpdatedAt;
         SortOrder = item.SortOrder;
+        Count = item.Count; PlannedAmountPerUnit = item.PlannedAmountPerUnit; PlannedUnit = item.PlannedUnit;
+        SubmittedToInventoryAt = item.SubmittedToInventoryAt; CreatedInventoryEntryId = item.CreatedInventoryEntryId;
     }
 }

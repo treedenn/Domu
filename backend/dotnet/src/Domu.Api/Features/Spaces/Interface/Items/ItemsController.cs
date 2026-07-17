@@ -61,7 +61,10 @@ public sealed class ItemsController(
                     request.Name,
                     request.Category,
                     request.Barcode,
-                    request.Entries?.Select(entry => entry.ToDraft()).ToArray()),
+                    request.Entries?.Select(entry => entry.ToDraft()).ToArray(),
+                    request.DefaultPurchaseCount,
+                    request.DefaultPurchaseAmountPerUnit,
+                    request.DefaultPurchaseUnit),
                 cancellationToken);
 
             return CreatedAtAction(nameof(GetItems), new { householdId, spaceId }, new ApiResponse<ItemView>(item));
@@ -97,7 +100,10 @@ public sealed class ItemsController(
                     itemId,
                     request.Name,
                     request.Category,
-                    request.Barcode),
+                    request.Barcode,
+                    request.DefaultPurchaseCount,
+                    request.DefaultPurchaseAmountPerUnit,
+                    request.DefaultPurchaseUnit),
                 cancellationToken);
 
             return Ok(new ApiResponse<ItemView>(item));

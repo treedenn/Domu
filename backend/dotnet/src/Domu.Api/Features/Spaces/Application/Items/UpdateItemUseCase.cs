@@ -31,6 +31,7 @@ public sealed class UpdateItemUseCase(
         item.Rename(command.Name);
         item.ChangeCategory(command.Category);
         item.ChangeBarcode(command.Barcode);
+        item.SetDefaultPurchase(command.DefaultPurchaseCount, command.DefaultPurchaseAmountPerUnit, command.DefaultPurchaseUnit);
 
         await itemRepository.UpdateAsync(item, cancellationToken);
         await _householdActivityRecorder.RecordAsync(

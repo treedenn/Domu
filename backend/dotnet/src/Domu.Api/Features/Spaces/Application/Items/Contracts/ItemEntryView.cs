@@ -4,8 +4,9 @@ namespace Domu.Api.Features.Spaces.Application.Items.Contracts;
 
 public sealed record ItemEntryView(
     Guid Id,
-    decimal OriginalQuantity,
-    decimal CurrentQuantity,
+    int Count,
+    decimal? OriginalAmountPerUnit,
+    decimal? CurrentAmountPerUnit,
     ItemUnit Unit,
     ConsumableState State,
     DateTimeOffset? AcquisitionDate,
@@ -17,8 +18,9 @@ public sealed record ItemEntryView(
 
         return new ItemEntryView(
             entry.Id,
-            entry.OriginalQuantity,
-            entry.CurrentQuantity,
+            entry.Count,
+            entry.OriginalAmountPerUnit,
+            entry.CurrentAmountPerUnit,
             entry.Unit,
             entry.State,
             entry.AcquisitionDate,

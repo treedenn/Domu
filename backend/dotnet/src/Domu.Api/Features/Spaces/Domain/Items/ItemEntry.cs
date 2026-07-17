@@ -20,11 +20,11 @@ public sealed class ItemEntry
 
     public DateTimeOffset? ExpirationDate { get; private set; }
 
-    public decimal OriginalQuantity { get; private set; }
+    public int Count { get; private set; }
+    public decimal? OriginalAmountPerUnit { get; private set; }
+    public decimal? CurrentAmountPerUnit { get; private set; }
 
-    public decimal CurrentQuantity { get; private set; }
-
-    public ItemUnit Unit { get; private set; } = ItemUnit.Piece;
+    public ItemUnit Unit { get; private set; } = ItemUnit.Unspecified;
 
     public ConsumableState State { get; private set; } = ConsumableState.Unspecified;
 
@@ -37,17 +37,22 @@ public sealed class ItemEntry
         ExpirationDate = expirationDate?.ToUniversalTime();
     }
 
-    public void SetQuantities(decimal originalQuantity, decimal currentQuantity)
+    public void SetBatch(int count, decimal? originalAmountPerUnit, decimal? currentAmountPerUnit)
     {
-        if (originalQuantity < 0)
-            throw new ArgumentException("Item entry original quantity must be >= 0.", nameof(originalQuantity));
-        if (currentQuantity < 0)
-            throw new ArgumentException("Item entry current quantity must be >= 0.", nameof(currentQuantity));
-        if (currentQuantity > originalQuantity)
-            throw new ArgumentException("Item entry current quantity cannot be greater than original quantity.");
+        if (count <= 0)
+            throw new ArgumentException("Item entry count must be greater than 0.", nameof(count));
+        if (originalAmountPerUnit.HasValue != currentAmountPerUnit.HasValue)
+            throw new ArgumentException("Item entry original and current amounts must be supplied together.");
+        if (!originalAmountPerUnit.HasValue && Unit != ItemUnit.Unspecified)
+            throw new ArgumentException("Item entry without amounts must use the unspecified unit.");
+        if (originalAmountPerUnit < 0)
+            throw new ArgumentException("Item entry original amount per unit must be >= 0.", nameof(originalAmountPerUnit));
+        if (currentAmountPerUnit < 0 || currentAmountPerUnit > originalAmountPerUnit)
+            throw new ArgumentException("Item entry current amount per unit must be between 0 and the original amount.", nameof(currentAmountPerUnit));
 
-        OriginalQuantity = originalQuantity;
-        CurrentQuantity = currentQuantity;
+        Count = count;
+        OriginalAmountPerUnit = originalAmountPerUnit;
+        CurrentAmountPerUnit = currentAmountPerUnit;
     }
 
     public void SetUnit(ItemUnit unit)
@@ -55,6 +60,8 @@ public sealed class ItemEntry
         if (!Enum.IsDefined(unit))
             throw new ArgumentException("Item unit is invalid.", nameof(unit));
 
+        if (!CurrentAmountPerUnit.HasValue && unit != ItemUnit.Unspecified)
+            throw new ArgumentException("Item entry without amounts must use the unspecified unit.", nameof(unit));
         Unit = unit;
     }
 

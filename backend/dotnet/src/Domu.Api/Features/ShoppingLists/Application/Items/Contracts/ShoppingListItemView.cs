@@ -1,4 +1,5 @@
 using Domu.Api.Features.ShoppingLists.Domain.Items;
+using Domu.Api.Features.Spaces.Domain.Items;
 
 namespace Domu.Api.Features.ShoppingLists.Application.Items.Contracts;
 
@@ -8,9 +9,6 @@ public sealed record ShoppingListItemView(
     Guid ShoppingListId,
     string Name,
     string NormalizedName,
-    decimal? Quantity,
-    decimal? ContainerQuantity,
-    string? ContainerUnit,
     string? Note,
     bool Checked,
     DateTimeOffset? CheckedAt,
@@ -20,7 +18,12 @@ public sealed record ShoppingListItemView(
     Guid AddedByMemberId,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
-    decimal SortOrder)
+    decimal SortOrder,
+    int Count = 1,
+    decimal? PlannedAmountPerUnit = null,
+    ItemUnit? PlannedUnit = null,
+    DateTimeOffset? SubmittedToInventoryAt = null,
+    Guid? CreatedInventoryEntryId = null)
 {
     public static ShoppingListItemView FromDomain(ShoppingListItem item)
     {
@@ -32,9 +35,6 @@ public sealed record ShoppingListItemView(
             item.ShoppingListId,
             item.Name,
             item.NormalizedName,
-            item.Quantity,
-            item.ContainerQuantity,
-            item.ContainerUnit,
             item.Note,
             item.Checked,
             item.CheckedAt,
@@ -44,6 +44,11 @@ public sealed record ShoppingListItemView(
             item.AddedByMemberId,
             item.CreatedAt,
             item.UpdatedAt,
-            item.SortOrder);
+            item.SortOrder,
+            item.Count,
+            item.PlannedAmountPerUnit,
+            item.PlannedUnit,
+            item.SubmittedToInventoryAt,
+            item.CreatedInventoryEntryId);
     }
 }

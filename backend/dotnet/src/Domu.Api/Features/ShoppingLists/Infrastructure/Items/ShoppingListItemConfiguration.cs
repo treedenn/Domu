@@ -27,11 +27,12 @@ public sealed class ShoppingListItemConfiguration : IEntityTypeConfiguration<Sho
             .HasMaxLength(ShoppingListItem.NameMaxLength)
             .IsRequired();
 
-        builder.Property(item => item.ContainerUnit)
-            .HasMaxLength(ShoppingListItem.UnitMaxLength);
-
         builder.Property(item => item.Note)
             .HasMaxLength(ShoppingListItem.NoteMaxLength);
+
+        builder.Property(item => item.PlannedAmountPerUnit).HasPrecision(18, 3);
+        builder.Property(item => item.Count).IsRequired();
+        builder.Property(item => item.PlannedUnit).HasConversion<int>();
 
         builder.HasOne<HouseholdEntity>()
             .WithMany()
@@ -46,7 +47,7 @@ public sealed class ShoppingListItemConfiguration : IEntityTypeConfiguration<Sho
         builder.HasOne<ItemEntity>()
             .WithMany()
             .HasForeignKey(item => item.ItemId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne<HouseholdMemberEntity>()
             .WithMany()

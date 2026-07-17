@@ -8,5 +8,5 @@ public sealed record ItemSearchResultView(
     string Name,
     string? Category,
     string? Barcode,
-    decimal TotalQuantity,
+    int TotalCount,
     IReadOnlyList<ItemEntryView> Entries);

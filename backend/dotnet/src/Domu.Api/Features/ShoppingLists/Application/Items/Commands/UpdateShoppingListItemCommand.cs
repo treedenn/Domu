@@ -1,4 +1,5 @@
 using Domu.Api.Features.Auth.Domain;
+using Domu.Api.Features.Spaces.Domain.Items;
 
 namespace Domu.Api.Features.ShoppingLists.Application.Items.Commands;
 
@@ -8,10 +9,10 @@ public sealed record UpdateShoppingListItemCommand(
     Guid ShoppingListId,
     Guid ItemId,
     string? Name,
-    decimal? Quantity,
-    decimal? ContainerQuantity,
-    string? ContainerUnit,
     string? Note,
     Guid? SpaceId,
     Guid? ItemIdLink,
-    decimal? SortOrder);
+    decimal? SortOrder,
+    int Count = 1,
+    decimal? PlannedAmountPerUnit = null,
+    ItemUnit? PlannedUnit = null);

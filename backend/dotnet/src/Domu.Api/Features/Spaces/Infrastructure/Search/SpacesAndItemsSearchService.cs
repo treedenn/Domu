@@ -121,7 +121,7 @@ public sealed class SpacesAndItemsSearchService(AppDbContext dbContext) : ISpace
                     item.Name,
                     item.Category,
                     item.Barcode,
-                    entries.Sum(entry => entry.CurrentQuantity),
+                    entries.Sum(entry => entry.Count),
                     entries);
             })
             .ToArray();
@@ -144,8 +144,9 @@ public sealed class SpacesAndItemsSearchService(AppDbContext dbContext) : ISpace
                 entry.ItemId,
                 View = new ItemEntryView(
                     entry.Id,
-                    entry.OriginalQuantity,
-                    entry.CurrentQuantity,
+                    entry.Count,
+                    entry.OriginalAmountPerUnit,
+                    entry.CurrentAmountPerUnit,
                     entry.Unit,
                     entry.State,
                     entry.AcquisitionDate,

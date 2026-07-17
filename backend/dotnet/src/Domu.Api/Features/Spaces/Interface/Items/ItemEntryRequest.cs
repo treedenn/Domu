@@ -6,10 +6,9 @@ namespace Domu.Api.Features.Spaces.Interface.Items;
 
 public sealed record ItemEntryRequest(
     Guid? Id,
-    [Range(typeof(decimal), "0", "79228162514264337593543950335")]
-    decimal OriginalQuantity,
-    [Range(typeof(decimal), "0", "79228162514264337593543950335")]
-    decimal CurrentQuantity,
+    [Range(1, int.MaxValue)] int Count,
+    [Range(typeof(decimal), "0", "79228162514264337593543950335")] decimal? OriginalAmountPerUnit,
+    [Range(typeof(decimal), "0", "79228162514264337593543950335")] decimal? CurrentAmountPerUnit,
     ItemUnit? Unit,
     ConsumableState State,
     DateTimeOffset? AcquisitionDate,
@@ -19,9 +18,10 @@ public sealed record ItemEntryRequest(
     {
         return new ItemEntryDraft(
             Id,
-            OriginalQuantity,
-            CurrentQuantity,
-            Unit ?? ItemUnit.Piece,
+            Count,
+            OriginalAmountPerUnit,
+            CurrentAmountPerUnit,
+            Unit ?? ItemUnit.Unspecified,
             State,
             AcquisitionDate,
             ExpirationDate);

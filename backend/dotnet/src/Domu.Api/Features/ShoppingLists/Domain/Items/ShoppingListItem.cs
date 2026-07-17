@@ -1,21 +1,12 @@
 using Domu.Api.Features.ShoppingLists.Domain;
+using Domu.Api.Features.Spaces.Domain.Items;
 
 namespace Domu.Api.Features.ShoppingLists.Domain.Items;
 
 public sealed class ShoppingListItem
 {
     public const int NameMaxLength = 120;
-    public const int UnitMaxLength = 32;
     public const int NoteMaxLength = 500;
-
-    private static readonly HashSet<string> AllowedContainerUnits = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "pieces",
-        "ml",
-        "l",
-        "mg",
-        "g"
-    };
 
     public ShoppingListItem(
         Guid id,
@@ -52,10 +43,6 @@ public sealed class ShoppingListItem
 
     public string NormalizedName { get; private set; } = null!;
 
-    public decimal? Quantity { get; private set; }
-    public decimal? ContainerQuantity { get; private set; }
-    public string? ContainerUnit { get; private set; }
-
     public string? Note { get; private set; }
 
     public bool Checked { get; private set; }
@@ -63,6 +50,11 @@ public sealed class ShoppingListItem
     public Guid? CheckedByMemberId { get; private set; }
     public Guid? SpaceId { get; private set; }
     public Guid? ItemId { get; private set; }
+    public int Count { get; private set; } = 1;
+    public decimal? PlannedAmountPerUnit { get; private set; }
+    public ItemUnit? PlannedUnit { get; private set; }
+    public DateTimeOffset? SubmittedToInventoryAt { get; private set; }
+    public Guid? CreatedInventoryEntryId { get; private set; }
     public Guid AddedByMemberId { get; }
     public DateTimeOffset CreatedAt { get; }
     public DateTimeOffset UpdatedAt { get; private set; }
@@ -81,34 +73,6 @@ public sealed class ShoppingListItem
 
         Name = cleanedName;
         NormalizedName = NameNormalizer.NormalizeForComparison(cleanedName);
-        UpdatedAt = updatedAt;
-    }
-
-    public void ChangeQuantity(decimal? quantity, DateTimeOffset updatedAt)
-    {
-        if (quantity is <= 0)
-            throw new ArgumentException("Shopping list item quantity must be greater than 0.", nameof(quantity));
-
-        Quantity = quantity;
-        UpdatedAt = updatedAt;
-    }
-
-    public void ChangeContainer(decimal? containerQuantity, string? containerUnit, DateTimeOffset updatedAt)
-    {
-        if (containerQuantity is <= 0)
-            throw new ArgumentException("Shopping list item container quantity must be greater than 0.",
-                nameof(containerQuantity));
-
-        var cleanedContainerUnit = string.IsNullOrWhiteSpace(containerUnit) ? null : containerUnit.Trim();
-        if (cleanedContainerUnit?.Length > UnitMaxLength)
-            throw new ArgumentException(
-                $"Shopping list item container unit cannot be longer than {UnitMaxLength} characters.",
-                nameof(containerUnit));
-        if (cleanedContainerUnit is not null && !AllowedContainerUnits.Contains(cleanedContainerUnit))
-            throw new ArgumentException("Shopping list item container unit is invalid.", nameof(containerUnit));
-
-        ContainerQuantity = containerQuantity;
-        ContainerUnit = cleanedContainerUnit?.ToLowerInvariant();
         UpdatedAt = updatedAt;
     }
 
@@ -140,6 +104,22 @@ public sealed class ShoppingListItem
 
         ItemId = itemId;
         UpdatedAt = updatedAt;
+    }
+
+    public void SetPlannedBatch(int count, decimal? amountPerUnit, ItemUnit? unit, DateTimeOffset updatedAt)
+    {
+        if (count <= 0)
+            throw new ArgumentException("Shopping list item count must be greater than 0.", nameof(count));
+        if (amountPerUnit.HasValue != unit.HasValue || amountPerUnit < 0 || (unit.HasValue && (!Enum.IsDefined(unit.Value) || unit == ItemUnit.Unspecified)))
+            throw new ArgumentException("Shopping list planned amount and unit must be supplied together with a specified unit.");
+        Count = count; PlannedAmountPerUnit = amountPerUnit; PlannedUnit = unit; UpdatedAt = updatedAt;
+    }
+
+    public void MarkSubmittedToInventory(Guid entryId, DateTimeOffset submittedAt)
+    {
+        if (entryId == Guid.Empty) throw new ArgumentException("Inventory entry id cannot be empty.", nameof(entryId));
+        if (SubmittedToInventoryAt is not null) throw new InvalidOperationException("Shopping list item has already been submitted to inventory.");
+        SubmittedToInventoryAt = submittedAt; CreatedInventoryEntryId = entryId; UpdatedAt = submittedAt;
     }
 
     public void MoveTo(decimal sortOrder, DateTimeOffset updatedAt)

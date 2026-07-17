@@ -17,15 +17,9 @@ public sealed class ItemEntryConfiguration : IEntityTypeConfiguration<ItemEntryE
         builder.Property(entry => entry.ItemId)
             .IsRequired();
 
-        builder.Property(entry => entry.OriginalQuantity)
-            .HasColumnName("original_quantity")
-            .HasPrecision(18, 3)
-            .IsRequired();
-
-        builder.Property(entry => entry.CurrentQuantity)
-            .HasColumnName("current_quantity")
-            .HasPrecision(18, 3)
-            .IsRequired();
+        builder.Property(entry => entry.Count).HasColumnName("count").IsRequired();
+        builder.Property(entry => entry.OriginalAmountPerUnit).HasColumnName("original_amount_per_unit").HasPrecision(18, 3);
+        builder.Property(entry => entry.CurrentAmountPerUnit).HasColumnName("current_amount_per_unit").HasPrecision(18, 3);
 
         builder.Property(entry => entry.Unit)
             .HasConversion<int>()

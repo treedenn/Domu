@@ -20,7 +20,8 @@ public sealed class ShoppingListItemsController(
     UpdateShoppingListItemUseCase updateShoppingListItemUseCase,
     SetShoppingListItemCheckedStateUseCase setShoppingListItemCheckedStateUseCase,
     DeleteShoppingListItemUseCase deleteShoppingListItemUseCase,
-    ClearCheckedShoppingListItemsUseCase clearCheckedShoppingListItemsUseCase)
+    ClearCheckedShoppingListItemsUseCase clearCheckedShoppingListItemsUseCase,
+    SubmitCheckedShoppingListItemsUseCase submitCheckedShoppingListItemsUseCase)
     : ControllerBase
 {
     [HttpGet]
@@ -45,6 +46,24 @@ public sealed class ShoppingListItemsController(
         }
     }
 
+    [HttpPost("submit-to-inventory")]
+    [ProducesResponseType(typeof(ApiResponse<InventorySubmissionResult>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse<InventorySubmissionResult>>> SubmitToInventory(
+        Guid householdId, Guid shoppingListId, SubmitCheckedShoppingListItemsRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await submitCheckedShoppingListItemsUseCase.ExecuteAsync(new(
+                actorAccessor.DomuActor, householdId, shoppingListId,
+                request.Items.Select(item => new SubmitCheckedShoppingListItem(item.ShoppingListItemId, item.AmountPerUnit, item.Unit, item.State, item.AcquisitionDate, item.ExpirationDate)).ToArray()), cancellationToken);
+            return Ok(new ApiResponse<InventorySubmissionResult>(result));
+        }
+        catch (KeyNotFoundException) { return NotFound(); }
+        catch (ArgumentException exception) { return BadRequest(new ProblemDetails { Title = "Invalid inventory submission.", Detail = exception.Message }); }
+    }
+
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<ShoppingListItemView>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -63,12 +82,12 @@ public sealed class ShoppingListItemsController(
                     householdId,
                     shoppingListId,
                     request.Name,
-                    request.Quantity,
-                    request.ContainerQuantity,
-                    request.ContainerUnit,
                     request.Note,
                     request.SpaceId,
-                    request.ItemId),
+                    request.ItemId,
+                    request.Count,
+                    request.PlannedAmountPerUnit,
+                    request.PlannedUnit),
                 cancellationToken);
 
             return CreatedAtAction(nameof(GetItems), new { householdId, shoppingListId }, new ApiResponse<ShoppingListItemView>(item));
@@ -103,13 +122,13 @@ public sealed class ShoppingListItemsController(
                     shoppingListId,
                     itemId,
                     request.Name,
-                    request.Quantity,
-                    request.ContainerQuantity,
-                    request.ContainerUnit,
                     request.Note,
                     request.SpaceId,
                     request.ItemId,
-                    request.SortOrder),
+                    request.SortOrder,
+                    request.Count,
+                    request.PlannedAmountPerUnit,
+                    request.PlannedUnit),
                 cancellationToken);
 
             return Ok(new ApiResponse<ShoppingListItemView>(item));

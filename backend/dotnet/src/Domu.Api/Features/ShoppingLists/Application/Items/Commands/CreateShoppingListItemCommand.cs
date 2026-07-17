@@ -1,4 +1,5 @@
 using Domu.Api.Features.Auth.Domain;
+using Domu.Api.Features.Spaces.Domain.Items;
 
 namespace Domu.Api.Features.ShoppingLists.Application.Items.Commands;
 
@@ -7,9 +8,9 @@ public sealed record CreateShoppingListItemCommand(
     Guid HouseholdId,
     Guid ShoppingListId,
     string Name,
-    decimal? Quantity,
-    decimal? ContainerQuantity,
-    string? ContainerUnit,
     string? Note,
     Guid? SpaceId,
-    Guid? ItemId);
+    Guid? ItemId,
+    int Count = 1,
+    decimal? PlannedAmountPerUnit = null,
+    ItemUnit? PlannedUnit = null);

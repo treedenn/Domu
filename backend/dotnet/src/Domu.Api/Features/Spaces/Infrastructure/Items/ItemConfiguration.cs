@@ -28,6 +28,9 @@ public sealed class ItemConfiguration : IEntityTypeConfiguration<ItemEntity>
         builder.Property(item => item.Barcode)
             .HasMaxLength(Item.BarcodeMaxLength);
 
+        builder.Property(item => item.DefaultPurchaseAmountPerUnit).HasPrecision(18, 3);
+        builder.Property(item => item.DefaultPurchaseUnit).HasConversion<int>();
+
         builder.HasMany(item => item.Entries)
             .WithOne()
             .HasForeignKey(entry => entry.ItemId)
