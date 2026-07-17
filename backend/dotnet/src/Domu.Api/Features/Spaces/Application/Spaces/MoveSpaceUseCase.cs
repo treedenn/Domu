@@ -23,10 +23,20 @@ public sealed class MoveSpaceUseCase(
             cancellationToken);
 
         if (command.ParentId is not null)
+        {
             await spaceAccessService.EnsureSpaceBelongsToHouseholdAsync(
                 command.ParentId.Value,
                 command.HouseholdId,
                 cancellationToken);
+
+            if (await spaceRepository.IsDescendantAsync(
+                    command.SpaceId,
+                    command.ParentId.Value,
+                    command.HouseholdId,
+                    cancellationToken))
+                throw new ArgumentException("Parent space cannot be the space itself or one of its descendants.",
+                    nameof(command.ParentId));
+        }
 
         var space = await spaceRepository.GetByIdAsync(command.SpaceId, cancellationToken)
                     ?? throw new KeyNotFoundException($"Space '{command.SpaceId}' was not found.");

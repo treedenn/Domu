@@ -29,8 +29,10 @@ public sealed class ItemEntryConfiguration : IEntityTypeConfiguration<ItemEntryE
             .HasConversion<int>()
             .IsRequired();
 
-        builder.Property(entry => entry.ContainerType)
-            .HasConversion<int>()
+        // Keep writing the legacy column until its removal is applied through a
+        // project-owner migration. It is intentionally not part of the domain model.
+        builder.Property<int>("LegacyContainerType")
+            .HasColumnName("container_type")
             .IsRequired();
 
         builder.Property(entry => entry.State)

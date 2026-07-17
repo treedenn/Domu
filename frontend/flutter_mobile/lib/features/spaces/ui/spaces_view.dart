@@ -63,31 +63,97 @@ class _SpacesViewState extends State<SpacesView> {
                   ),
                 ],
               ),
-            if (vm.currentSpace case final space?) _header(space),
+            if (vm.currentSpace case final space?) _header(space, vm.spacePath),
             Expanded(child: _body(vm)),
           ],
         ),
       );
     },
   );
-  Widget _header(Space space) => ListTile(
-    leading: const Icon(Icons.folder_outlined),
-    title: Text(space.name),
-    subtitle: space.description == null || space.description!.isEmpty
-        ? null
-        : Text(space.description!),
-    trailing: PopupMenuButton<_SpaceAction>(
-      onSelected: (action) => switch (action) {
-        _SpaceAction.edit => _editSpace(space),
-        _SpaceAction.move => _moveSpace(space),
-        _SpaceAction.delete => _deleteSpace(space),
-      },
-      itemBuilder: (_) => const [
-        PopupMenuItem(value: _SpaceAction.edit, child: Text('Edit space')),
-        PopupMenuItem(value: _SpaceAction.move, child: Text('Move space')),
-        PopupMenuItem(value: _SpaceAction.delete, child: Text('Delete space')),
+  Widget _header(Space space, List<Space> path) {
+    final parent = path.length > 1 ? path[path.length - 2] : null;
+    final isMainSpace = parent == null;
+    return Material(
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            IconButton(
+              tooltip: parent == null
+                  ? 'Back to Spaces'
+                  : 'Back to ${parent.name}',
+              onPressed: () => _goToSpace(parent?.id),
+              icon: const Icon(Icons.arrow_back),
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (path.length > 1) ...[
+                    _spacePath(path.take(path.length - 1).toList()),
+                    const SizedBox(height: 4),
+                  ],
+                  Text(
+                    isMainSpace ? 'Main space' : 'Subspace',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  Text(
+                    space.name,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  if (space.description case final description?
+                      when description.isNotEmpty)
+                    Text(description),
+                ],
+              ),
+            ),
+            PopupMenuButton<_SpaceAction>(
+              onSelected: (action) => switch (action) {
+                _SpaceAction.edit => _editSpace(space),
+                _SpaceAction.move => _moveSpace(space),
+                _SpaceAction.delete => _deleteSpace(space),
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(
+                  value: _SpaceAction.edit,
+                  child: Text('Edit space'),
+                ),
+                PopupMenuItem(
+                  value: _SpaceAction.move,
+                  child: Text('Move space'),
+                ),
+                PopupMenuItem(
+                  value: _SpaceAction.delete,
+                  child: Text('Delete space'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _spacePath(List<Space> path) => Wrap(
+    crossAxisAlignment: WrapCrossAlignment.center,
+    spacing: 2,
+    children: [
+      for (var index = 0; index < path.length; index++) ...[
+        if (index > 0) const Icon(Icons.chevron_right, size: 18),
+        TextButton(
+          onPressed: () => _goToSpace(path[index].id),
+          child: Text(path[index].name),
+        ),
       ],
-    ),
+    ],
+  );
+
+  void _goToSpace(String? spaceId) => context.go(
+    spaceId == null
+        ? '/households/${widget.householdId}/spaces'
+        : '/households/${widget.householdId}/spaces/$spaceId',
   );
   Widget _body(SpacesViewModel vm) {
     if (vm.isLoading && vm.spaces.isEmpty && vm.items.isEmpty)
@@ -492,9 +558,7 @@ class _ItemDialogState extends State<_ItemDialog> {
                   title: Text(
                     '${entries[i].currentQuantity}/${entries[i].initialQuantity} ${entries[i].unit.name}',
                   ),
-                  subtitle: Text(
-                    '${entries[i].containerType.name}, ${entries[i].state.name}',
-                  ),
+                  subtitle: Text(entries[i].state.name),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete_outline),
                     onPressed: () => setState(() => entries.removeAt(i)),
@@ -546,7 +610,6 @@ class _EntryDialogState extends State<_EntryDialog> {
   final initial = TextEditingController(text: '1');
   final current = TextEditingController(text: '1');
   ItemUnit unit = ItemUnit.piece;
-  ItemContainerType container = ItemContainerType.unspecified;
   ConsumableState state = ConsumableState.unspecified;
   DateTime? acquisitionDate;
   DateTime? expirationDate;
@@ -584,13 +647,6 @@ class _EntryDialogState extends State<_EntryDialog> {
                 .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
                 .toList(),
             onChanged: (value) => setState(() => unit = value!),
-          ),
-          DropdownButtonFormField(
-            value: container,
-            items: ItemContainerType.values
-                .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
-                .toList(),
-            onChanged: (value) => setState(() => container = value!),
           ),
           DropdownButtonFormField(
             value: state,
@@ -637,7 +693,6 @@ class _EntryDialogState extends State<_EntryDialog> {
               initialQuantity: i,
               currentQuantity: c,
               unit: unit,
-              containerType: container,
               state: state,
               acquisitionDate: acquisitionDate,
               expirationDate: expirationDate,

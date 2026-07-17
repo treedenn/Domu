@@ -22,7 +22,7 @@ public sealed class ReplaceItemEntriesUseCaseTests
                 item.SpaceId,
                 item.Id,
                 [
-                    new ItemEntryDraft(null, 3, 1.5m, ItemUnit.Liter, ItemContainerType.Carton,
+                    new ItemEntryDraft(null, 3, 1.5m, ItemUnit.Liter,
                         ConsumableState.Unopened, null, null)
                 ]),
             CancellationToken.None);
@@ -31,7 +31,6 @@ public sealed class ReplaceItemEntriesUseCaseTests
         Assert.Equal(3, entry.InitialQuantity);
         Assert.Equal(1.5m, entry.CurrentQuantity);
         Assert.Equal(ItemUnit.Liter, entry.Unit);
-        Assert.Equal(ItemContainerType.Carton, entry.ContainerType);
         Assert.Equal(ConsumableState.Unopened, entry.State);
         Assert.Equal(1, repository.SaveChangesCalls);
     }

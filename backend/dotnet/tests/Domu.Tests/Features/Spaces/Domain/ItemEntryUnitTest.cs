@@ -70,13 +70,4 @@ public sealed class ItemEntryUnitTest
         Assert.Equal(ItemUnit.Liter, entry.Unit);
     }
 
-    [Fact]
-    public void SetContainerType_UpdatesContainerType()
-    {
-        var entry = new ItemEntry(Guid.NewGuid(), Guid.NewGuid());
-
-        entry.SetContainerType(ItemContainerType.Carton);
-
-        Assert.Equal(ItemContainerType.Carton, entry.ContainerType);
-    }
 }

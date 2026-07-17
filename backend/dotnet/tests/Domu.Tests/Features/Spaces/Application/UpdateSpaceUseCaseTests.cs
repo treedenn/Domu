@@ -51,6 +51,11 @@ public sealed class UpdateSpaceUseCaseTests
             return Task.FromResult(StoredSpaces.SingleOrDefault(space => space.Id == spaceId));
         }
 
+        public Task<bool> IsDescendantAsync(Guid ancestorSpaceId, Guid candidateDescendantId, Guid householdId,
+            CancellationToken cancellationToken) => Task.FromResult(false);
+
+        public Task<bool> HasChildrenOrItemsAsync(Guid spaceId, CancellationToken cancellationToken) => Task.FromResult(false);
+
         public Task AddAsync(Space space, CancellationToken cancellationToken)
         {
             StoredSpaces.Add(space);

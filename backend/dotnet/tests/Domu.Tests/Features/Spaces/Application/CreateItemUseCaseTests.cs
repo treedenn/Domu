@@ -28,7 +28,7 @@ public sealed class CreateItemUseCaseTests
                 "Dairy",
                 "123",
                 [
-                    new ItemEntryDraft(null, 2, 2, ItemUnit.Piece, ItemContainerType.Unspecified,
+                    new ItemEntryDraft(null, 2, 2, ItemUnit.Piece,
                         ConsumableState.Unopened, null, null)
                 ]),
             CancellationToken.None);

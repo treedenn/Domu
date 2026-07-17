@@ -21,6 +21,9 @@ public sealed class DeleteSpaceUseCase(
             command.Actor,
             cancellationToken);
 
+        if (await spaceRepository.HasChildrenOrItemsAsync(command.SpaceId, cancellationToken))
+            throw new SpaceNotEmptyException();
+
         await spaceRepository.DeleteAsync(command.SpaceId, cancellationToken);
         await _householdActivityRecorder.RecordAsync(
             command.Actor,

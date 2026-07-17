@@ -18,7 +18,6 @@ public sealed class ItemEntityTests
             new DateTimeOffset(2026, 4, 25, 0, 0, 0, TimeSpan.Zero));
         firstEntry.SetQuantities(2, 1);
         firstEntry.SetUnit(ItemUnit.Liter);
-        firstEntry.SetContainerType(ItemContainerType.Carton);
         firstEntry.ChangeState(ConsumableState.Opened);
         item.AddEntry(firstEntry);
 
@@ -33,7 +32,6 @@ public sealed class ItemEntityTests
         Assert.Equal(item.TotalQuantity, roundTrippedItem.TotalQuantity);
         var roundTrippedEntry = Assert.Single(roundTrippedItem.Entries);
         Assert.Equal(ItemUnit.Liter, roundTrippedEntry.Unit);
-        Assert.Equal(ItemContainerType.Carton, roundTrippedEntry.ContainerType);
     }
 
     [Fact]

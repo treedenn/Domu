@@ -7,7 +7,6 @@ public sealed record ItemEntryView(
     decimal InitialQuantity,
     decimal CurrentQuantity,
     ItemUnit Unit,
-    ItemContainerType ContainerType,
     ConsumableState State,
     DateTimeOffset? AcquisitionDate,
     DateTimeOffset? ExpirationDate)
@@ -21,7 +20,6 @@ public sealed record ItemEntryView(
             entry.InitialQuantity,
             entry.CurrentQuantity,
             entry.Unit,
-            entry.ContainerType,
             entry.State,
             entry.AcquisitionDate,
             entry.ExpirationDate);

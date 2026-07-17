@@ -49,47 +49,50 @@ void main() {
     expect(page.hasMore, isTrue);
   });
 
-  test('serializes inventory entries using API enum names', () async {
-    late http.Request request;
-    final repository = ApiSpacesRepository(
-      ApiClient(
-        baseUrl: 'https://api.example.test',
-        accessToken: () async => 'token',
-        httpClient: MockClient((value) async {
-          request = value;
-          return http.Response(
-            jsonEncode({
-              'data': {
-                'id': 'rice',
-                'spaceId': 'pantry',
-                'name': 'Rice',
-                'category': null,
-                'barcode': null,
-                'totalQuantity': 1,
-                'entries': [],
-              },
-            }),
-            201,
-          );
-        }),
-      ),
-    );
-    await repository.createItem(
-      householdId: 'home',
-      spaceId: 'pantry',
-      name: 'Rice',
-      entries: const [
-        ItemEntry(
-          initialQuantity: 1,
-          currentQuantity: 1,
-          unit: ItemUnit.kilogram,
-          containerType: ItemContainerType.bag,
-          state: ConsumableState.unopened,
+  test(
+    'serializes inventory entry units and states using API enum names',
+    () async {
+      late http.Request request;
+      final repository = ApiSpacesRepository(
+        ApiClient(
+          baseUrl: 'https://api.example.test',
+          accessToken: () async => 'token',
+          httpClient: MockClient((value) async {
+            request = value;
+            return http.Response(
+              jsonEncode({
+                'data': {
+                  'id': 'rice',
+                  'spaceId': 'pantry',
+                  'name': 'Rice',
+                  'category': null,
+                  'barcode': null,
+                  'totalQuantity': 1,
+                  'entries': [],
+                },
+              }),
+              201,
+            );
+          }),
         ),
-      ],
-    );
-    final body = jsonDecode(request.body) as Map<String, dynamic>;
-    expect(body['entries'][0]['unit'], 'kilogram');
-    expect(body['entries'][0]['containerType'], 'bag');
-  });
+      );
+      await repository.createItem(
+        householdId: 'home',
+        spaceId: 'pantry',
+        name: 'Rice',
+        entries: const [
+          ItemEntry(
+            initialQuantity: 1,
+            currentQuantity: 1,
+            unit: ItemUnit.kilogram,
+            state: ConsumableState.unopened,
+          ),
+        ],
+      );
+      final body = jsonDecode(request.body) as Map<String, dynamic>;
+      expect(body['entries'][0]['unit'], 'kilogram');
+      expect(body['entries'][0]['state'], 'unopened');
+      expect(body['entries'][0], isNot(contains('containerType')));
+    },
+  );
 }

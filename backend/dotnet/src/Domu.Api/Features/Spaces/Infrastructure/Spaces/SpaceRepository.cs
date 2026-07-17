@@ -15,6 +15,42 @@ public sealed class SpaceRepository(AppDbContext dbContext) : ISpaceRepository
         return entity?.ToDomain();
     }
 
+    public async Task<bool> IsDescendantAsync(
+        Guid ancestorSpaceId,
+        Guid candidateDescendantId,
+        Guid householdId,
+        CancellationToken cancellationToken)
+    {
+        Guid? currentSpaceId = candidateDescendantId;
+        var visitedSpaceIds = new HashSet<Guid>();
+
+        while (currentSpaceId is not null && visitedSpaceIds.Add(currentSpaceId.Value))
+        {
+            var currentSpace = await dbContext.Spaces
+                .AsNoTracking()
+                .Where(space => space.Id == currentSpaceId.Value && space.HouseholdId == householdId)
+                .Select(space => new { space.Id, space.ParentId })
+                .SingleOrDefaultAsync(cancellationToken);
+
+            if (currentSpace is null)
+                return false;
+            if (currentSpace.Id == ancestorSpaceId)
+                return true;
+
+            currentSpaceId = currentSpace.ParentId;
+        }
+
+        return false;
+    }
+
+    public async Task<bool> HasChildrenOrItemsAsync(Guid spaceId, CancellationToken cancellationToken)
+    {
+        if (await dbContext.Spaces.AnyAsync(space => space.ParentId == spaceId, cancellationToken))
+            return true;
+
+        return await dbContext.Items.AnyAsync(item => item.SpaceId == spaceId, cancellationToken);
+    }
+
     public async Task AddAsync(Space space, CancellationToken cancellationToken)
     {
         await dbContext.Spaces.AddAsync(SpaceEntity.FromDomain(space), cancellationToken);

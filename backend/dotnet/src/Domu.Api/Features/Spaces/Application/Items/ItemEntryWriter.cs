@@ -33,7 +33,6 @@ internal static class ItemEntryWriter
             entry.SetDates(entryInput.AcquisitionDate, entryInput.ExpirationDate);
             entry.SetQuantities(entryInput.InitialQuantity, entryInput.CurrentQuantity);
             entry.SetUnit(entryInput.Unit);
-            entry.SetContainerType(entryInput.ContainerType);
             entry.ChangeState(entryInput.State);
         }
     }

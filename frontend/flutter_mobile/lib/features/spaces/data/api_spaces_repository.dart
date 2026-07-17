@@ -173,7 +173,6 @@ class ApiSpacesRepository implements SpacesRepository {
     'initialQuantity': entry.initialQuantity,
     'currentQuantity': entry.currentQuantity,
     'unit': entry.unit.name,
-    'containerType': entry.containerType.name,
     'state': entry.state.name,
     'acquisitionDate': entry.acquisitionDate?.toIso8601String(),
     'expirationDate': entry.expirationDate?.toIso8601String(),

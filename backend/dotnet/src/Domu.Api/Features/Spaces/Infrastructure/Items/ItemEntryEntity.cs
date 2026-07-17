@@ -14,7 +14,6 @@ public sealed class ItemEntryEntity
         decimal initialQuantity,
         decimal currentQuantity,
         ItemUnit unit,
-        ItemContainerType containerType,
         ConsumableState state,
         DateTimeOffset? acquisitionDate,
         DateTimeOffset? expirationDate)
@@ -33,15 +32,12 @@ public sealed class ItemEntryEntity
             throw new ArgumentException("Item entry current quantity cannot be greater than initial quantity.");
         if (!Enum.IsDefined(unit))
             throw new ArgumentException("Item unit is invalid.", nameof(unit));
-        if (!Enum.IsDefined(containerType))
-            throw new ArgumentException("Item container type is invalid.", nameof(containerType));
         if (acquisitionDate is not null && expirationDate is not null && acquisitionDate > expirationDate)
             throw new ArgumentException("Item entry acquisition date cannot be after expiration date.");
 
         InitialQuantity = initialQuantity;
         CurrentQuantity = currentQuantity;
         Unit = unit;
-        ContainerType = containerType;
         State = state;
         AcquisitionDate = acquisitionDate;
         ExpirationDate = expirationDate;
@@ -52,7 +48,6 @@ public sealed class ItemEntryEntity
     public decimal InitialQuantity { get; private set; }
     public decimal CurrentQuantity { get; private set; }
     public ItemUnit Unit { get; private set; } = ItemUnit.Piece;
-    public ItemContainerType ContainerType { get; private set; } = ItemContainerType.Unspecified;
     public ConsumableState State { get; private set; }
     public DateTimeOffset? AcquisitionDate { get; private set; }
     public DateTimeOffset? ExpirationDate { get; private set; }
@@ -63,7 +58,6 @@ public sealed class ItemEntryEntity
         entry.SetDates(AcquisitionDate, ExpirationDate);
         entry.SetQuantities(InitialQuantity, CurrentQuantity);
         entry.SetUnit(Unit);
-        entry.SetContainerType(ContainerType);
         entry.ChangeState(State);
         return entry;
     }
@@ -78,7 +72,6 @@ public sealed class ItemEntryEntity
             entry.InitialQuantity,
             entry.CurrentQuantity,
             entry.Unit,
-            entry.ContainerType,
             entry.State,
             entry.AcquisitionDate,
             entry.ExpirationDate);
@@ -94,7 +87,6 @@ public sealed class ItemEntryEntity
         InitialQuantity = entry.InitialQuantity;
         CurrentQuantity = entry.CurrentQuantity;
         Unit = entry.Unit;
-        ContainerType = entry.ContainerType;
         State = entry.State;
         AcquisitionDate = entry.AcquisitionDate;
         ExpirationDate = entry.ExpirationDate;

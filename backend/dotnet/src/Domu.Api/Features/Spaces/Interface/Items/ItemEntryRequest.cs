@@ -11,7 +11,6 @@ public sealed record ItemEntryRequest(
     [Range(typeof(decimal), "0", "79228162514264337593543950335")]
     decimal CurrentQuantity,
     ItemUnit? Unit,
-    ItemContainerType? ContainerType,
     ConsumableState State,
     DateTimeOffset? AcquisitionDate,
     DateTimeOffset? ExpirationDate)
@@ -23,7 +22,6 @@ public sealed record ItemEntryRequest(
             InitialQuantity,
             CurrentQuantity,
             Unit ?? ItemUnit.Piece,
-            ContainerType ?? ItemContainerType.Unspecified,
             State,
             AcquisitionDate,
             ExpirationDate);

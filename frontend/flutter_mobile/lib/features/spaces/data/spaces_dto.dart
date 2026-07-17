@@ -41,9 +41,6 @@ class ItemEntryDto {
     initialQuantity: json['initialQuantity'] as num,
     currentQuantity: json['currentQuantity'] as num,
     unit: ItemUnit.values.byName(json['unit'] as String),
-    containerType: ItemContainerType.values.byName(
-      json['containerType'] as String,
-    ),
     state: ConsumableState.values.byName(json['state'] as String),
     acquisitionDate: _date(json['acquisitionDate'] as String?),
     expirationDate: _date(json['expirationDate'] as String?),

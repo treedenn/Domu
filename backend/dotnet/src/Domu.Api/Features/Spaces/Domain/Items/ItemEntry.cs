@@ -26,8 +26,6 @@ public sealed class ItemEntry
 
     public ItemUnit Unit { get; private set; } = ItemUnit.Piece;
 
-    public ItemContainerType ContainerType { get; private set; } = ItemContainerType.Unspecified;
-
     public ConsumableState State { get; private set; } = ConsumableState.Unspecified;
 
     public void SetDates(DateTimeOffset? acquisitionDate, DateTimeOffset? expirationDate)
@@ -58,14 +56,6 @@ public sealed class ItemEntry
             throw new ArgumentException("Item unit is invalid.", nameof(unit));
 
         Unit = unit;
-    }
-
-    public void SetContainerType(ItemContainerType containerType)
-    {
-        if (!Enum.IsDefined(containerType))
-            throw new ArgumentException("Item container type is invalid.", nameof(containerType));
-
-        ContainerType = containerType;
     }
 
     public void ChangeState(ConsumableState state)

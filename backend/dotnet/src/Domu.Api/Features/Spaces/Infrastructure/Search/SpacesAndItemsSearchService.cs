@@ -147,7 +147,6 @@ public sealed class SpacesAndItemsSearchService(AppDbContext dbContext) : ISpace
                     entry.InitialQuantity,
                     entry.CurrentQuantity,
                     entry.Unit,
-                    entry.ContainerType,
                     entry.State,
                     entry.AcquisitionDate,
                     entry.ExpirationDate)

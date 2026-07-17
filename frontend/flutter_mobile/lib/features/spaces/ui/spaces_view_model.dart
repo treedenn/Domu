@@ -11,6 +11,7 @@ class SpacesViewModel extends ChangeNotifier {
   List<Space> _spaces = const [];
   List<SpaceItem> _items = const [];
   Space? _currentSpace;
+  List<Space> _spacePath = const [];
   String? _errorMessage;
   String? _message;
   bool _isLoading = false;
@@ -20,6 +21,10 @@ class SpacesViewModel extends ChangeNotifier {
   List<Space> get spaces => List.unmodifiable(_spaces);
   List<SpaceItem> get items => List.unmodifiable(_items);
   Space? get currentSpace => _currentSpace;
+
+  /// The selected space hierarchy, ordered from the main space to the current
+  /// subspace. Empty while viewing top-level spaces.
+  List<Space> get spacePath => List.unmodifiable(_spacePath);
   String? get errorMessage => _errorMessage;
   String? get message => _message;
   bool get isLoading => _isLoading;
@@ -56,12 +61,14 @@ class SpacesViewModel extends ChangeNotifier {
           householdId: householdId,
           spaceId: parentId,
         );
+        _spacePath = await _loadSpacePath(householdId, _currentSpace!);
         _items = await _repository.getItems(
           householdId: householdId,
           spaceId: parentId,
         );
       } else {
         _currentSpace = null;
+        _spacePath = const [];
         _items = const [];
       }
       final page = await _repository.getSpaces(
@@ -80,6 +87,22 @@ class SpacesViewModel extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<List<Space>> _loadSpacePath(String householdId, Space current) async {
+    final path = <Space>[current];
+    final seenIds = <String>{current.id};
+    var parentId = current.parentId;
+
+    while (parentId != null && seenIds.add(parentId)) {
+      final parent = await _repository.getSpace(
+        householdId: householdId,
+        spaceId: parentId,
+      );
+      path.add(parent);
+      parentId = parent.parentId;
+    }
+    return path.reversed.toList();
   }
 
   Future<void> loadMore() async {

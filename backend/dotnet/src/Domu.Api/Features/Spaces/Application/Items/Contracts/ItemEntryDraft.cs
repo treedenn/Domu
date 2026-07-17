@@ -7,7 +7,6 @@ public sealed record ItemEntryDraft(
     decimal InitialQuantity,
     decimal CurrentQuantity,
     ItemUnit Unit,
-    ItemContainerType ContainerType,
     ConsumableState State,
     DateTimeOffset? AcquisitionDate,
     DateTimeOffset? ExpirationDate);

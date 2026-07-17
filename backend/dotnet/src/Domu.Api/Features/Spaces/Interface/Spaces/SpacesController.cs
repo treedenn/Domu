@@ -169,6 +169,7 @@ public sealed class SpacesController(
 
     [HttpDelete("{spaceId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteSpace(Guid householdId, Guid spaceId, CancellationToken cancellationToken)
     {
@@ -182,6 +183,10 @@ public sealed class SpacesController(
         catch (KeyNotFoundException)
         {
             return NotFound();
+        }
+        catch (SpaceNotEmptyException exception)
+        {
+            return Conflict(new ProblemDetails { Title = "Space is not empty.", Detail = exception.Message });
         }
     }
 

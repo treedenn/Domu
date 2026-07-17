@@ -1,7 +1,5 @@
 enum ItemUnit { unspecified, piece, milliliter, liter, gram, kilogram }
 
-enum ItemContainerType { unspecified, bottle, carton, can, jar, pack, box, bag }
-
 enum ConsumableState { unspecified, unopened, opened }
 
 class Space {
@@ -65,7 +63,6 @@ class ItemEntry {
     required this.initialQuantity,
     required this.currentQuantity,
     required this.unit,
-    required this.containerType,
     required this.state,
     this.acquisitionDate,
     this.expirationDate,
@@ -75,7 +72,6 @@ class ItemEntry {
   final num initialQuantity;
   final num currentQuantity;
   final ItemUnit unit;
-  final ItemContainerType containerType;
   final ConsumableState state;
   final DateTime? acquisitionDate;
   final DateTime? expirationDate;
