@@ -12,25 +12,25 @@ public sealed class ShoppingListItemTests
     }
 
     [Fact]
-    public void SetPlannedBatch_RejectsNonPositiveCount()
+    public void SetPurchaseDetails_RejectsNonPositiveCount()
     {
-        Assert.Throws<ArgumentException>(() => CreateItem("Milk").SetPlannedBatch(0, null, null, DateTimeOffset.UtcNow));
+        Assert.Throws<ArgumentException>(() => CreateItem("Milk").SetPurchaseDetails(0, null, null, DateTimeOffset.UtcNow));
     }
 
     [Fact]
-    public void SetPlannedBatch_RequiresAmountAndUnitTogether()
+    public void SetPurchaseDetails_RequiresAmountAndUnitTogether()
     {
-        Assert.Throws<ArgumentException>(() => CreateItem("Milk").SetPlannedBatch(1, 1, null, DateTimeOffset.UtcNow));
+        Assert.Throws<ArgumentException>(() => CreateItem("Milk").SetPurchaseDetails(1, 1, null, DateTimeOffset.UtcNow));
     }
 
     [Fact]
-    public void SetPlannedBatch_StoresOptionalDetail()
+    public void SetPurchaseDetails_StoresOptionalDetail()
     {
         var item = CreateItem("Milk");
-        item.SetPlannedBatch(2, 1, ItemUnit.Liter, DateTimeOffset.UtcNow);
+        item.SetPurchaseDetails(2, 1, ItemUnit.Liter, DateTimeOffset.UtcNow);
         Assert.Equal(2, item.Count);
-        Assert.Equal(1, item.PlannedAmountPerUnit);
-        Assert.Equal(ItemUnit.Liter, item.PlannedUnit);
+        Assert.Equal(1, item.AmountPerUnit);
+        Assert.Equal(ItemUnit.Liter, item.Unit);
     }
 
     private static ShoppingListItem CreateItem(string name)

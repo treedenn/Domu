@@ -20,8 +20,8 @@ public sealed record ShoppingListItemView(
     DateTimeOffset UpdatedAt,
     decimal SortOrder,
     int Count = 1,
-    decimal? PlannedAmountPerUnit = null,
-    ItemUnit? PlannedUnit = null,
+    decimal? AmountPerUnit = null,
+    ItemUnit? Unit = null,
     DateTimeOffset? SubmittedToInventoryAt = null,
     Guid? CreatedInventoryEntryId = null)
 {
@@ -46,8 +46,8 @@ public sealed record ShoppingListItemView(
             item.UpdatedAt,
             item.SortOrder,
             item.Count,
-            item.PlannedAmountPerUnit,
-            item.PlannedUnit,
+            item.AmountPerUnit,
+            item.Unit,
             item.SubmittedToInventoryAt,
             item.CreatedInventoryEntryId);
     }

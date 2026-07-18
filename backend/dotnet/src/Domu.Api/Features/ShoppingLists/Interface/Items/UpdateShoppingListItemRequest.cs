@@ -9,5 +9,5 @@ public sealed record UpdateShoppingListItemRequest(
     Guid? ItemId,
     decimal? SortOrder,
     int Count = 1,
-    decimal? PlannedAmountPerUnit = null,
-    ItemUnit? PlannedUnit = null);
+    decimal? AmountPerUnit = null,
+    ItemUnit? Unit = null);

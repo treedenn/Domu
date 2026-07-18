@@ -12,5 +12,5 @@ public sealed record CreateShoppingListItemCommand(
     Guid? SpaceId,
     Guid? ItemId,
     int Count = 1,
-    decimal? PlannedAmountPerUnit = null,
-    ItemUnit? PlannedUnit = null);
+    decimal? AmountPerUnit = null,
+    ItemUnit? Unit = null);

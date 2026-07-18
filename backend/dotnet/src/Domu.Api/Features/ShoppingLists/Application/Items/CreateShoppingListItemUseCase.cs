@@ -58,7 +58,7 @@ public sealed class CreateShoppingListItemUseCase(
         item.ChangeNote(command.Note, now);
         item.LinkSpace(command.SpaceId, now);
         item.LinkItem(command.ItemId, now);
-        item.SetPlannedBatch(source?.Count ?? command.Count, source?.AmountPerUnit ?? command.PlannedAmountPerUnit, source?.Unit ?? command.PlannedUnit, now);
+        item.SetPurchaseDetails(source?.Count ?? command.Count, source?.AmountPerUnit ?? command.AmountPerUnit, source?.Unit ?? command.Unit, now);
 
         await shoppingListItemRepository.AddAsync(item, cancellationToken);
         await _householdActivityRecorder.RecordAsync(

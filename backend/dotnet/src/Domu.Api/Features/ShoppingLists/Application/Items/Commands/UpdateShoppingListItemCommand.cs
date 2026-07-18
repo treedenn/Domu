@@ -14,5 +14,5 @@ public sealed record UpdateShoppingListItemCommand(
     Guid? ItemIdLink,
     decimal? SortOrder,
     int Count = 1,
-    decimal? PlannedAmountPerUnit = null,
-    ItemUnit? PlannedUnit = null);
+    decimal? AmountPerUnit = null,
+    ItemUnit? Unit = null);

@@ -30,9 +30,9 @@ public sealed class ShoppingListItemConfiguration : IEntityTypeConfiguration<Sho
         builder.Property(item => item.Note)
             .HasMaxLength(ShoppingListItem.NoteMaxLength);
 
-        builder.Property(item => item.PlannedAmountPerUnit).HasPrecision(18, 3);
+        builder.Property(item => item.AmountPerUnit).HasPrecision(18, 3);
         builder.Property(item => item.Count).IsRequired();
-        builder.Property(item => item.PlannedUnit).HasConversion<int>();
+        builder.Property(item => item.Unit).HasConversion<int>();
 
         builder.HasOne<HouseholdEntity>()
             .WithMany()

@@ -26,8 +26,8 @@ public sealed class ShoppingListItemEntity
         DateTimeOffset updatedAt,
         decimal sortOrder,
         int count = 1,
-        decimal? plannedAmountPerUnit = null,
-        ItemUnit? plannedUnit = null,
+        decimal? amountPerUnit = null,
+        ItemUnit? unit = null,
         DateTimeOffset? submittedToInventoryAt = null,
         Guid? createdInventoryEntryId = null)
     {
@@ -46,7 +46,7 @@ public sealed class ShoppingListItemEntity
         CreatedAt = createdAt;
         UpdatedAt = updatedAt;
         SortOrder = sortOrder;
-        Count = count; PlannedAmountPerUnit = plannedAmountPerUnit; PlannedUnit = plannedUnit;
+        Count = count; AmountPerUnit = amountPerUnit; Unit = unit;
         SubmittedToInventoryAt = submittedToInventoryAt; CreatedInventoryEntryId = createdInventoryEntryId;
     }
 
@@ -66,8 +66,8 @@ public sealed class ShoppingListItemEntity
     public DateTimeOffset UpdatedAt { get; private set; }
     public decimal SortOrder { get; private set; }
     public int Count { get; private set; }
-    public decimal? PlannedAmountPerUnit { get; private set; }
-    public ItemUnit? PlannedUnit { get; private set; }
+    public decimal? AmountPerUnit { get; private set; }
+    public ItemUnit? Unit { get; private set; }
     public DateTimeOffset? SubmittedToInventoryAt { get; private set; }
     public Guid? CreatedInventoryEntryId { get; private set; }
 
@@ -86,7 +86,7 @@ public sealed class ShoppingListItemEntity
         item.ChangeNote(Note, UpdatedAt);
         item.LinkSpace(SpaceId, UpdatedAt);
         item.LinkItem(ItemId, UpdatedAt);
-        item.SetPlannedBatch(Count, PlannedAmountPerUnit, PlannedUnit, UpdatedAt);
+        item.SetPurchaseDetails(Count, AmountPerUnit, Unit, UpdatedAt);
 
         if (Checked)
             item.Check(CheckedByMemberId ?? AddedByMemberId, CheckedAt ?? UpdatedAt);
@@ -115,7 +115,7 @@ public sealed class ShoppingListItemEntity
             item.AddedByMemberId,
             item.CreatedAt,
             item.UpdatedAt,
-            item.SortOrder, item.Count, item.PlannedAmountPerUnit, item.PlannedUnit, item.SubmittedToInventoryAt, item.CreatedInventoryEntryId);
+            item.SortOrder, item.Count, item.AmountPerUnit, item.Unit, item.SubmittedToInventoryAt, item.CreatedInventoryEntryId);
     }
 
     public void UpdateFromDomain(ShoppingListItem item)
@@ -138,7 +138,7 @@ public sealed class ShoppingListItemEntity
         CreatedAt = item.CreatedAt;
         UpdatedAt = item.UpdatedAt;
         SortOrder = item.SortOrder;
-        Count = item.Count; PlannedAmountPerUnit = item.PlannedAmountPerUnit; PlannedUnit = item.PlannedUnit;
+        Count = item.Count; AmountPerUnit = item.AmountPerUnit; Unit = item.Unit;
         SubmittedToInventoryAt = item.SubmittedToInventoryAt; CreatedInventoryEntryId = item.CreatedInventoryEntryId;
     }
 }

@@ -57,8 +57,8 @@ public sealed class ShoppingListItemUseCaseTests
         Assert.Equal("Milk chocolate", result.Name);
         Assert.Equal("milk chocolate", result.NormalizedName);
         Assert.Equal(2, result.Count);
-        Assert.Null(result.PlannedAmountPerUnit);
-        Assert.Null(result.PlannedUnit);
+        Assert.Null(result.AmountPerUnit);
+        Assert.Null(result.Unit);
         Assert.Equal("chilled", result.Note);
         Assert.Equal(spaceId, result.SpaceId);
         Assert.Equal(itemId, result.ItemId);

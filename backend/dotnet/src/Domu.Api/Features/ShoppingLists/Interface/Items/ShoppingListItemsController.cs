@@ -86,8 +86,8 @@ public sealed class ShoppingListItemsController(
                     request.SpaceId,
                     request.ItemId,
                     request.Count,
-                    request.PlannedAmountPerUnit,
-                    request.PlannedUnit),
+                    request.AmountPerUnit,
+                    request.Unit),
                 cancellationToken);
 
             return CreatedAtAction(nameof(GetItems), new { householdId, shoppingListId }, new ApiResponse<ShoppingListItemView>(item));
@@ -127,8 +127,8 @@ public sealed class ShoppingListItemsController(
                     request.ItemId,
                     request.SortOrder,
                     request.Count,
-                    request.PlannedAmountPerUnit,
-                    request.PlannedUnit),
+                    request.AmountPerUnit,
+                    request.Unit),
                 cancellationToken);
 
             return Ok(new ApiResponse<ShoppingListItemView>(item));

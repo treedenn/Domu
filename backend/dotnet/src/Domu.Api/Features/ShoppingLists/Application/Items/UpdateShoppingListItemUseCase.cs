@@ -46,7 +46,7 @@ public sealed class UpdateShoppingListItemUseCase(
         item.ChangeNote(command.Note, now);
         item.LinkSpace(command.SpaceId, now);
         item.LinkItem(command.ItemIdLink, now);
-        item.SetPlannedBatch(command.Count, command.PlannedAmountPerUnit, command.PlannedUnit, now);
+        item.SetPurchaseDetails(command.Count, command.AmountPerUnit, command.Unit, now);
         if (command.SortOrder.HasValue)
             item.MoveTo(command.SortOrder.Value, now);
 

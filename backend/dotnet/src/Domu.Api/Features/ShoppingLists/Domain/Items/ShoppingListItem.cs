@@ -51,8 +51,8 @@ public sealed class ShoppingListItem
     public Guid? SpaceId { get; private set; }
     public Guid? ItemId { get; private set; }
     public int Count { get; private set; } = 1;
-    public decimal? PlannedAmountPerUnit { get; private set; }
-    public ItemUnit? PlannedUnit { get; private set; }
+    public decimal? AmountPerUnit { get; private set; }
+    public ItemUnit? Unit { get; private set; }
     public DateTimeOffset? SubmittedToInventoryAt { get; private set; }
     public Guid? CreatedInventoryEntryId { get; private set; }
     public Guid AddedByMemberId { get; }
@@ -106,13 +106,13 @@ public sealed class ShoppingListItem
         UpdatedAt = updatedAt;
     }
 
-    public void SetPlannedBatch(int count, decimal? amountPerUnit, ItemUnit? unit, DateTimeOffset updatedAt)
+    public void SetPurchaseDetails(int count, decimal? amountPerUnit, ItemUnit? unit, DateTimeOffset updatedAt)
     {
         if (count <= 0)
             throw new ArgumentException("Shopping list item count must be greater than 0.", nameof(count));
         if (amountPerUnit.HasValue != unit.HasValue || amountPerUnit < 0 || (unit.HasValue && (!Enum.IsDefined(unit.Value) || unit == ItemUnit.Unspecified)))
-            throw new ArgumentException("Shopping list planned amount and unit must be supplied together with a specified unit.");
-        Count = count; PlannedAmountPerUnit = amountPerUnit; PlannedUnit = unit; UpdatedAt = updatedAt;
+            throw new ArgumentException("Shopping list item amount and unit must be supplied together with a specified unit.");
+        Count = count; AmountPerUnit = amountPerUnit; Unit = unit; UpdatedAt = updatedAt;
     }
 
     public void MarkSubmittedToInventory(Guid entryId, DateTimeOffset submittedAt)
