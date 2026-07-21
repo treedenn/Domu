@@ -1,4 +1,5 @@
 import 'package:domu_mobile/features/households/domain/household.dart';
+import 'package:domu_mobile/features/households/domain/household_expiration.dart';
 import 'package:domu_mobile/features/households/domain/household_repository.dart';
 import 'package:domu_mobile/features/households/ui/households_view_model.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -65,6 +66,12 @@ class _FakeRepository implements HouseholdRepository {
   Future<void> deleteHousehold(String id) async {
     _households.removeWhere((household) => household.id == id);
   }
+
+  @override
+  Future<HouseholdExpirations> getHouseholdExpirations({
+    required String householdId,
+    required DateTime upcomingUntil,
+  }) async => throw UnimplementedError();
 
   @override
   Future<List<Household>> getHouseholds() async {

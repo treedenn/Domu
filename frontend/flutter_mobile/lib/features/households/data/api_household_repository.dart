@@ -2,8 +2,10 @@ import 'dart:convert';
 
 import '../../../core/api/api_client.dart';
 import '../domain/household.dart';
+import '../domain/household_expiration.dart';
 import '../domain/household_repository.dart';
 import 'household_dto.dart';
+import 'household_expiration_dto.dart';
 
 class ApiHouseholdRepository implements HouseholdRepository {
   ApiHouseholdRepository(this._client);
@@ -31,6 +33,42 @@ class ApiHouseholdRepository implements HouseholdRepository {
     } on FormatException {
       throw const HouseholdRepositoryException(
         'Domu returned an invalid household list.',
+      );
+    }
+  }
+
+  @override
+  Future<HouseholdExpirations> getHouseholdExpirations({
+    required String householdId,
+    required DateTime upcomingUntil,
+  }) async {
+    final uri = Uri(
+      path: '$_path/$householdId/expirations',
+      queryParameters: {
+        'upcomingUntilUtc': upcomingUntil.toUtc().toIso8601String(),
+      },
+    );
+    final response = await _request(() => _client.get(uri.toString()));
+    try {
+      final data = _asMap(_asMap(_decode(response.body))['data']);
+      List<HouseholdExpiration> expirations(String name) => (data[name] as List)
+          .map(
+            (value) =>
+                HouseholdExpirationDto.fromJson(_asMap(value)).toDomain(),
+          )
+          .toList(growable: false);
+      return HouseholdExpirations(
+        evaluatedAt: DateTime.parse(data['evaluatedAtUtc'] as String),
+        expired: expirations('expired'),
+        upcoming: expirations('upcoming'),
+      );
+    } on FormatException {
+      throw const HouseholdRepositoryException(
+        'Domu returned an invalid expiration response.',
+      );
+    } catch (_) {
+      throw const HouseholdRepositoryException(
+        'Domu returned an invalid expiration response.',
       );
     }
   }

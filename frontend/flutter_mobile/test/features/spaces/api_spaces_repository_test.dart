@@ -67,7 +67,7 @@ void main() {
                   'name': 'Rice',
                   'category': null,
                   'barcode': null,
-                  'totalQuantity': 1,
+                  'totalCount': 1,
                   'entries': [],
                 },
               }),
@@ -76,24 +76,29 @@ void main() {
           }),
         ),
       );
-      await repository.createItem(
+      final item = await repository.createItem(
         householdId: 'home',
         spaceId: 'pantry',
         name: 'Rice',
         entries: const [
           ItemEntry(
-            originalQuantity: 1,
-            currentQuantity: 1,
+            count: 1,
+            originalAmountPerUnit: 1,
+            currentAmountPerUnit: 0,
             unit: ItemUnit.kilogram,
             state: ConsumableState.unopened,
           ),
         ],
       );
       final body = jsonDecode(request.body) as Map<String, dynamic>;
-      expect(body['entries'][0]['originalQuantity'], 1);
-      expect(body['entries'][0], isNot(contains('initialQuantity')));
+      expect(item.totalCount, 1);
+      expect(body['entries'][0]['count'], 1);
+      expect(body['entries'][0]['originalAmountPerUnit'], 1);
+      expect(body['entries'][0]['currentAmountPerUnit'], 1);
       expect(body['entries'][0]['unit'], 'kilogram');
       expect(body['entries'][0]['state'], 'unopened');
+      expect(body['entries'][0], isNot(contains('originalQuantity')));
+      expect(body['entries'][0], isNot(contains('currentQuantity')));
       expect(body['entries'][0], isNot(contains('containerType')));
     },
   );

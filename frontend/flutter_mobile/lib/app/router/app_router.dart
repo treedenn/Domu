@@ -2,7 +2,9 @@ import 'package:domu_mobile/features/auth/ui/auth_view_model.dart';
 import 'package:domu_mobile/features/auth/ui/login_view.dart';
 import 'package:domu_mobile/features/auth/ui/splash_view.dart';
 import 'package:domu_mobile/features/dashboard/ui/dashboard_view.dart';
+import 'package:domu_mobile/features/dashboard/ui/dashboard_view_model.dart';
 import 'package:domu_mobile/features/households/domain/household.dart';
+import 'package:domu_mobile/features/households/domain/household_expiration.dart';
 import 'package:domu_mobile/features/households/domain/household_repository.dart';
 import 'package:domu_mobile/features/households/ui/household_shell.dart';
 import 'package:domu_mobile/features/households/ui/households_view.dart';
@@ -42,6 +44,7 @@ class AppRouter {
     ShoppingListsViewModel? shoppingListsViewModel,
     ShoppingListDetailViewModel? shoppingListDetailViewModel,
     SpacesViewModel? spacesViewModel,
+    DashboardViewModel? dashboardViewModel,
   }) : _householdsViewModel =
            householdsViewModel ??
            HouseholdsViewModel(_UnavailableHouseholdRepository()) {
@@ -55,6 +58,9 @@ class AppRouter {
         ShoppingListDetailViewModel(_UnavailableShoppingListsRepository());
     _spacesViewModel =
         spacesViewModel ?? SpacesViewModel(_UnavailableSpacesRepository());
+    _dashboardViewModel =
+        dashboardViewModel ??
+        DashboardViewModel(_UnavailableHouseholdRepository());
     router = GoRouter(
       initialLocation: AppRoute.dashboard,
       refreshListenable: authViewModel,
@@ -89,7 +95,10 @@ class AppRouter {
           routes: [
             GoRoute(
               path: '/households/:householdId/dashboard',
-              builder: (_, _) => const DashboardView(),
+              builder: (_, state) => DashboardView(
+                householdId: state.pathParameters['householdId']!,
+                viewModel: _dashboardViewModel,
+              ),
             ),
             GoRoute(
               path: '/households/:householdId/members',
@@ -144,6 +153,7 @@ class AppRouter {
   late final ShoppingListsViewModel _shoppingListsViewModel;
   late final ShoppingListDetailViewModel _shoppingListDetailViewModel;
   late final SpacesViewModel _spacesViewModel;
+  late final DashboardViewModel _dashboardViewModel;
 
   static String? _redirect(AuthViewModel auth, GoRouterState state) {
     final location = state.uri.toString();
@@ -365,6 +375,16 @@ class _UnavailableMembersRepository implements MembersRepository {
 }
 
 class _UnavailableHouseholdRepository implements HouseholdRepository {
+  @override
+  Future<HouseholdExpirations> getHouseholdExpirations({
+    required String householdId,
+    required DateTime upcomingUntil,
+  }) => Future<HouseholdExpirations>.error(
+    const HouseholdRepositoryException(
+      'Household expirations are unavailable.',
+    ),
+  );
+
   @override
   Future<Never> createHousehold({
     required String name,

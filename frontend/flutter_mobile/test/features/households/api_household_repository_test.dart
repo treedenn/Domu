@@ -79,4 +79,56 @@ void main() {
       throwsA(isA<HouseholdRepositoryException>()),
     );
   });
+
+  test('gets and maps expired and upcoming household entries', () async {
+    late http.Request request;
+    final repository = ApiHouseholdRepository(
+      ApiClient(
+        baseUrl: 'https://api.example.test',
+        accessToken: () async => 'token',
+        httpClient: MockClient((value) async {
+          request = value;
+          return http.Response(
+            jsonEncode({
+              'data': {
+                'evaluatedAtUtc': '2026-07-21T00:00:00Z',
+                'expired': [_expiration('2026-07-20T00:00:00Z')],
+                'upcoming': [_expiration('2026-07-25T00:00:00Z')],
+              },
+            }),
+            200,
+          );
+        }),
+      ),
+    );
+
+    final result = await repository.getHouseholdExpirations(
+      householdId: 'household-id',
+      upcomingUntil: DateTime.utc(2026, 8, 20),
+    );
+
+    expect(result.expired.single.itemName, 'Milk');
+    expect(result.upcoming.single.spaceName, 'Fridge');
+    expect(request.method, 'GET');
+    expect(request.url.path, '/api/v1/households/household-id/expirations');
+    expect(
+      request.url.queryParameters['upcomingUntilUtc'],
+      '2026-08-20T00:00:00.000Z',
+    );
+  });
 }
+
+Map<String, Object?> _expiration(String expirationDate) => {
+  'entryId': 'entry-id',
+  'count': 2,
+  'originalAmountPerUnit': 1.0,
+  'currentAmountPerUnit': null,
+  'unit': 'liter',
+  'state': 'opened',
+  'acquisitionDate': null,
+  'expirationDate': expirationDate,
+  'itemId': 'item-id',
+  'itemName': 'Milk',
+  'spaceId': 'space-id',
+  'spaceName': 'Fridge',
+};

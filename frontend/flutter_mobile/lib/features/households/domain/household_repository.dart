@@ -1,7 +1,12 @@
 import 'household.dart';
+import 'household_expiration.dart';
 
 abstract interface class HouseholdRepository {
   Future<List<Household>> getHouseholds();
+  Future<HouseholdExpirations> getHouseholdExpirations({
+    required String householdId,
+    required DateTime upcomingUntil,
+  });
   Future<Household> createHousehold({
     required String name,
     required String ownerDisplayName,

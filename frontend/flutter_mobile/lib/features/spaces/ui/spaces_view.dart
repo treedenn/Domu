@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../domain/space.dart';
+import '../domain/item_unit_converter.dart';
 import 'spaces_view_model.dart';
 
 class SpacesView extends StatefulWidget {
@@ -28,7 +29,8 @@ class _SpacesViewState extends State<SpacesView> {
   @override
   void didUpdateWidget(covariant SpacesView old) {
     super.didUpdateWidget(old);
-    if (old.householdId != widget.householdId || old.spaceId != widget.spaceId) {
+    if (old.householdId != widget.householdId ||
+        old.spaceId != widget.spaceId) {
       _scheduleLoad();
     }
   }
@@ -233,7 +235,7 @@ class _SpacesViewState extends State<SpacesView> {
   );
   String _itemSummary(SpaceItem item) => [
     if (item.category?.isNotEmpty == true) item.category!,
-    '${item.totalQuantity} total',
+    '${item.totalCount} total',
     '${item.entries.length} entries',
   ].join(' · ');
   Future<void> _create() async {
@@ -557,9 +559,12 @@ class _ItemDialogState extends State<_ItemDialog> {
               for (var i = 0; i < entries.length; i++)
                 ListTile(
                   title: Text(
-                    '${entries[i].currentQuantity}/${entries[i].originalQuantity} ${entries[i].unit.name}',
+                    entries[i].state == ConsumableState.unopened
+                        ? '${entries[i].count} × ${entries[i].originalAmountPerUnit ?? '-'} ${entries[i].unit.name}'
+                        : '${entries[i].count} × ${entries[i].currentAmountPerUnit ?? '-'} / ${entries[i].originalAmountPerUnit ?? '-'} ${entries[i].unit.name}',
                   ),
                   subtitle: Text(entries[i].state.name),
+                  onTap: () => _editEntry(i),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete_outline),
                     onPressed: () => setState(() => entries.removeAt(i)),
@@ -599,24 +604,44 @@ class _ItemDialogState extends State<_ItemDialog> {
     );
     if (entry != null) setState(() => entries.add(entry));
   }
+
+  Future<void> _editEntry(int index) async {
+    final entry = await showDialog<ItemEntry>(
+      context: context,
+      builder: (_) => _EntryDialog(entry: entries[index]),
+    );
+    if (entry != null) setState(() => entries[index] = entry);
+  }
 }
 
 class _EntryDialog extends StatefulWidget {
-  const _EntryDialog();
+  const _EntryDialog({this.entry});
+
+  final ItemEntry? entry;
   @override
   State<_EntryDialog> createState() => _EntryDialogState();
 }
 
 class _EntryDialogState extends State<_EntryDialog> {
-  final original = TextEditingController(text: '1');
-  final current = TextEditingController(text: '1');
-  ItemUnit unit = ItemUnit.piece;
-  ConsumableState state = ConsumableState.unspecified;
+  late final count = TextEditingController(text: '${widget.entry?.count ?? 1}');
+  late final original = TextEditingController(
+    text: '${widget.entry?.originalAmountPerUnit ?? 1}',
+  );
+  late final current = TextEditingController(
+    text: '${widget.entry?.currentAmountPerUnit ?? 1}',
+  );
+  late ItemUnit unit = widget.entry?.unit ?? ItemUnit.piece;
+  late ItemUnit? _lastConvertibleUnit = unit == ItemUnit.unspecified
+      ? null
+      : unit;
+  late ConsumableState state =
+      widget.entry?.state ?? ConsumableState.unspecified;
   DateTime? acquisitionDate;
   DateTime? expirationDate;
   final key = GlobalKey<FormState>();
   @override
   void dispose() {
+    count.dispose();
     original.dispose();
     current.dispose();
     super.dispose();
@@ -624,37 +649,58 @@ class _EntryDialogState extends State<_EntryDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Stock entry'),
+    title: Text(widget.entry == null ? 'New stock entry' : 'Edit stock entry'),
     content: Form(
       key: key,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           TextFormField(
-            controller: original,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(labelText: 'Original quantity'),
-            validator: _quantity,
+            controller: count,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: 'Count'),
+            validator: _count,
           ),
           TextFormField(
-            controller: current,
+            controller: original,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(labelText: 'Current quantity'),
+            decoration: const InputDecoration(
+              labelText: 'Original amount per unit',
+            ),
             validator: _quantity,
+            onChanged: (value) {
+              if (state == ConsumableState.unopened) current.text = value;
+            },
           ),
+          if (state != ConsumableState.unopened)
+            TextFormField(
+              controller: current,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: const InputDecoration(
+                labelText: 'Current amount per unit',
+              ),
+              validator: _quantity,
+            ),
           DropdownButtonFormField(
             value: unit,
             items: ItemUnit.values
                 .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
                 .toList(),
-            onChanged: (value) => setState(() => unit = value!),
+            onChanged: (value) => _changeUnit(value!),
           ),
           DropdownButtonFormField(
             value: state,
             items: ConsumableState.values
                 .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
                 .toList(),
-            onChanged: (value) => setState(() => state = value!),
+            onChanged: (value) => setState(() {
+              state = value!;
+              if (state == ConsumableState.unopened) {
+                current.text = original.text;
+              }
+            }),
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
@@ -685,14 +731,19 @@ class _EntryDialogState extends State<_EntryDialog> {
       FilledButton(
         onPressed: () {
           if (!key.currentState!.validate()) return;
-          final originalQuantity = num.parse(original.text);
-          final c = num.parse(current.text);
-          if (c > originalQuantity) return;
+          final entryCount = int.parse(count.text);
+          final originalAmountPerUnit = num.parse(original.text);
+          final c = state == ConsumableState.unopened
+              ? originalAmountPerUnit
+              : num.parse(current.text);
+          if (c > originalAmountPerUnit) return;
           Navigator.pop(
             context,
             ItemEntry(
-              originalQuantity: originalQuantity,
-              currentQuantity: c,
+              id: widget.entry?.id,
+              count: entryCount,
+              originalAmountPerUnit: originalAmountPerUnit,
+              currentAmountPerUnit: c,
               unit: unit,
               state: state,
               acquisitionDate: acquisitionDate,
@@ -700,7 +751,7 @@ class _EntryDialogState extends State<_EntryDialog> {
             ),
           );
         },
-        child: const Text('Add'),
+        child: Text(widget.entry == null ? 'Add' : 'Save'),
       ),
     ],
   );
@@ -722,6 +773,39 @@ class _EntryDialogState extends State<_EntryDialog> {
       }
     });
   }
+
+  void _changeUnit(ItemUnit nextUnit) {
+    if (nextUnit == unit) return;
+
+    if (nextUnit == ItemUnit.unspecified) {
+      setState(() => unit = nextUnit);
+      return;
+    }
+
+    final originalAmount = num.tryParse(original.text);
+    final currentAmount = num.tryParse(current.text);
+    setState(() {
+      final fromUnit = _lastConvertibleUnit;
+      if (originalAmount != null && fromUnit != null) {
+        original.text = ItemUnitConverter.convert(
+          originalAmount,
+          from: fromUnit,
+          to: nextUnit,
+        ).toString();
+      }
+      if (state == ConsumableState.unopened) {
+        current.text = original.text;
+      } else if (currentAmount != null && fromUnit != null) {
+        current.text = ItemUnitConverter.convert(
+          currentAmount,
+          from: fromUnit,
+          to: nextUnit,
+        ).toString();
+      }
+      unit = nextUnit;
+      _lastConvertibleUnit = nextUnit;
+    });
+  }
 }
 
 String? _required(String? value) =>
@@ -729,6 +813,12 @@ String? _required(String? value) =>
 String? _quantity(String? value) {
   final parsed = num.tryParse(value ?? '');
   return parsed == null || parsed < 0 ? 'Enter a non-negative number' : null;
+}
+
+String? _count(String? value) {
+  final count = int.tryParse(value ?? '');
+  if (count == null || count < 1) return 'Enter a whole number of at least 1';
+  return null;
 }
 
 String? _optional(String value) => value.trim().isEmpty ? null : value.trim();

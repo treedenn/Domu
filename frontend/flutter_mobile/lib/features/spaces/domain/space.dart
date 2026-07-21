@@ -42,7 +42,7 @@ class SpaceItem {
     required this.id,
     required this.spaceId,
     required this.name,
-    required this.totalQuantity,
+    required this.totalCount,
     required this.entries,
     this.category,
     this.barcode,
@@ -53,15 +53,16 @@ class SpaceItem {
   final String name;
   final String? category;
   final String? barcode;
-  final num totalQuantity;
+  final int totalCount;
   final List<ItemEntry> entries;
 }
 
 class ItemEntry {
   const ItemEntry({
     this.id,
-    required this.originalQuantity,
-    required this.currentQuantity,
+    required this.count,
+    this.originalAmountPerUnit,
+    this.currentAmountPerUnit,
     required this.unit,
     required this.state,
     this.acquisitionDate,
@@ -69,8 +70,9 @@ class ItemEntry {
   });
 
   final String? id;
-  final num originalQuantity;
-  final num currentQuantity;
+  final int count;
+  final num? originalAmountPerUnit;
+  final num? currentAmountPerUnit;
   final ItemUnit unit;
   final ConsumableState state;
   final DateTime? acquisitionDate;

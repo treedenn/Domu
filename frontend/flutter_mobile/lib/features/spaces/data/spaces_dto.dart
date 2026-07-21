@@ -23,7 +23,7 @@ class SpaceItemDto {
     name: json['name'] as String,
     category: json['category'] as String?,
     barcode: json['barcode'] as String?,
-    totalQuantity: json['totalQuantity'] as num,
+    totalCount: json['totalCount'] as int,
     entries: ((json['entries'] as List?) ?? const [])
         .map(
           (entry) =>
@@ -38,8 +38,9 @@ class ItemEntryDto {
   final Map<String, dynamic> json;
   ItemEntry toDomain() => ItemEntry(
     id: json['id'] as String?,
-    originalQuantity: json['originalQuantity'] as num,
-    currentQuantity: json['currentQuantity'] as num,
+    count: json['count'] as int,
+    originalAmountPerUnit: json['originalAmountPerUnit'] as num?,
+    currentAmountPerUnit: json['currentAmountPerUnit'] as num?,
     unit: ItemUnit.values.byName(json['unit'] as String),
     state: ConsumableState.values.byName(json['state'] as String),
     acquisitionDate: _date(json['acquisitionDate'] as String?),

@@ -2,6 +2,7 @@ import 'package:domu_mobile/app/router/app_router.dart';
 import 'package:domu_mobile/app/theme/app_theme.dart';
 import 'package:domu_mobile/features/auth/ui/auth_view_model.dart';
 import 'package:domu_mobile/features/households/ui/households_view_model.dart';
+import 'package:domu_mobile/features/dashboard/ui/dashboard_view_model.dart';
 import 'package:domu_mobile/features/members/ui/members_view_model.dart';
 import 'package:domu_mobile/features/shopping_lists/ui/shopping_list_detail_view_model.dart';
 import 'package:domu_mobile/features/shopping_lists/ui/shopping_lists_view_model.dart';
@@ -17,6 +18,7 @@ class DomuApp extends StatefulWidget {
     required this.shoppingListsViewModel,
     required this.shoppingListDetailViewModel,
     required this.spacesViewModel,
+    required this.dashboardViewModel,
   });
 
   final AuthViewModel authViewModel;
@@ -25,6 +27,7 @@ class DomuApp extends StatefulWidget {
   final ShoppingListsViewModel shoppingListsViewModel;
   final ShoppingListDetailViewModel shoppingListDetailViewModel;
   final SpacesViewModel spacesViewModel;
+  final DashboardViewModel dashboardViewModel;
 
   @override
   State<DomuApp> createState() => _DomuAppState();
@@ -38,6 +41,7 @@ class _DomuAppState extends State<DomuApp> {
     shoppingListsViewModel: widget.shoppingListsViewModel,
     shoppingListDetailViewModel: widget.shoppingListDetailViewModel,
     spacesViewModel: widget.spacesViewModel,
+    dashboardViewModel: widget.dashboardViewModel,
   );
 
   @override

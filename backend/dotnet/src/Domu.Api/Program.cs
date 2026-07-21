@@ -20,11 +20,14 @@ using Domu.Api.Features.ShoppingLists.Infrastructure.Items;
 using Domu.Api.Features.ShoppingLists.Infrastructure.ShoppingLists;
 using Domu.Api.Features.Spaces.Application.Items;
 using Domu.Api.Features.Spaces.Application.Items.Ports;
+using Domu.Api.Features.Spaces.Application.Expirations;
+using Domu.Api.Features.Spaces.Application.Expirations.Ports;
 using Domu.Api.Features.Spaces.Application.Search;
 using Domu.Api.Features.Spaces.Application.Search.Ports;
 using Domu.Api.Features.Spaces.Application.Spaces;
 using Domu.Api.Features.Spaces.Application.Spaces.Ports;
 using Domu.Api.Features.Spaces.Infrastructure.Items;
+using Domu.Api.Features.Spaces.Infrastructure.Expirations;
 using Domu.Api.Features.Spaces.Infrastructure.Search;
 using Domu.Api.Features.Spaces.Infrastructure.Spaces;
 using Domu.Api.Features.Users.Application;
@@ -49,6 +52,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention());
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<IClientRequestContextAccessor, ClientRequestContextAccessor>();
 builder.Services.AddScoped<IHouseholdActivityRecorder, HouseholdActivityRecorder>();
 builder.Services.AddScoped<IHouseholdActivityQueryService, HouseholdActivityQueryService>();
@@ -87,6 +91,7 @@ builder.Services.AddScoped<DeleteShoppingListItemUseCase>();
 builder.Services.AddScoped<ClearCheckedShoppingListItemsUseCase>();
 builder.Services.AddScoped<SubmitCheckedShoppingListItemsUseCase>();
 builder.Services.AddScoped<IItemRepository, ItemRepository>();
+builder.Services.AddScoped<IHouseholdExpirationQueryService, HouseholdExpirationQueryService>();
 builder.Services.AddScoped<ISpaceRepository, SpaceRepository>();
 builder.Services.AddScoped<ISpaceQueryService, SpaceQueryService>();
 builder.Services.AddScoped<ISpacesAndItemsSearchService, SpacesAndItemsSearchService>();
@@ -98,6 +103,7 @@ builder.Services.AddScoped<IReplaceItemEntriesUseCase, ReplaceItemEntriesUseCase
 builder.Services.AddScoped<IStageInventoryBatchesUseCase, StageInventoryBatchesUseCase>();
 builder.Services.AddScoped<IInventoryItemLookup, InventoryItemLookup>();
 builder.Services.AddScoped<IGetSpaceItemsUseCase, GetSpaceItemsUseCase>();
+builder.Services.AddScoped<GetHouseholdExpirationsUseCase, GetHouseholdExpirationsUseCase>();
 builder.Services.AddScoped<ICreateSpaceUseCase, CreateSpaceUseCase>();
 builder.Services.AddScoped<IGetSpaceUseCase, GetSpaceUseCase>();
 builder.Services.AddScoped<IUpdateSpaceUseCase, UpdateSpaceUseCase>();

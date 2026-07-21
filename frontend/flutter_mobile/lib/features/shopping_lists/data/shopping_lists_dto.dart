@@ -35,9 +35,9 @@ class ShoppingListItemDto {
     required this.shoppingListId,
     required this.name,
     required this.note,
-    required this.quantity,
-    required this.containerQuantity,
-    required this.containerUnit,
+    required this.count,
+    required this.amountPerUnit,
+    required this.unit,
     required this.spaceId,
     required this.itemId,
     required this.checked,
@@ -47,21 +47,21 @@ class ShoppingListItemDto {
   final String shoppingListId;
   final String name;
   final String? note;
-  final num? quantity;
-  final num? containerQuantity;
-  final String? containerUnit;
+  final int count;
+  final num? amountPerUnit;
+  final ShoppingListItemUnit? unit;
   final String? spaceId;
   final String? itemId;
   final bool checked;
-  final int sortOrder;
+  final num sortOrder;
   factory ShoppingListItemDto.fromJson(Map<String, dynamic> json) {
     final id = json['id'];
     final listId = json['shoppingListId'];
     final name = json['name'];
     final note = json['note'];
-    final quantity = json['quantity'];
-    final containerQuantity = json['containerQuantity'];
-    final containerUnit = json['containerUnit'];
+    final count = json['count'];
+    final amountPerUnit = json['amountPerUnit'];
+    final unit = json['unit'];
     final spaceId = json['spaceId'];
     final itemId = json['itemId'];
     final checked = json['checked'];
@@ -70,13 +70,13 @@ class ShoppingListItemDto {
         listId is! String ||
         name is! String ||
         (note != null && note is! String) ||
-        (quantity != null && quantity is! num) ||
-        (containerQuantity != null && containerQuantity is! num) ||
-        (containerUnit != null && containerUnit is! String) ||
+        count is! int ||
+        (amountPerUnit != null && amountPerUnit is! num) ||
+        (unit != null && unit is! String) ||
         (spaceId != null && spaceId is! String) ||
         (itemId != null && itemId is! String) ||
         checked is! bool ||
-        sortOrder is! int) {
+        sortOrder is! num) {
       throw const FormatException();
     }
     return ShoppingListItemDto(
@@ -84,9 +84,9 @@ class ShoppingListItemDto {
       shoppingListId: listId,
       name: name,
       note: note as String?,
-      quantity: quantity as num?,
-      containerQuantity: containerQuantity as num?,
-      containerUnit: containerUnit as String?,
+      count: count,
+      amountPerUnit: amountPerUnit as num?,
+      unit: unit == null ? null : ShoppingListItemUnit.values.byName(unit),
       spaceId: spaceId as String?,
       itemId: itemId as String?,
       checked: checked,
@@ -98,9 +98,9 @@ class ShoppingListItemDto {
     shoppingListId: shoppingListId,
     name: name,
     note: note,
-    quantity: quantity,
-    containerQuantity: containerQuantity,
-    containerUnit: containerUnit,
+    count: count,
+    amountPerUnit: amountPerUnit,
+    unit: unit,
     spaceId: spaceId,
     itemId: itemId,
     checked: checked,

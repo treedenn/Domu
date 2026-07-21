@@ -7,6 +7,7 @@ import 'package:domu_mobile/features/auth/data/zitadel_auth_repository.dart';
 import 'package:domu_mobile/features/auth/ui/auth_view_model.dart';
 import 'package:domu_mobile/features/households/data/api_household_repository.dart';
 import 'package:domu_mobile/features/households/ui/households_view_model.dart';
+import 'package:domu_mobile/features/dashboard/ui/dashboard_view_model.dart';
 import 'package:domu_mobile/features/members/data/api_members_repository.dart';
 import 'package:domu_mobile/features/members/ui/members_view_model.dart';
 import 'package:domu_mobile/features/shopping_lists/data/api_shopping_lists_repository.dart';
@@ -24,14 +25,13 @@ void main() {
     SecureSessionStorage(),
   );
   final authViewModel = AuthViewModel(repository);
-  final householdsViewModel = HouseholdsViewModel(
-    ApiHouseholdRepository(
-      ApiClient(
-        baseUrl: configuration.apiBaseUrl,
-        accessToken: authViewModel.validAccessToken,
-      ),
+  final householdRepository = ApiHouseholdRepository(
+    ApiClient(
+      baseUrl: configuration.apiBaseUrl,
+      accessToken: authViewModel.validAccessToken,
     ),
   );
+  final householdsViewModel = HouseholdsViewModel(householdRepository);
   final membersViewModel = MembersViewModel(
     ApiMembersRepository(
       ApiClient(
@@ -57,6 +57,7 @@ void main() {
     DomuApp(
       authViewModel: authViewModel,
       householdsViewModel: householdsViewModel,
+      dashboardViewModel: DashboardViewModel(householdRepository),
       membersViewModel: membersViewModel,
       shoppingListsViewModel: ShoppingListsViewModel(shoppingListsRepository),
       shoppingListDetailViewModel: ShoppingListDetailViewModel(

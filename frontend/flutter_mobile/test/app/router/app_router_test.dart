@@ -4,6 +4,7 @@ import 'package:domu_mobile/features/auth/domain/auth_session.dart';
 import 'package:domu_mobile/features/auth/ui/auth_view_model.dart';
 import 'package:domu_mobile/features/auth/ui/splash_view.dart';
 import 'package:domu_mobile/features/households/domain/household.dart';
+import 'package:domu_mobile/features/households/domain/household_expiration.dart';
 import 'package:domu_mobile/features/households/domain/household_repository.dart';
 import 'package:domu_mobile/features/households/ui/household_shell.dart';
 import 'package:domu_mobile/features/households/ui/households_view_model.dart';
@@ -170,6 +171,12 @@ class _HouseholdRepository implements HouseholdRepository {
 
   @override
   Future<void> deleteHousehold(String id) => throw UnimplementedError();
+
+  @override
+  Future<HouseholdExpirations> getHouseholdExpirations({
+    required String householdId,
+    required DateTime upcomingUntil,
+  }) => throw UnimplementedError();
 
   @override
   Future<List<Household>> getHouseholds() async => _households;

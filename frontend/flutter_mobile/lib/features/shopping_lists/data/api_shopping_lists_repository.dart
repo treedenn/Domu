@@ -97,9 +97,9 @@ class ApiShoppingListsRepository implements ShoppingListsRepository {
       body: {
         'name': name,
         'note': note,
-        'quantity': item.quantity,
-        'containerQuantity': item.containerQuantity,
-        'containerUnit': item.containerUnit,
+        'count': item.count,
+        'amountPerUnit': item.amountPerUnit,
+        'unit': item.unit?.name,
         'spaceId': item.spaceId,
         'itemId': item.itemId,
         'sortOrder': item.sortOrder,

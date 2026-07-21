@@ -34,5 +34,7 @@ public sealed class ItemEntryConfiguration : IEntityTypeConfiguration<ItemEntryE
         builder.Property(entry => entry.State)
             .HasConversion<int>()
             .IsRequired();
+
+        builder.HasIndex(entry => new { entry.ItemId, entry.ExpirationDate });
     }
 }

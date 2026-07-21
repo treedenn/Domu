@@ -16,9 +16,9 @@ class ShoppingListItem {
     required this.shoppingListId,
     required this.name,
     required this.note,
-    required this.quantity,
-    required this.containerQuantity,
-    required this.containerUnit,
+    required this.count,
+    required this.amountPerUnit,
+    required this.unit,
     required this.spaceId,
     required this.itemId,
     required this.checked,
@@ -29,11 +29,20 @@ class ShoppingListItem {
   final String shoppingListId;
   final String name;
   final String? note;
-  final num? quantity;
-  final num? containerQuantity;
-  final String? containerUnit;
+  final int count;
+  final num? amountPerUnit;
+  final ShoppingListItemUnit? unit;
   final String? spaceId;
   final String? itemId;
   final bool checked;
-  final int sortOrder;
+  final num sortOrder;
+}
+
+enum ShoppingListItemUnit {
+  unspecified,
+  piece,
+  milliliter,
+  liter,
+  gram,
+  kilogram,
 }
