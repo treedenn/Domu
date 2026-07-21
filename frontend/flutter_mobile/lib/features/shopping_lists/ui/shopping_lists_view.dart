@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../domain/shopping_list.dart';
 import 'shopping_lists_view_model.dart';
+import 'widgets/shopping_list_tile.dart';
 
 class ShoppingListsView extends StatefulWidget {
   const ShoppingListsView({
@@ -90,27 +91,23 @@ class _ShoppingListsViewState extends State<ShoppingListsView> {
                 ),
               ],
             )
-          : ListView(children: vm.lists.map(_tile).toList()),
+          : ListView(
+              children: vm.lists
+                  .map(
+                    (list) => ShoppingListTile(
+                      list: list,
+                      onTap: () => context.go(
+                        '/households/${widget.householdId}/shopping-lists/${list.id}',
+                      ),
+                      onRename: _rename,
+                      onDelete: _archive,
+                    ),
+                  )
+                  .toList(),
+            ),
     );
   }
 
-  Widget _tile(ShoppingList list) => ListTile(
-    key: ValueKey('shopping-list-${list.id}'),
-    leading: const Icon(Icons.shopping_cart_outlined),
-    title: Text(list.name),
-    trailing: PopupMenuButton<_ListAction>(
-      tooltip: 'List actions',
-      onSelected: (action) =>
-          action == _ListAction.rename ? _rename(list) : _archive(list),
-      itemBuilder: (_) => const [
-        PopupMenuItem(value: _ListAction.rename, child: Text('Rename')),
-        PopupMenuItem(value: _ListAction.delete, child: Text('Delete list')),
-      ],
-    ),
-    onTap: () => context.go(
-      '/households/${widget.householdId}/shopping-lists/${list.id}',
-    ),
-  );
   Future<void> _create() async {
     final name = await _nameDialog(
       title: 'New shopping list',
@@ -170,8 +167,6 @@ class _ShoppingListsViewState extends State<ShoppingListsView> {
     return null;
   }
 }
-
-enum _ListAction { rename, delete }
 
 class _ListNameDialog extends StatefulWidget {
   const _ListNameDialog({

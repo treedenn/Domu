@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../domain/shopping_list.dart';
 import 'shopping_list_detail_view_model.dart';
+import 'widgets/shopping_list_item_tile.dart';
 
 class ShoppingListDetailView extends StatefulWidget {
   const ShoppingListDetailView({
@@ -141,53 +142,32 @@ class _ShoppingListDetailViewState extends State<ShoppingListDetailView> {
       onRefresh: vm.refresh,
       child: ListView(
         children: [
-          for (final item in vm.uncheckedItems) _item(item),
+          for (final item in vm.uncheckedItems)
+            ShoppingListItemTile(
+              item: item,
+              isMutating: vm.isMutating,
+              onToggle: vm.toggle,
+              onEdit: _edit,
+              onDelete: _delete,
+            ),
           if (vm.completedItems.isNotEmpty)
             const Padding(
               padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
               child: Text('Completed'),
             ),
-          for (final item in vm.completedItems) _item(item),
+          for (final item in vm.completedItems)
+            ShoppingListItemTile(
+              item: item,
+              isMutating: vm.isMutating,
+              onToggle: vm.toggle,
+              onEdit: _edit,
+              onDelete: _delete,
+            ),
         ],
       ),
     );
   }
 
-  Widget _item(ShoppingListItem item) => ListTile(
-    key: ValueKey('shopping-item-${item.id}'),
-    leading: Checkbox(
-      value: item.checked,
-      onChanged: widget.viewModel.isMutating
-          ? null
-          : (_) => widget.viewModel.toggle(item),
-    ),
-    title: Text(
-      item.name,
-      style: item.checked
-          ? const TextStyle(decoration: TextDecoration.lineThrough)
-          : null,
-    ),
-    subtitle: item.note == null || item.note!.isEmpty
-        ? null
-        : Text(
-            item.note!,
-            style: item.checked
-                ? const TextStyle(decoration: TextDecoration.lineThrough)
-                : null,
-          ),
-    trailing: PopupMenuButton<_ItemAction>(
-      tooltip: 'Item actions',
-      enabled: !widget.viewModel.isMutating,
-      onSelected: (action) => switch (action) {
-        _ItemAction.edit => _edit(item),
-        _ItemAction.delete => _delete(item),
-      },
-      itemBuilder: (context) => const [
-        PopupMenuItem(value: _ItemAction.edit, child: Text('Edit')),
-        PopupMenuItem(value: _ItemAction.delete, child: Text('Delete')),
-      ],
-    ),
-  );
   Future<void> _add() async {
     if (!_formKey.currentState!.validate()) return;
     final name = _controller.text.trim();
@@ -268,8 +248,6 @@ class _ShoppingListDetailViewState extends State<ShoppingListDetailView> {
     return null;
   }
 }
-
-enum _ItemAction { edit, delete }
 
 class _ItemEdit {
   const _ItemEdit({required this.name, required this.note});

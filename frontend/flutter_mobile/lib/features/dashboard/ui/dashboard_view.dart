@@ -21,15 +21,23 @@ class _DashboardViewState extends State<DashboardView> {
   @override
   void initState() {
     super.initState();
-    widget.viewModel.load(widget.householdId);
+    _scheduleLoad();
   }
 
   @override
   void didUpdateWidget(covariant DashboardView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.householdId != widget.householdId) {
-      widget.viewModel.load(widget.householdId);
+      _scheduleLoad();
     }
+  }
+
+  void _scheduleLoad() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        widget.viewModel.load(widget.householdId);
+      }
+    });
   }
 
   @override

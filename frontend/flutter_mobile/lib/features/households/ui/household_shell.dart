@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../domain/household.dart';
 import 'households_view_model.dart';
+import 'widgets/household_selector.dart';
 
 enum HouseholdSection { dashboard, members, shoppingLists, spaces }
 
@@ -95,7 +96,7 @@ class _HouseholdShellState extends State<HouseholdShell> {
         }
         return Scaffold(
           appBar: AppBar(
-            title: _HouseholdSelector(
+            title: HouseholdSelector(
               household: household,
               households: widget.viewModel.households,
               onSelected: (selected) {
@@ -164,39 +165,3 @@ HouseholdSection _sectionForLocation(String location) =>
               location.contains('/shopping-lists/')),
       orElse: () => HouseholdSection.dashboard,
     );
-
-class _HouseholdSelector extends StatelessWidget {
-  const _HouseholdSelector({
-    required this.household,
-    required this.households,
-    required this.onSelected,
-    required this.onManage,
-  });
-
-  final Household household;
-  final List<Household> households;
-  final ValueChanged<Household> onSelected;
-  final VoidCallback onManage;
-
-  @override
-  Widget build(BuildContext context) => PopupMenuButton<Household?>(
-    tooltip: 'Select household',
-    onSelected: (selected) =>
-        selected == null ? onManage() : onSelected(selected),
-    itemBuilder: (context) => [
-      ...households.map(
-        (candidate) =>
-            PopupMenuItem(value: candidate, child: Text(candidate.name)),
-      ),
-      const PopupMenuDivider(),
-      const PopupMenuItem<Household?>(
-        value: null,
-        child: Text('Manage households'),
-      ),
-    ],
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [Text(household.name), const Icon(Icons.arrow_drop_down)],
-    ),
-  );
-}

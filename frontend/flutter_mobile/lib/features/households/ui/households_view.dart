@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../domain/household.dart';
 import 'households_view_model.dart';
+import 'widgets/household_tile.dart';
 
 class HouseholdsView extends StatefulWidget {
   const HouseholdsView({
@@ -113,33 +114,15 @@ class _HouseholdsViewState extends State<HouseholdsView> {
         itemBuilder: (context, index) {
           final household = viewModel.households[index];
           final selected = household.id == viewModel.selectedHouseholdId;
-          return ListTile(
-            key: ValueKey('household-${household.id}'),
+          return HouseholdTile(
+            household: household,
             selected: selected,
-            leading: Icon(selected ? Icons.check_circle : Icons.home_outlined),
-            title: Text(household.name),
-            subtitle: selected ? const Text('Selected for this session') : null,
-            onTap: () {
+            onSelected: (household) {
               viewModel.selectHousehold(household);
               widget.onHouseholdSelected?.call(household);
             },
-            trailing: PopupMenuButton<_HouseholdAction>(
-              tooltip: 'Household actions',
-              onSelected: (action) => switch (action) {
-                _HouseholdAction.rename => _showRenameDialog(household),
-                _HouseholdAction.delete => _showDeleteDialog(household),
-              },
-              itemBuilder: (context) => const [
-                PopupMenuItem(
-                  value: _HouseholdAction.rename,
-                  child: Text('Rename'),
-                ),
-                PopupMenuItem(
-                  value: _HouseholdAction.delete,
-                  child: Text('Delete'),
-                ),
-              ],
-            ),
+            onRename: _showRenameDialog,
+            onDelete: _showDeleteDialog,
           );
         },
       ),
@@ -210,8 +193,6 @@ class _HouseholdsViewState extends State<HouseholdsView> {
   String? _required(String? value) =>
       value == null || value.trim().isEmpty ? 'Required' : null;
 }
-
-enum _HouseholdAction { rename, delete }
 
 class _HouseholdForm {
   const _HouseholdForm(this.name, this.ownerDisplayName);

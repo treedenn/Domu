@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../domain/household_member.dart';
 import 'members_view_model.dart';
+import 'widgets/household_member_tile.dart';
 
 class MembersView extends StatefulWidget {
   const MembersView({
@@ -101,7 +102,13 @@ class _MembersViewState extends State<MembersView> {
                     child: Center(child: Text('No active members yet.')),
                   )
                 else
-                  ...viewModel.members.map(_memberTile),
+                  ...viewModel.members.map(
+                    (member) => HouseholdMemberTile(
+                      member: member,
+                      canManageMembers: viewModel.canManageMembers,
+                      onRemove: _showArchiveDialog,
+                    ),
+                  ),
                 if (viewModel.canManageMembers) ...[
                   const Divider(height: 32),
                   const Padding(
@@ -136,28 +143,6 @@ class _MembersViewState extends State<MembersView> {
             ),
     );
   }
-
-  Widget _memberTile(HouseholdMember member) => ListTile(
-    key: ValueKey('member-${member.id}'),
-    leading: Icon(
-      member.role == HouseholdMemberRole.owner
-          ? Icons.workspace_premium_outlined
-          : Icons.person_outline,
-    ),
-    title: Text(member.displayName),
-    subtitle: Text(member.role.label),
-    trailing:
-        widget.viewModel.canManageMembers &&
-            member.role != HouseholdMemberRole.owner
-        ? PopupMenuButton<_MemberAction>(
-            tooltip: 'Member actions',
-            onSelected: (_) => _showArchiveDialog(member),
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: _MemberAction.remove, child: Text('Remove')),
-            ],
-          )
-        : null,
-  );
 
   Future<void> _showArchiveDialog(HouseholdMember member) async {
     final confirmed = await showDialog<bool>(
@@ -208,8 +193,6 @@ class _MembersViewState extends State<MembersView> {
         : 'Enter a valid email';
   }
 }
-
-enum _MemberAction { remove }
 
 class _InvitationForm {
   const _InvitationForm(this.displayName, this.email, this.role);
