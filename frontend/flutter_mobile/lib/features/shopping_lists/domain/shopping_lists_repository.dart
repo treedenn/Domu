@@ -24,6 +24,11 @@ abstract interface class ShoppingListsRepository {
     required String shoppingListId,
     required String name,
     String? note,
+    String? spaceId,
+    String? itemId,
+    int count = 1,
+    num? amountPerUnit,
+    ShoppingListItemUnit? unit,
   });
   Future<ShoppingListItem> updateItem({
     required String householdId,

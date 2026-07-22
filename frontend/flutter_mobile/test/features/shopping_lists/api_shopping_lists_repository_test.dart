@@ -8,6 +8,59 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 void main() {
+  test('creates a shopping-list item linked to a space item', () async {
+    late http.Request request;
+    final repository = ApiShoppingListsRepository(
+      ApiClient(
+        baseUrl: 'https://api.example.test',
+        accessToken: () async => 'token',
+        httpClient: MockClient((value) async {
+          request = value;
+          return http.Response(
+            jsonEncode({
+              'data': {
+                'id': 'item-1',
+                'shoppingListId': 'list-1',
+                'name': 'Rice',
+                'note': null,
+                'count': 2,
+                'amountPerUnit': 500,
+                'unit': 'gram',
+                'spaceId': 'pantry',
+                'itemId': 'rice',
+                'checked': false,
+                'sortOrder': 1,
+              },
+            }),
+            201,
+          );
+        }),
+      ),
+    );
+
+    await repository.createItem(
+      householdId: 'home',
+      shoppingListId: 'list-1',
+      name: 'Rice',
+      spaceId: 'pantry',
+      itemId: 'rice',
+    );
+
+    expect(
+      request.url.path,
+      '/api/v1/households/home/shopping-lists/list-1/items',
+    );
+    expect(jsonDecode(request.body), {
+      'name': 'Rice',
+      'note': null,
+      'spaceId': 'pantry',
+      'itemId': 'rice',
+      'count': 1,
+      'amountPerUnit': null,
+      'unit': null,
+    });
+  });
+
   test('maps shopping-list item count, amount, and unit API fields', () async {
     late http.Request request;
     final repository = ApiShoppingListsRepository(

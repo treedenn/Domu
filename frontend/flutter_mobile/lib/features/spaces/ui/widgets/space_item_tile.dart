@@ -8,11 +8,13 @@ class SpaceItemTile extends StatelessWidget {
     required this.item,
     required this.onEdit,
     required this.onDelete,
+    required this.onAddToShoppingList,
   });
 
   final SpaceItem item;
   final ValueChanged<SpaceItem> onEdit;
   final ValueChanged<SpaceItem> onDelete;
+  final ValueChanged<SpaceItem> onAddToShoppingList;
 
   @override
   Widget build(BuildContext context) => ListTile(
@@ -26,10 +28,17 @@ class SpaceItemTile extends StatelessWidget {
       ].join(' · '),
     ),
     trailing: PopupMenuButton<_ItemAction>(
-      onSelected: (action) =>
-          action == _ItemAction.edit ? onEdit(item) : onDelete(item),
+      onSelected: (action) => switch (action) {
+        _ItemAction.edit => onEdit(item),
+        _ItemAction.addToShoppingList => onAddToShoppingList(item),
+        _ItemAction.delete => onDelete(item),
+      },
       itemBuilder: (_) => const [
         PopupMenuItem(value: _ItemAction.edit, child: Text('Edit')),
+        PopupMenuItem(
+          value: _ItemAction.addToShoppingList,
+          child: Text('Add to shopping list'),
+        ),
         PopupMenuItem(value: _ItemAction.delete, child: Text('Delete')),
       ],
     ),
@@ -37,4 +46,4 @@ class SpaceItemTile extends StatelessWidget {
   );
 }
 
-enum _ItemAction { edit, delete }
+enum _ItemAction { edit, addToShoppingList, delete }

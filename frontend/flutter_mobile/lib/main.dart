@@ -63,7 +63,10 @@ void main() {
       shoppingListDetailViewModel: ShoppingListDetailViewModel(
         shoppingListsRepository,
       ),
-      spacesViewModel: SpacesViewModel(spacesRepository),
+      spacesViewModel: SpacesViewModel(
+        spacesRepository,
+        shoppingListsRepository,
+      ),
     ),
   );
 }

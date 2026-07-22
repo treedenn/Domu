@@ -78,10 +78,23 @@ class ApiShoppingListsRepository implements ShoppingListsRepository {
     required String shoppingListId,
     required String name,
     String? note,
+    String? spaceId,
+    String? itemId,
+    int count = 1,
+    num? amountPerUnit,
+    ShoppingListItemUnit? unit,
   }) => _itemRequest(
     () => _client.post(
       '${_path(householdId)}/$shoppingListId/items',
-      body: {'name': name, 'note': ?note},
+      body: {
+        'name': name,
+        'note': note,
+        'spaceId': spaceId,
+        'itemId': itemId,
+        'count': count,
+        'amountPerUnit': amountPerUnit,
+        'unit': unit?.name,
+      },
     ),
   );
   @override

@@ -57,7 +57,11 @@ class AppRouter {
         shoppingListDetailViewModel ??
         ShoppingListDetailViewModel(_UnavailableShoppingListsRepository());
     _spacesViewModel =
-        spacesViewModel ?? SpacesViewModel(_UnavailableSpacesRepository());
+        spacesViewModel ??
+        SpacesViewModel(
+          _UnavailableSpacesRepository(),
+          _UnavailableShoppingListsRepository(),
+        );
     _dashboardViewModel =
         dashboardViewModel ??
         DashboardViewModel(_UnavailableHouseholdRepository());
@@ -221,6 +225,11 @@ class _UnavailableShoppingListsRepository implements ShoppingListsRepository {
     required String shoppingListId,
     required String name,
     String? note,
+    String? spaceId,
+    String? itemId,
+    int count = 1,
+    num? amountPerUnit,
+    ShoppingListItemUnit? unit,
   }) async => _error();
   @override
   Future<ShoppingListItem> updateItem({

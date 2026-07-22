@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../domain/space.dart';
+import '../../shopping_lists/domain/shopping_list.dart';
 import 'spaces_view_model.dart';
 import 'widgets/item_form_dialog.dart';
 import 'widgets/move_space_dialog.dart';
@@ -127,7 +128,12 @@ class _SpacesViewState extends State<SpacesView> {
               child: Text('Items'),
             ),
           for (final item in vm.items)
-            SpaceItemTile(item: item, onEdit: _editItem, onDelete: _deleteItem),
+            SpaceItemTile(
+              item: item,
+              onEdit: _editItem,
+              onDelete: _deleteItem,
+              onAddToShoppingList: _addToShoppingList,
+            ),
           if (vm.hasMore)
             Padding(
               padding: const EdgeInsets.all(16),
@@ -265,6 +271,31 @@ class _SpacesViewState extends State<SpacesView> {
     final yes = await _confirm('Delete item?', 'Delete ${item.name}?');
     if (yes == true) {
       await widget.viewModel.deleteItem(item.id);
+    }
+  }
+
+  Future<void> _addToShoppingList(SpaceItem item) async {
+    final shoppingLists = await widget.viewModel.availableShoppingLists();
+    if (!mounted || shoppingLists.isEmpty) return;
+    final shoppingList = await showModalBottomSheet<ShoppingList>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            const ListTile(title: Text('Add to shopping list')),
+            for (final list in shoppingLists)
+              ListTile(
+                leading: const Icon(Icons.shopping_cart_outlined),
+                title: Text(list.name),
+                onTap: () => Navigator.pop(context, list),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (shoppingList != null && mounted) {
+      await widget.viewModel.addItemToShoppingList(item, shoppingList);
     }
   }
 

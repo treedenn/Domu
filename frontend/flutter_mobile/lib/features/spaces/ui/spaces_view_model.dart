@@ -1,11 +1,14 @@
 import 'package:flutter/foundation.dart';
 
+import '../../shopping_lists/domain/shopping_list.dart';
+import '../../shopping_lists/domain/shopping_lists_repository.dart';
 import '../domain/space.dart';
 import '../domain/spaces_repository.dart';
 
 class SpacesViewModel extends ChangeNotifier {
-  SpacesViewModel(this._repository);
+  SpacesViewModel(this._repository, this._shoppingListsRepository);
   final SpacesRepository _repository;
+  final ShoppingListsRepository _shoppingListsRepository;
   String? _householdId;
   String? _parentId;
   List<Space> _spaces = const [];
@@ -207,6 +210,44 @@ class SpacesViewModel extends ChangeNotifier {
       itemId: itemId,
     ),
   );
+
+  Future<List<ShoppingList>> availableShoppingLists() async {
+    final householdId = _householdId;
+    if (householdId == null) return const [];
+    try {
+      final lists = await _shoppingListsRepository.getShoppingLists(
+        householdId,
+      );
+      if (lists.isEmpty) {
+        _message = 'Create a shopping list before adding items to it.';
+        notifyListeners();
+      }
+      return lists;
+    } on ShoppingListsRepositoryException catch (e) {
+      _message = e.message;
+      notifyListeners();
+      return const [];
+    } catch (_) {
+      _message = 'Unable to load shopping lists. Please try again.';
+      notifyListeners();
+      return const [];
+    }
+  }
+
+  Future<bool> addItemToShoppingList(
+    SpaceItem item,
+    ShoppingList shoppingList,
+  ) => _mutate(
+    'Item added to ${shoppingList.name}.',
+    (h) => _shoppingListsRepository.createItem(
+      householdId: h,
+      shoppingListId: shoppingList.id,
+      name: item.name,
+      spaceId: item.spaceId,
+      itemId: item.id,
+    ),
+  );
+
   String get _requiredParent =>
       _parentId ?? (throw StateError('Items require a space.'));
 
@@ -256,6 +297,9 @@ class SpacesViewModel extends ChangeNotifier {
       _message = success;
       return true;
     } on SpacesRepositoryException catch (e) {
+      _message = e.message;
+      return false;
+    } on ShoppingListsRepositoryException catch (e) {
       _message = e.message;
       return false;
     } catch (_) {
