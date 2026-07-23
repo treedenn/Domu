@@ -1,0 +1,25 @@
+# Flutter development commands
+
+android_sdk := env_var_or_default("ANDROID_SDK_ROOT", env_var_or_default("ANDROID_HOME", "/home/d/Android/Sdk"))
+emulator := android_sdk + "/emulator/emulator"
+
+# Start both local Pixel 7 test emulators.
+start-emulators:
+    nohup "{{emulator}}" -avd Pixel_7_-_Test_A > /dev/null 2>&1 &
+    nohup "{{emulator}}" -avd Pixel_7_-_Test_B > /dev/null 2>&1 &
+
+# Gracefully power off every currently running Android emulator.
+stop-emulators:
+    adb devices | awk '$1 ~ /^emulator-/ && $2 == "device" { print $1 }' | while read -r serial; do adb -s "$serial" shell reboot -p; done
+
+# Forward the local Zitadel and API ports to every connected Android device.
+reverse-local:
+    adb devices | awk '$2 == "device" { print $1 }' | while read -r serial; do adb -s "$serial" reverse tcp:8080 tcp:8080; adb -s "$serial" reverse tcp:5070 tcp:5070; done
+
+# Launch the app on every connected Flutter device/emulator.
+run-all: reverse-local
+    flutter run -d all --dart-define-from-file=env/dev.json
+
+# List available Flutter devices and emulators.
+devices:
+    flutter devices
